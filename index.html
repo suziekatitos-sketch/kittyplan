@@ -2333,6 +2333,103 @@
   }
 
 
+
+  /* ── LIMPIEZA ── */
+  .limpieza-section {
+    max-width: 900px;
+    margin: 2rem auto 0;
+    animation: fadeUp .5s .2s ease both;
+    opacity: 0;
+  }
+  .limpieza-area-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1rem;
+  }
+  .limpieza-area-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: .7rem;
+    gap: .5rem;
+  }
+  .limpieza-area-name {
+    font-size: .82rem;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  .limpieza-area-emoji { font-size: 1.2rem; }
+  .limpieza-freq-badge {
+    font-size: .6rem;
+    font-weight: 700;
+    background: var(--rosa-soft);
+    color: var(--rosa);
+    padding: .2rem .5rem;
+    border-radius: 20px;
+    letter-spacing: .03em;
+  }
+  .limpieza-task-row {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .4rem 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .limpieza-task-row:last-child { border-bottom: none; }
+  .limpieza-check {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .7rem;
+    transition: all .2s;
+  }
+  .limpieza-check.done {
+    background: var(--rosa);
+    border-color: var(--rosa);
+    color: #fff;
+  }
+  .limpieza-task-name {
+    font-size: .76rem;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+  }
+  .limpieza-task-name.done {
+    text-decoration: line-through;
+    color: var(--muted);
+  }
+  .limpieza-last-done {
+    font-size: .6rem;
+    color: var(--muted2);
+    font-weight: 600;
+  }
+  .limpieza-add-area-btn {
+    background: none;
+    border: 1.5px dashed var(--border);
+    border-radius: 14px;
+    width: 100%;
+    padding: .8rem;
+    font-family: 'Nunito', sans-serif;
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    margin-top: .5rem;
+    transition: all .2s;
+  }
+  .limpieza-add-area-btn:hover { border-color: var(--rosa); color: var(--rosa); }
+
   /* ── RECUERDOS ── */
   .rec-section {
     margin-bottom: .9rem;
@@ -3702,54 +3799,63 @@ function todayKey() { return dateKey(new Date()); }
 <!-- ══════════════════════════════════════════
      SECCIÓN 4 · CHECK-IN SENSORIAL DIARIO
 ══════════════════════════════════════════ -->
-</div><!-- end page-semana -->
-<div id="page-rutinas" class="page-section">
-<div id="sec-rutinas-nav" style="scroll-margin-top:60px"></div>
+
+<!-- Frases neurodivergentes -->
+<div id="sec-intereses-nav" style="scroll-margin-top:60px"></div>
 <!-- ══════════════════════════════════════════
-     SECCIÓN · RUTINAS
+     SECCIÓN 5 · ZONA DE HIPERENFOQUE
 ══════════════════════════════════════════ -->
-<section class="rutinas-section" id="sec-rutinas">
-  <span class="section-sub">🗓️ mis rutinas</span>
-  <h2 class="section-title"><em>Rutinas</em> del Día</h2>
-  <p style="font-size:.75rem;color:var(--muted);margin-bottom:1.2rem;font-weight:600">
-    Crea plantillas de rutina y asígnalas a días específicos 🐾
-  </p>
-
-  <!-- Selector de fecha + rutina activa -->
-  <div class="rutina-top">
-    <div class="rutina-date-row">
-      <button class="nav-btn" id="rutPrevDay">‹</button>
-      <span class="rutina-date-label" id="rutDateLabel"></span>
-      <button class="nav-btn" id="rutNextDay">›</button>
+<section class="spark-section" id="sec-spark">
+  <span class="section-sub">✦ interés especial</span>
+  <h2 class="section-title"><em>Mi Zona de</em> Hiperenfoque</h2>
+  <div class="spark-card">
+    <div class="spark-header">
+      <div class="spark-icon-wrap" id="sparkEmoji" title="Haz clic para cambiar" style="cursor:pointer" onclick="cycleSparkIcon()">⭐</div>
+      <div class="spark-titles">
+        <span class="spark-label" id="sparkRangeLabel">Mi proyecto / interés especial de estos 3 días</span>
+        <input class="spark-title-input" id="sparkTitle" placeholder="¿En qué estoy enfocada estos días?" />
+      </div>
     </div>
 
-    <!-- Plantilla asignada a este día -->
-    <div class="rutina-assigned" id="rutAssigned"></div>
-  </div>
+    <div class="spark-body">
+      <!-- Panel notas libres -->
+      <div class="spark-panel">
+        <div class="spark-panel-title">📝 Notas e ideas libres</div>
+        <textarea class="spark-note" id="sparkNotes" placeholder="Escribe lo que quieras… ideas, pensamientos, cosas que descubriste…"></textarea>
+      </div>
 
-  <!-- Vista de franjas del día -->
-  <div class="rutina-day-view" id="rutDayView"></div>
-
-  <!-- Gestión de plantillas -->
-  <div class="rutina-templates-wrap">
-    <div class="rutina-templates-header">
-      <span class="rutina-templates-title">📋 Mis plantillas</span>
-      <button class="rutina-new-btn" id="rutNewBtn">＋ Nueva plantilla</button>
+      <!-- Panel lista de ideas -->
+      <div class="spark-panel">
+        <div class="spark-panel-title">💡 Lista de ideas / cosas a explorar</div>
+        <div class="ideas-list" id="ideasList"></div>
+        <div class="add-idea-row">
+          <input class="idea-input" id="ideaInput" placeholder="Nueva idea…" />
+          <button class="idea-add-btn" onclick="addIdea()">＋</button>
+        </div>
+      </div>
     </div>
-    <div class="rutina-templates-list" id="rutTemplatesList"></div>
-  </div>
 
-  <!-- Desglosador de tareas complejas -->
-  <div class="desglose-wrap" style="margin-top:2rem">
-    <span class="section-sub">🧩 paso a paso</span>
-    <h2 class="section-title"><em>Tareas</em> Complejas</h2>
-    <p style="font-size:.75rem;color:var(--muted);margin-bottom:1.2rem;font-weight:600">
-      Desglosa tareas grandes en pasos pequeños y gánatela 🎯
-    </p>
-    <div class="desglose-list" id="desgloseList"></div>
-    <button class="rutina-new-btn" id="desgloseNewBtn" style="margin-top:.8rem">＋ Nueva tarea compleja</button>
+    <!-- Barra de ánimo del proyecto -->
+    <div class="spark-progress">
+      <span class="spark-prog-label">¿Cómo me siento con este proyecto estos días?</span>
+      <div class="spark-dots" id="sparkDots"></div>
+      <span id="sparkMoodLabel" style="font-size:.65rem;color:var(--beige);font-weight:700;min-width:70px;text-align:right"></span>
+    </div>
   </div>
 </section>
+
+<!-- ══════════════════════════════════════════
+     SECCIÓN 6 · AGUA & COMIDAS
+══════════════════════════════════════════ -->
+</div><!-- end page-semana -->
+<div id="page-fe" class="page-section">
+<div id="sec-fe-nav" style="scroll-margin-top:60px"></div>
+<section class="dios-section" id="sec-dios">
+  <span class="section-sub">🌟 fe y espiritualidad</span>
+  <h2 class="section-title"><em>Mi Relación</em> con Dios</h2>
+  <div class="dios-card" id="diosCard"></div>
+</section>
+
 
 <style>
   /* ── RUTINAS ── */
@@ -4347,10 +4453,10 @@ function todayKey() { return dateKey(new Date()); }
 
 <script>
 // dateKey helper (needed early)
-function dateKey(d) {
+if (typeof dateKey === 'undefined') { window.dateKey = function dateKey(d) {
   if (typeof d === 'string') return d;
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-}
+}; }
 // ══════════════════════════════════════════
 //  SECCIÓN · RUTINAS
 // ══════════════════════════════════════════
@@ -4403,13 +4509,14 @@ function renderRutinas() {
   let label = `${DIAS_ES[date.getDay()]} ${date.getDate()} de ${MESES_ES[date.getMonth()]}`;
   if (isToday)    label = '📅 Hoy - ' + label;
   if (isTomorrow) label = '📅 Mañana - ' + label;
-  document.getElementById('rutDateLabel').textContent = label;
+  (function(){var _s=document.getElementById('rutDateLabel');if(_s)_s.textContent=label;})();
 
   // Assigned template for this day
   const assignedId = rutinaAsignaciones[dk];
   const assigned   = assignedId ? rutinaTemplates.find(t => t.id === assignedId) : null;
 
   const assignedEl = document.getElementById('rutAssigned');
+  if (!assignedEl) return;
   assignedEl.innerHTML = '';
 
   if (assigned) {
@@ -4438,6 +4545,7 @@ function renderRutinas() {
 
   // Day view (3 franjas)
   const dayView = document.getElementById('rutDayView');
+  if (!dayView) return;
   dayView.innerHTML = '';
 
   RUTINA_FRANJAS.forEach(franja => {
@@ -4490,6 +4598,7 @@ function renderRutinas() {
 
   // Templates list
   const list = document.getElementById('rutTemplatesList');
+  if (!list) return;
   list.innerHTML = '';
 
   if (rutinaTemplates.length === 0) {
@@ -4721,9 +4830,9 @@ function openRutinaModal(templateId) {
 }
 
 // Nav buttons
-document.getElementById('rutPrevDay').onclick = () => { rutinaDateOffset--; renderRutinas(); };
-document.getElementById('rutNextDay').onclick = () => { rutinaDateOffset++; renderRutinas(); };
-document.getElementById('rutNewBtn').onclick  = () => openRutinaModal(null);
+var _rutPrev = document.getElementById('rutPrevDay'); if(_rutPrev) _rutPrev.onclick = () => { rutinaDateOffset--; renderRutinas(); };
+var _rutNext = document.getElementById('rutNextDay'); if(_rutNext) _rutNext.onclick = () => { rutinaDateOffset++; renderRutinas(); };
+var _rutNew = document.getElementById('rutNewBtn'); if(_rutNew) _rutNew.onclick = () => openRutinaModal(null);
 
 // Patch cloud sync
 const _origSync = window.syncFromCloud;
@@ -4997,7 +5106,7 @@ function openDesgloseModal(itemId) {
   box.querySelector('#dTitle').focus();
 }
 
-document.getElementById('desgloseNewBtn').onclick = () => openDesgloseModal(null);
+var _desNew = document.getElementById('desgloseNewBtn'); if(_desNew) _desNew.onclick = () => openDesgloseModal(null);
 
 // Patch cloud sync for desglose
 const _origSyncR = window.syncFromCloud;
@@ -5215,7 +5324,7 @@ function closeImgManager() {
   if (m) m.remove();
 }
 
-document.getElementById('imgManageBtn').onclick = openImgManager;
+var _imgMgr = document.getElementById('imgManageBtn'); if(_imgMgr) _imgMgr.onclick = openImgManager;
 
 // Patch cloud sync
 const _origSyncImg = window.syncFromCloud;
@@ -5239,10 +5348,10 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 
 // --- dateKey helper (early definition) ---
-function dateKey(d) {
+if (typeof dateKey === 'undefined') { window.dateKey = function dateKey(d) {
   if (typeof d === 'string') return d;
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-}
+}; }
 
 // ============================================================
 //  RUTINAS DE EJERCICIO
@@ -5283,9 +5392,10 @@ function renderEjercicio() {
   if (ejDateOffset === 0) label = 'Hoy - ' + label;
   if (ejDateOffset === 1) label = 'Manana - ' + label;
   if (ejDateOffset === -1) label = 'Ayer - ' + label;
-  document.getElementById('ejDateLbl').textContent = label;
+  (function(){var _s=document.getElementById('ejDateLbl');if(_s)_s.textContent=label;})();
 
   var dayWrap = document.getElementById('ejDayWrap');
+  if (!dayWrap) return;
   dayWrap.innerHTML = '';
 
   var registros = ejRegistros[dk] || [];
@@ -5427,8 +5537,8 @@ function renderEjPasos(card, tpl, reg, regIdx, dk) {
       var done = reg.completedSteps.length;
       var pct = total > 0 ? Math.round(done/total*100) : 0;
       var allDone = total > 0 && done === total;
-      card.querySelector('.ejercicio-card-meta').textContent = done + '/' + total + ' ejercicios';
-      card.querySelector('.ejercicio-prog-mini-fill').style.width = pct + '%';
+      var _cm=card.querySelector('.ejercicio-card-meta'); if(_cm) _cm.textContent = done + '/' + total + ' ejercicios';
+      var _pf=card.querySelector('.ejercicio-prog-mini-fill'); if(_pf) _pf.style.width = pct + '%';
     };
 
     wrap.appendChild(row);
@@ -5573,7 +5683,7 @@ function openEjModal(templateId) {
     };
   });
 
-  function renderPasos() {
+  function renderPasos_duplicate_ignored__() {
     var list = box.querySelector('#ejPasosList');
     list.innerHTML = '';
     pasos.forEach(function(paso, pi) {
@@ -5677,6 +5787,7 @@ function renderBelleza() {
 
 function renderBelDayWrap(dk) {
   var dayWrap = document.getElementById('belDayWrap');
+  if (!dayWrap) return;
   if (!dayWrap) return;
   dayWrap.innerHTML = '';
   var registros = bellezaRegistros[dk] || [];
@@ -6160,54 +6271,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 </script>
-</div><!-- end page-rutinas -->
-<div id="page-bienestar" class="page-section">
-<div id="sec-bienestar" style="scroll-margin-top:60px"></div>
 
-<!-- SECCIÓN · RELACIÓN CON DIOS -->
-<section class="dios-section" id="sec-dios">
-  <span class="section-sub">🌟 fe y espiritualidad</span>
-  <h2 class="section-title"><em>Mi Relación</em> con Dios</h2>
-  <div class="dios-card" id="diosCard"></div>
-</section>
-
-<section class="checkin-section" id="sec-checkin">
-  <span class="section-sub">🌡️ autorregulación</span>
-  <h2 class="section-title"><em>Check-in Sensorial</em> del Día</h2>
-  <div class="checkin-grid" id="checkinGrid"></div>
-
-  <!-- Caja de herramientas de calma -->
-  <div class="calm-box">
-    <div class="calm-box-title">🧸 Mis Herramientas de Calma</div>
-    <div class="calm-tools-grid" id="calmTools"></div>
-    <div class="add-calm-row">
-      <input class="calm-input" id="calmInput" placeholder="Añadir herramienta… (ej: música, manta, caminar)" />
-      <button class="calm-add-btn" onclick="addCalmTool()">＋</button>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════════════════════════════════
-     SECCIÓN 7 · ALERTAS DE CAMBIO / PLAN B
-══════════════════════════════════════════ -->
-<section class="cambio-section" id="sec-cambio">
-  <span class="section-sub">🔄 flexibilidad</span>
-  <h2 class="section-title"><em>Tarjetas de</em> Cambio</h2>
-  <div class="tl-day-selector" id="cambioDaySelector"></div>
-  <div class="cambio-grid" id="cambioGrid"></div>
-  <div class="cambio-custom">
-    <div class="cambio-custom-title">✏️ Mis planes B personales</div>
-    <div class="cambio-custom-row">
-      <input class="cambio-custom-input" id="cambioInput" placeholder="Ej: Si cancela mi clase, puedo…" />
-      <button class="cambio-add-btn" onclick="addCambio()">＋</button>
-    </div>
-    <div class="cambio-custom-list" id="cambioList"></div>
-  </div>
-</section>
-
-<!-- ══════════════════════════════════════════
-     SECCIÓN 9 · AUTOCUIDADO & CITA SEMANAL
-══════════════════════════════════════════ -->
+</div><!-- end page-fe -->
+<div id="page-calma" class="page-section">
+<div id="sec-calma-nav" style="scroll-margin-top:60px"></div>
 <section class="cuida-section" id="sec-cuida">
   <span class="section-sub">🌸 selfcare</span>
   <h2 class="section-title"><em>Mi Tiempo de</em> Recarga</h2>
@@ -6228,14 +6295,109 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="quote-nav" id="quoteNav"></div>
   </div>
 </section>
+<section class="checkin-section" id="sec-checkin">
+  <span class="section-sub">🌡️ autorregulación</span>
+  <h2 class="section-title"><em>Check-in Sensorial</em> del Día</h2>
+  <div class="checkin-grid" id="checkinGrid"></div>
 
-<!-- JOURNAL DE AGRADECIMIENTO -->
+  <!-- Caja de herramientas de calma -->
+  <div class="calm-box">
+    <div class="calm-box-title">🧸 Mis Herramientas de Calma</div>
+    <div class="calm-tools-grid" id="calmTools"></div>
+    <div class="add-calm-row">
+      <input class="calm-input" id="calmInput" placeholder="Añadir herramienta… (ej: música, manta, caminar)" />
+      <button class="calm-add-btn" onclick="addCalmTool()">＋</button>
+    </div>
+  </div>
+</section>
+<section class="cambio-section" id="sec-cambio">
+  <span class="section-sub">🔄 flexibilidad</span>
+  <h2 class="section-title"><em>Tarjetas de</em> Cambio</h2>
+  <div class="tl-day-selector" id="cambioDaySelector"></div>
+  <div class="cambio-grid" id="cambioGrid"></div>
+  <div class="cambio-custom">
+    <div class="cambio-custom-title">✏️ Mis planes B personales</div>
+    <div class="cambio-custom-row">
+      <input class="cambio-custom-input" id="cambioInput" placeholder="Ej: Si cancela mi clase, puedo…" />
+      <button class="cambio-add-btn" onclick="addCambio()">＋</button>
+    </div>
+    <div class="cambio-custom-list" id="cambioList"></div>
+  </div>
+</section>
+
+
+
+</div><!-- end page-calma -->
+<div id="page-tareas" class="page-section">
+<div id="sec-tareas-nav" style="scroll-margin-top:60px"></div>
+<section class="rutinas-section" id="sec-tareas-main" style="margin-top:1rem">
+  <span class="section-sub">🧩 paso a paso</span>
+  <h2 class="section-title"><em>Tareas</em> Complejas</h2>
+  <p style="font-size:.75rem;color:var(--muted);margin-bottom:1.2rem;font-weight:600">Desglosa tareas grandes en pasos pequeños y gánatela 🎯</p>
+  <div class="desglose-list" id="desgloseList"></div>
+  <button class="rutina-new-btn" id="desgloseNewBtn" style="margin-top:.8rem">＋ Nueva tarea compleja</button>
+</section>
+
+</div><!-- end page-tareas -->
+<div id="page-rutinas" class="page-section">
+<div id="sec-rutinas-nav" style="scroll-margin-top:60px"></div>
+<section class="rutinas-section" id="sec-rutinas">
+  <span class="section-sub">🗓️ mis rutinas</span>
+  <h2 class="section-title"><em>Rutinas</em> del Día</h2>
+  <p style="font-size:.75rem;color:var(--muted);margin-bottom:1.2rem;font-weight:600">
+    Crea plantillas de rutina y asígnalas a días específicos 🐾
+  </p>
+
+  <!-- Selector de fecha + rutina activa -->
+  <div class="rutina-top">
+    <div class="rutina-date-row">
+      <button class="nav-btn" id="rutPrevDay">‹</button>
+      <span class="rutina-date-label" id="rutDateLabel"></span>
+      <button class="nav-btn" id="rutNextDay">›</button>
+    </div>
+
+    <!-- Plantilla asignada a este día -->
+    <div class="rutina-assigned" id="rutAssigned"></div>
+  </div>
+
+  <!-- Vista de franjas del día -->
+  <div class="rutina-day-view" id="rutDayView"></div>
+
+  <!-- Gestión de plantillas -->
+  <div class="rutina-templates-wrap">
+    <div class="rutina-templates-header">
+      <span class="rutina-templates-title">📋 Mis plantillas</span>
+      <button class="rutina-new-btn" id="rutNewBtn">＋ Nueva plantilla</button>
+    </div>
+    <div class="rutina-templates-list" id="rutTemplatesList"></div>
+  </div>
+</section>
+
+</div><!-- end page-rutinas -->
+<div id="page-journal" class="page-section">
+<div id="sec-journal-nav" style="scroll-margin-top:60px"></div>
 <section class="gratitud-section" id="sec-gratitud">
   <span class="section-sub">🌸 selfcare emocional</span>
   <h2 class="section-title"><em>Agradecimiento</em> del Día</h2>
   <div class="gratitud-grid" id="gratitudGrid"></div>
 </section>
+<section class="logros-section" id="sec-logros">
+  <span class="section-sub">⭐ autocompasión</span>
+  <h2 class="section-title"><em>Mis Logros</em> del Día</h2>
+  <div class="logros-week-grid" id="logrosGrid"></div>
+  <div class="fortalezas-box">
+    <div class="fortalezas-title">💪 Mis Fortalezas en Acción esta semana</div>
+    <div class="fortalezas-chips" id="fortalezasChips"></div>
+    <div class="add-fortaleza-row">
+      <input class="fortaleza-input" id="fortalezaInput" placeholder="Ej: Soy muy detallista, recuerdo cosas importantes…" />
+      <button class="fortaleza-add-btn" onclick="addFortaleza()">＋</button>
+    </div>
+  </div>
+</section>
 
+</div><!-- end page-journal -->
+<div id="page-selfcare" class="page-section">
+<div id="sec-selfcare-nav" style="scroll-margin-top:60px"></div>
 <div id="sec-belleza" style="scroll-margin-top:60px"></div>
 <section class="belleza-section" id="sec-belleza-main">
   <span class="section-sub">✨ selfcare</span>
@@ -6263,57 +6425,10 @@ document.addEventListener('DOMContentLoaded', function() {
     <div id="belPlantillasList"></div>
   </div>
 </section>
-
-</div><!-- end page-bienestar -->
-<div id="page-intereses" class="page-section">
-<div id="sec-intereses-nav" style="scroll-margin-top:60px"></div>
-<!-- ══════════════════════════════════════════
-     SECCIÓN 5 · ZONA DE HIPERENFOQUE
-══════════════════════════════════════════ -->
-<section class="spark-section" id="sec-spark">
-  <span class="section-sub">✦ interés especial</span>
-  <h2 class="section-title"><em>Mi Zona de</em> Hiperenfoque</h2>
-  <div class="spark-card">
-    <div class="spark-header">
-      <div class="spark-icon-wrap" id="sparkEmoji" title="Haz clic para cambiar" style="cursor:pointer" onclick="cycleSparkIcon()">⭐</div>
-      <div class="spark-titles">
-        <span class="spark-label" id="sparkRangeLabel">Mi proyecto / interés especial de estos 3 días</span>
-        <input class="spark-title-input" id="sparkTitle" placeholder="¿En qué estoy enfocada estos días?" />
-      </div>
-    </div>
-
-    <div class="spark-body">
-      <!-- Panel notas libres -->
-      <div class="spark-panel">
-        <div class="spark-panel-title">📝 Notas e ideas libres</div>
-        <textarea class="spark-note" id="sparkNotes" placeholder="Escribe lo que quieras… ideas, pensamientos, cosas que descubriste…"></textarea>
-      </div>
-
-      <!-- Panel lista de ideas -->
-      <div class="spark-panel">
-        <div class="spark-panel-title">💡 Lista de ideas / cosas a explorar</div>
-        <div class="ideas-list" id="ideasList"></div>
-        <div class="add-idea-row">
-          <input class="idea-input" id="ideaInput" placeholder="Nueva idea…" />
-          <button class="idea-add-btn" onclick="addIdea()">＋</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Barra de ánimo del proyecto -->
-    <div class="spark-progress">
-      <span class="spark-prog-label">¿Cómo me siento con este proyecto estos días?</span>
-      <div class="spark-dots" id="sparkDots"></div>
-      <span id="sparkMoodLabel" style="font-size:.65rem;color:var(--beige);font-weight:700;min-width:70px;text-align:right"></span>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════════════════════════════════
-     SECCIÓN 6 · AGUA & COMIDAS
-══════════════════════════════════════════ -->
-</div><!-- end page-intereses -->
+</div><!-- end page-selfcare -->
 <div id="page-salud" class="page-section">
+<div id="sec-salud" style="scroll-margin-top:60px"></div>
+
 <div id="sec-salud" style="scroll-margin-top:60px"></div>
 <section class="tracker-section" id="sec-tracker">
   <span class="section-sub">💧 cuidado personal</span>
@@ -6421,11 +6536,12 @@ function render() {
   const dates = getWeekDates(weekOffset);
 
   const fmt = d => d.toLocaleDateString('es-MX', {weekday:'short', day:'numeric', month:'short'});
-  document.getElementById('weekLabel').textContent =
-    fmt(dates[0]) + ' - ' + fmt(dates[2]);
+  (function(){var _s=document.getElementById('weekLabel');if(_s)_s.textContent=fmt(dates[0]) + ' - ' + fmt(dates[2]);})();
 
   const container = document.getElementById('gridOuter');
+  if (!container) return;
   container.innerHTML = '';
+  if (!container) return;
 
   // Days header
   const daysRow = document.createElement('div');
@@ -6554,7 +6670,7 @@ function updateProgress() {
   });
   const pct = total > 0 ? Math.round((done/total)*100) : 0;
   document.getElementById('progFill').style.width = pct + '%';
-  document.getElementById('progPct').textContent = pct + '%';
+  (function(){var _s=document.getElementById('progPct');if(_s)_s.textContent=pct + '%';})();
 }
 
 // --- PERSIST -----------------------------------------------
@@ -6754,8 +6870,8 @@ function saveTaskModal() {
 }
 
 // --- NAVIGATION --------------------------------------------
-document.getElementById('prevWeek').onclick = () => { weekOffset--; render(); };
-document.getElementById('nextWeek').onclick = () => { weekOffset++; render(); };
+var _pW = document.getElementById('prevWeek'); if(_pW) _pW.onclick = () => { weekOffset--; render(); };
+var _nW = document.getElementById('nextWeek'); if(_nW) _nW.onclick = () => { weekOffset++; render(); };
 
 // --- SYNC FROM CLOUD ---------------------------------------
 window.syncFromCloud = function() {
@@ -6784,6 +6900,7 @@ window.syncFromCloud = function() {
   if (typeof loadRutinas      === 'function') { loadRutinas();    renderRutinas();    }
   if (typeof loadDesglose     === 'function') { loadDesglose();   renderDesglose();   }
   if (typeof loadUniv         === 'function') { loadUniv();       renderUniv();       }
+  if (typeof loadLimpieza     === 'function') { loadLimpieza();   renderLimpieza();   }
 };
 
 // --- INIT --------------------------------------------------
@@ -6826,6 +6943,7 @@ async function initApp() {
       if (raw.rutina_completions)  window._rutinaCompletions  = JSON.parse(raw.rutina_completions);
       if (raw.desglose_items)      window._desgloseItems    = JSON.parse(raw.desglose_items);
       if (raw.univ_data)           window._univData         = JSON.parse(raw.univ_data);
+      if (raw.limpieza_data)      window._limpiezaData     = JSON.parse(raw.limpieza_data);
     } catch(e) { console.warn('Cloud load failed, using localStorage', e); }
   }
   const loader = document.getElementById('cloudLoader');
@@ -6991,7 +7109,7 @@ function addCalmTool() {
   saveCheckin();
   renderCalmTools();
 }
-document.getElementById('calmInput').onkeydown = e => { if(e.key==='Enter') addCalmTool(); };
+var _calmInp = document.getElementById('calmInput'); if(_calmInp) _calmInp.onkeydown = e => { if(e.key==='Enter') addCalmTool(); };
 
 // ============================================================
 //  SECCIÓN 5 · ZONA DE HIPERENFOQUE
@@ -7004,10 +7122,13 @@ function loadSpark() {
   try {
     const key = `spark_${weekOffset}`;
     const raw = window[`_spark_${weekOffset}`] || JSON.parse(localStorage.getItem(key) || '{}');
-    document.getElementById('sparkTitle').value  = raw.title || '';
-    document.getElementById('sparkNotes').value  = raw.notes || '';
+    const _spTitle = document.getElementById('sparkTitle');
+    const _spNotes = document.getElementById('sparkNotes');
+    const _spEmoji = document.getElementById('sparkEmoji');
+    if (_spTitle) _spTitle.value = raw.title || '';
+    if (_spNotes) _spNotes.value = raw.notes || '';
     sparkIconIdx = raw.iconIdx || 0;
-    document.getElementById('sparkEmoji').textContent = SPARK_ICONS[sparkIconIdx];
+    if (_spEmoji) _spEmoji.textContent = SPARK_ICONS[sparkIconIdx];
     ideas = raw.ideas || [];
     renderIdeas();
     renderSparkDots(raw.dotLevel || 0);
@@ -7034,12 +7155,13 @@ function saveSpark() {
 
 function cycleSparkIcon() {
   sparkIconIdx = (sparkIconIdx + 1) % SPARK_ICONS.length;
-  document.getElementById('sparkEmoji').textContent = SPARK_ICONS[sparkIconIdx];
+  var _se = document.getElementById('sparkEmoji');
+  if (_se) _se.textContent = SPARK_ICONS[sparkIconIdx];
   saveSpark();
 }
 
-document.getElementById('sparkTitle').oninput = saveSpark;
-document.getElementById('sparkNotes').oninput = saveSpark;
+var _spT = document.getElementById('sparkTitle'); if(_spT) _spT.oninput = saveSpark;
+var _spN = document.getElementById('sparkNotes'); if(_spN) _spN.oninput = saveSpark;
 
 function renderIdeas() {
   const list = document.getElementById('ideasList');
@@ -7063,7 +7185,7 @@ function addIdea() {
   renderIdeas();
   saveSpark();
 }
-document.getElementById('ideaInput').onkeydown = e => { if(e.key==='Enter') addIdea(); };
+var _ideaIn = document.getElementById('ideaInput'); if(_ideaIn) _ideaIn.onkeydown = e => { if(e.key==='Enter') addIdea(); };
 
 function removeIdea(i) {
   ideas.splice(i, 1);
@@ -7077,6 +7199,7 @@ let currentDotLevel = 0;
 function renderSparkDots(level) {
   currentDotLevel = level;
   const wrap = document.getElementById('sparkDots');
+  if (!wrap) return;
   const lbl  = document.getElementById('sparkMoodLabel');
   if (!wrap) return;
   wrap.innerHTML = '';
@@ -7149,7 +7272,7 @@ function changeGoal(delta) {
 
 function renderTracker() {
   const dates = getWeekDates(weekOffset);
-  document.getElementById('goalLabel').textContent = waterGoal + ' vasos';
+  (function(){var _s=document.getElementById('goalLabel');if(_s)_s.textContent=waterGoal + ' vasos';})();
 
   // -- WATER
   const wGrid = document.getElementById('waterGrid');
@@ -7232,19 +7355,7 @@ renderTracker();
 <!-- ══════════════════════════════════════════
      SECCIÓN 8 · LOGROS & FORTALEZAS
 ══════════════════════════════════════════ -->
-<section class="logros-section" id="sec-logros">
-  <span class="section-sub">⭐ autocompasión</span>
-  <h2 class="section-title"><em>Mis Logros</em> del Día</h2>
-  <div class="logros-week-grid" id="logrosGrid"></div>
-  <div class="fortalezas-box">
-    <div class="fortalezas-title">💪 Mis Fortalezas en Acción esta semana</div>
-    <div class="fortalezas-chips" id="fortalezasChips"></div>
-    <div class="add-fortaleza-row">
-      <input class="fortaleza-input" id="fortalezaInput" placeholder="Ej: Soy muy detallista, recuerdo cosas importantes…" />
-      <button class="fortaleza-add-btn" onclick="addFortaleza()">＋</button>
-    </div>
-  </div>
-</section>
+
 
 <!-- ══════════════════════════════════════════
      SECCIÓN 10 · LÍNEA DE TIEMPO VISUAL
@@ -7311,8 +7422,221 @@ renderTracker();
 </section>
 
 <!-- SECCIÓN · UNIVERSIDAD -->
+
+
+
+
+<!-- SECCIÓN · UNIVERSIDAD -->
+
 </div><!-- end page-salud -->
+
+
+<div id="page-limpieza" class="page-section">
+<div id="sec-limpieza-nav" style="scroll-margin-top:60px"></div>
+<section class="limpieza-section" id="sec-limpieza">
+  <span class="section-sub">🧹 hogar</span>
+  <h2 class="section-title"><em>Mi</em> Limpieza</h2>
+  <p style="font-size:.75rem;color:var(--muted);margin-bottom:1.2rem;font-weight:600">
+    Organiza las tareas del hogar por área 🏠
+  </p>
+  <div id="limpiezaAreas"></div>
+  <button class="limpieza-add-area-btn" id="limpiezaAddAreaBtn">＋ Nueva área</button>
+</section>
+</div><!-- end page-limpieza -->
+
+<script>
+// ============================================================
+//  LIMPIEZA
+// ============================================================
+
+var limpiezaData = [];
+// [{ id, nombre, emoji, tareas: [{ id, nombre, done, lastDone }] }]
+
+function saveLimpieza() {
+  try { localStorage.setItem('limpieza_data', JSON.stringify(limpiezaData)); } catch(e){}
+  if (window.cloudSave) window.cloudSave('limpieza_data', limpiezaData);
+}
+
+function loadLimpieza() {
+  limpiezaData = window._limpiezaData || JSON.parse(localStorage.getItem('limpieza_data') || '[]');
+  if (limpiezaData.length === 0) {
+    // Default areas
+    limpiezaData = [
+      { id:'l1', nombre:'Cuarto', emoji:'🛏️', tareas:[
+        { id:'t1', nombre:'Tender cama', done:false, lastDone:null },
+        { id:'t2', nombre:'Ordenar escritorio', done:false, lastDone:null },
+        { id:'t3', nombre:'Barrer/aspirar', done:false, lastDone:null },
+      ]},
+      { id:'l2', nombre:'Baño', emoji:'🚿', tareas:[
+        { id:'t4', nombre:'Limpiar lavabo', done:false, lastDone:null },
+        { id:'t5', nombre:'Limpiar espejo', done:false, lastDone:null },
+      ]},
+      { id:'l3', nombre:'Cocina', emoji:'🍳', tareas:[
+        { id:'t6', nombre:'Lavar trastes', done:false, lastDone:null },
+        { id:'t7', nombre:'Limpiar estufa', done:false, lastDone:null },
+      ]},
+    ];
+  }
+}
+
+function renderLimpieza() {
+  var wrap = document.getElementById('limpiezaAreas');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  var today = dateKey(new Date());
+
+  limpiezaData.forEach(function(area, aIdx) {
+    var card = document.createElement('div');
+    card.className = 'limpieza-area-card';
+
+    var hdr = document.createElement('div');
+    hdr.className = 'limpieza-area-hdr';
+    var doneTasks = area.tareas.filter(function(t){ return t.done; }).length;
+    hdr.innerHTML =
+      '<div class="limpieza-area-name">' +
+        '<span class="limpieza-area-emoji">' + area.emoji + '</span>' +
+        area.nombre +
+      '</div>' +
+      '<div style="display:flex;gap:.4rem;align-items:center">' +
+        (doneTasks > 0 ? '<span class="limpieza-freq-badge">' + doneTasks + '/' + area.tareas.length + ' ✓</span>' : '') +
+        '<button class="rut-action-btn" style="font-size:.65rem" data-edit="' + aIdx + '">✏️</button>' +
+      '</div>';
+    card.appendChild(hdr);
+
+    area.tareas.forEach(function(tarea, tIdx) {
+      var row = document.createElement('div');
+      row.className = 'limpieza-task-row';
+      var chk = document.createElement('div');
+      chk.className = 'limpieza-check' + (tarea.done ? ' done' : '');
+      chk.textContent = tarea.done ? '✓' : '';
+      var name = document.createElement('div');
+      name.className = 'limpieza-task-name' + (tarea.done ? ' done' : '');
+      name.textContent = tarea.nombre;
+      var last = document.createElement('div');
+      last.className = 'limpieza-last-done';
+      last.textContent = tarea.lastDone ? 'Última vez: ' + tarea.lastDone : '';
+      row.appendChild(chk);
+      row.appendChild(name);
+      row.appendChild(last);
+      row.onclick = function() {
+        tarea.done = !tarea.done;
+        if (tarea.done) tarea.lastDone = today;
+        saveLimpieza(); renderLimpieza();
+      };
+      card.appendChild(row);
+    });
+    wrap.appendChild(card);
+
+    // Wire edit button
+    hdr.querySelector('[data-edit]').onclick = function(e) {
+      e.stopPropagation();
+      openLimpiezaAreaModal(aIdx);
+    };
+  });
+}
+
+function openLimpiezaAreaModal(editIdx) {
+  var editing = editIdx !== null && editIdx !== undefined;
+  var area = editing ? limpiezaData[editIdx] : { id: 'l_' + Date.now(), nombre: '', emoji: '🧹', tareas: [] };
+  var back = document.createElement('div');
+  back.className = 'rutina-modal-backdrop';
+  back.onclick = function(e) { if (e.target === back) back.remove(); };
+  var box = document.createElement('div');
+  box.className = 'rutina-modal-box';
+  var tareasHtml = area.tareas.map(function(t) {
+    return '<div style="display:flex;gap:.4rem;align-items:center;margin-bottom:.3rem">' +
+      '<input class="modal-input limp-tarea-inp" value="' + t.nombre.replace(/"/g,'&quot;') + '" style="flex:1" placeholder="Tarea...">' +
+      '<button class="univ-materia-del limp-tarea-del" style="color:#c77">✕</button></div>';
+  }).join('');
+  box.innerHTML =
+    '<div class="rutina-modal-title">' + (editing ? '✏️' : '🧹') + ' <em>' + (editing ? 'Editar' : 'Nueva') + ' área</em></div>' +
+    '<div class="modal-field"><label class="modal-label">Emoji</label>' +
+    '<input class="modal-input" id="limpEmoji" value="' + area.emoji + '" style="width:70px;text-align:center;font-size:1.2rem"></div>' +
+    '<div class="modal-field" style="margin-top:.7rem"><label class="modal-label">Nombre del área</label>' +
+    '<input class="modal-input" id="limpNombre" value="' + area.nombre + '" placeholder="ej: Cuarto, Baño..." style="width:100%"></div>' +
+    '<div class="modal-field" style="margin-top:.9rem"><label class="modal-label">Tareas</label>' +
+    '<div id="limpTareasList">' + tareasHtml + '</div>' +
+    '<button class="belleza-reset-btn" id="limpAddTareaBtn" style="margin-top:.4rem">＋ Agregar tarea</button></div>' +
+    '<div class="modal-btns" style="margin-top:1.2rem">' +
+    (editing ? '<button class="modal-btn-delete" id="limpDelBtn">⋯ Eliminar</button>' : '') +
+    '<button class="modal-btn-cancel" id="limpCancel">Cancelar</button>' +
+    '<button class="modal-btn-save" id="limpSave">Guardar 🧹</button></div>';
+
+  back.appendChild(box);
+  document.body.appendChild(back);
+
+  box.querySelectorAll('.limp-tarea-del').forEach(function(btn) {
+    btn.onclick = function() { btn.closest('div').remove(); };
+  });
+  document.getElementById('limpAddTareaBtn').onclick = function() {
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:.4rem;align-items:center;margin-bottom:.3rem';
+    var inp = document.createElement('input');
+    inp.className = 'modal-input limp-tarea-inp';
+    inp.style.flex = '1';
+    inp.placeholder = 'Nueva tarea...';
+    var del = document.createElement('button');
+    del.className = 'univ-materia-del limp-tarea-del';
+    del.style.color = '#c77';
+    del.textContent = '✕';
+    del.onclick = function() { row.remove(); };
+    row.appendChild(inp); row.appendChild(del);
+    document.getElementById('limpTareasList').appendChild(row);
+    inp.focus();
+  };
+  document.getElementById('limpCancel').onclick = function() { back.remove(); };
+  var delBtn = document.getElementById('limpDelBtn');
+  if (delBtn) delBtn.onclick = function() {
+    if (confirm('¿Eliminar "' + area.nombre + '"?')) {
+      limpiezaData.splice(editIdx, 1);
+      saveLimpieza(); renderLimpieza(); back.remove();
+    }
+  };
+  document.getElementById('limpSave').onclick = function() {
+    var nombre = document.getElementById('limpNombre').value.trim();
+    if (!nombre) return;
+    var emoji = document.getElementById('limpEmoji').value.trim() || '🧹';
+    var tareas = [];
+    box.querySelectorAll('.limp-tarea-inp').forEach(function(inp) {
+      var v = inp.value.trim();
+      if (v) {
+        var existing = area.tareas.find(function(t){ return t.nombre === v; });
+        tareas.push(existing || { id: 't_' + Date.now() + Math.random(), nombre: v, done: false, lastDone: null });
+      }
+    });
+    if (editing) {
+      limpiezaData[editIdx].nombre = nombre;
+      limpiezaData[editIdx].emoji = emoji;
+      limpiezaData[editIdx].tareas = tareas;
+    } else {
+      area.nombre = nombre; area.emoji = emoji; area.tareas = tareas;
+      limpiezaData.push(area);
+    }
+    saveLimpieza(); renderLimpieza(); back.remove();
+  };
+  document.getElementById('limpNombre').focus();
+}
+
+// Cloud sync
+if (typeof window.syncFromCloud !== 'undefined') {
+  var _origSyncLimp = window.syncFromCloud;
+  window.syncFromCloud = function() {
+    if (window._limpiezaData) limpiezaData = window._limpiezaData;
+    if (_origSyncLimp) _origSyncLimp();
+    if (typeof renderLimpieza === 'function') renderLimpieza();
+  };
+}
+
+loadLimpieza();
+document.addEventListener('DOMContentLoaded', function() {
+  var addBtn = document.getElementById('limpiezaAddAreaBtn');
+  if (addBtn) addBtn.onclick = function() { openLimpiezaAreaModal(null); };
+  renderLimpieza();
+});
+</script>
+
 <div id="page-univ" class="page-section">
+
 <section class="univ-section" id="sec-univ">
   <span class="section-sub">💙 mi camino</span>
   <h2 class="section-title"><em>Medicina</em> &amp; Universidad</h2>
@@ -7986,6 +8310,7 @@ function renderCambio() {
 
   // Cards for selected day
   const grid = document.getElementById('cambioGrid');
+  if (!grid) return;
   grid.innerHTML = '';
   CAMBIO_CARDS.forEach(c => {
     const key = cambioKey(cambioDayIdx, c.id);
@@ -8005,6 +8330,7 @@ function renderCambio() {
 
 function renderCambioCustom() {
   const list = document.getElementById('cambioList');
+  if (!list) return;
   list.innerHTML = '';
   cambioCustom.forEach((text, i) => {
     const pill = document.createElement('div');
@@ -8023,7 +8349,7 @@ function addCambio() {
   saveCambio(); renderCambioCustom();
 }
 function removeCambio(i) { cambioCustom.splice(i,1); saveCambio(); renderCambioCustom(); }
-document.getElementById('cambioInput').onkeydown = e => { if(e.key==='Enter') addCambio(); };
+var _cambioInp = document.getElementById('cambioInput'); if(_cambioInp) _cambioInp.onkeydown = e => { if(e.key==='Enter') addCambio(); };
 
 // ============================================================
 //  SECCIÓN 8 · LOGROS & FORTALEZAS
@@ -8050,6 +8376,7 @@ function logroKey(dayIdx) { return `lg_${weekOffset}_${dayIdx}`; }
 function renderLogros() {
   const dates = getWeekDates(weekOffset);
   const grid  = document.getElementById('logrosGrid');
+  if (!grid) return;
   grid.innerHTML = '';
 
   dates.forEach((d, dayIdx) => {
@@ -8109,6 +8436,7 @@ function removeLogro(dayIdx, i) {
 
 function renderFortalezas() {
   const wrap = document.getElementById('fortalezasChips');
+  if (!wrap) return;
   wrap.innerHTML = '';
   fortalezas.forEach((f, i) => {
     const chip = document.createElement('div');
@@ -8126,7 +8454,7 @@ function addFortaleza() {
   saveLogros(); renderFortalezas();
 }
 function removeFortaleza(i) { fortalezas.splice(i,1); saveLogros(); renderFortalezas(); }
-document.getElementById('fortalezaInput').onkeydown = e => { if(e.key==='Enter') addFortaleza(); };
+var _fortInp = document.getElementById('fortalezaInput'); if(_fortInp) _fortInp.onkeydown = e => { if(e.key==='Enter') addFortaleza(); };
 
 // ============================================================
 //  SECCIÓN 9 · AUTOCUIDADO & CITA
@@ -8213,8 +8541,8 @@ function renderCuida() {
 
   // Quote
   const q = QUOTES[quoteIdx];
-  document.getElementById('quoteText').textContent   = q.text;
-  document.getElementById('quoteAuthor').textContent = q.author;
+  (function(){var _s=document.getElementById('quoteText');if(_s)_s.textContent=q.text;})();
+  (function(){var _s=document.getElementById('quoteAuthor');if(_s)_s.textContent=q.author;})();
   const nav = document.getElementById('quoteNav');
   nav.innerHTML = '';
   QUOTES.forEach((_,i) => {
@@ -8307,7 +8635,7 @@ function renderTimeline() {
   const pct = totalTasks > 0 ? Math.round((doneTasks/totalTasks)*100) : 0;
   document.getElementById('tlProgFill').style.width = pct + '%';
   const stars = pct >= 80 ? '🌟🌟🌟' : pct >= 50 ? '⭐⭐' : pct > 0 ? '⭐' : '';
-  document.getElementById('tlProgStars').textContent = stars + ' ' + pct + '%';
+  (function(){var _s=document.getElementById('tlProgStars');if(_s)_s.textContent=stars + ' ' + pct + '%';})();
 }
 
 // Patch nav for new sections
@@ -8328,11 +8656,16 @@ renderTimeline();
 <script>
 const NAV_PAGES = [
   { icon:'🐱', label:'Mi Semana',  page:'page-semana'    },
+  { icon:'🙏', label:'Fe',         page:'page-fe'        },
+  { icon:'🌿', label:'Calma',      page:'page-calma'     },
+  { icon:'📝', label:'Tareas',     page:'page-tareas'    },
   { icon:'🌸', label:'Rutinas',    page:'page-rutinas'   },
-  { icon:'⭐', label:'Selfcare',   page:'page-bienestar' },
-  { icon:'🦄', label:'Intereses',  page:'page-intereses' },
+  { icon:'📓', label:'Journal',    page:'page-journal'   },
   { icon:'🍏', label:'Salud',      page:'page-salud'     },
+  { icon:'✨', label:'Selfcare',   page:'page-selfcare'  },
+  { icon:'🧹', label:'Limpieza',   page:'page-limpieza'  },
   { icon:'💙', label:'Medicina',   page:'page-univ'      },
+  { icon:'🦄', label:'Intereses',  page:'page-intereses' },
 ];
 
 let activePage = 'page-semana';
@@ -9204,7 +9537,63 @@ document.addEventListener('DOMContentLoaded', function() {
   if (newExBtn)  newExBtn.onclick  = function() { openUnivExamenModal(); };
 });
 </script>
+
   </div><!-- end page-univ -->
+<div id="page-intereses" class="page-section">
+<div id="sec-intereses-nav" style="scroll-margin-top:60px"></div>
+<div id="sec-intereses-nav" style="scroll-margin-top:60px"></div>
+<!-- ══════════════════════════════════════════
+     SECCIÓN 5 · ZONA DE HIPERENFOQUE
+══════════════════════════════════════════ -->
+<section class="spark-section" id="sec-spark">
+  <span class="section-sub">✦ interés especial</span>
+  <h2 class="section-title"><em>Mi Zona de</em> Hiperenfoque</h2>
+  <div class="spark-card">
+    <div class="spark-header">
+      <div class="spark-icon-wrap" id="sparkEmoji" title="Haz clic para cambiar" style="cursor:pointer" onclick="cycleSparkIcon()">⭐</div>
+      <div class="spark-titles">
+        <span class="spark-label" id="sparkRangeLabel">Mi proyecto / interés especial de estos 3 días</span>
+        <input class="spark-title-input" id="sparkTitle" placeholder="¿En qué estoy enfocada estos días?" />
+      </div>
+    </div>
+
+    <div class="spark-body">
+      <!-- Panel notas libres -->
+      <div class="spark-panel">
+        <div class="spark-panel-title">📝 Notas e ideas libres</div>
+        <textarea class="spark-note" id="sparkNotes" placeholder="Escribe lo que quieras… ideas, pensamientos, cosas que descubriste…"></textarea>
+      </div>
+
+      <!-- Panel lista de ideas -->
+      <div class="spark-panel">
+        <div class="spark-panel-title">💡 Lista de ideas / cosas a explorar</div>
+        <div class="ideas-list" id="ideasList"></div>
+        <div class="add-idea-row">
+          <input class="idea-input" id="ideaInput" placeholder="Nueva idea…" />
+          <button class="idea-add-btn" onclick="addIdea()">＋</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de ánimo del proyecto -->
+    <div class="spark-progress">
+      <span class="spark-prog-label">¿Cómo me siento con este proyecto estos días?</span>
+      <div class="spark-dots" id="sparkDots"></div>
+      <span id="sparkMoodLabel" style="font-size:.65rem;color:var(--beige);font-weight:700;min-width:70px;text-align:right"></span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECCIÓN 6 · AGUA & COMIDAS
+══════════════════════════════════════════ -->
+
+
+<!-- ══════════════════════════════════════════
+     SECCIÓN 6 · AGUA & COMIDAS
+══════════════════════════════════════════ -->
+
+</div><!-- end page-intereses -->
   </div><!-- end #app-content -->
   <div class="img-col img-col-right" id="imgColRight"></div>
 </div><!-- end .app-layout -->
