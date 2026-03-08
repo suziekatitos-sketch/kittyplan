@@ -2785,6 +2785,14 @@
 </style>
 </head>
 <body>
+<script>
+// ── GLOBAL HELPERS (must load before all other scripts) ──
+function dateKey(d) {
+  if (typeof d === 'string') return d;
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function todayKey() { return dateKey(new Date()); }
+</script>
 
 <!-- LOGIN SCREEN -->
 <div id="login-screen">
@@ -2858,2064 +2866,7 @@
 <!-- ══════════════════════════════════════════
      SECCIÓN 4 · CHECK-IN SENSORIAL DIARIO
 ══════════════════════════════════════════ -->
-<div id="sec-bienestar" style="scroll-margin-top:60px"></div>
-
-<!-- SECCIÓN · RELACIÓN CON DIOS -->
-<section class="dios-section" id="sec-dios">
-  <span class="section-sub">🌟 fe y espiritualidad</span>
-  <h2 class="section-title"><em>Mi Relación</em> con Dios</h2>
-  <div class="dios-card" id="diosCard"></div>
-</section>
-
-<section class="checkin-section" id="sec-checkin">
-  <span class="section-sub">🌡️ autorregulación</span>
-  <h2 class="section-title"><em>Check-in Sensorial</em> del Día</h2>
-  <div class="checkin-grid" id="checkinGrid"></div>
-
-  <!-- Caja de herramientas de calma -->
-  <div class="calm-box">
-    <div class="calm-box-title">🧸 Mis Herramientas de Calma</div>
-    <div class="calm-tools-grid" id="calmTools"></div>
-    <div class="add-calm-row">
-      <input class="calm-input" id="calmInput" placeholder="Añadir herramienta… (ej: música, manta, caminar)" />
-      <button class="calm-add-btn" onclick="addCalmTool()">＋</button>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════════════════════════════════
-     SECCIÓN 5 · ZONA DE HIPERENFOQUE
-══════════════════════════════════════════ -->
-<section class="spark-section" id="sec-spark">
-  <span class="section-sub">✦ interés especial</span>
-  <h2 class="section-title"><em>Mi Zona de</em> Hiperenfoque</h2>
-  <div class="spark-card">
-    <div class="spark-header">
-      <div class="spark-icon-wrap" id="sparkEmoji" title="Haz clic para cambiar" style="cursor:pointer" onclick="cycleSparkIcon()">⭐</div>
-      <div class="spark-titles">
-        <span class="spark-label" id="sparkRangeLabel">Mi proyecto / interés especial de estos 3 días</span>
-        <input class="spark-title-input" id="sparkTitle" placeholder="¿En qué estoy enfocada estos días?" />
-      </div>
-    </div>
-
-    <div class="spark-body">
-      <!-- Panel notas libres -->
-      <div class="spark-panel">
-        <div class="spark-panel-title">📝 Notas e ideas libres</div>
-        <textarea class="spark-note" id="sparkNotes" placeholder="Escribe lo que quieras… ideas, pensamientos, cosas que descubriste…"></textarea>
-      </div>
-
-      <!-- Panel lista de ideas -->
-      <div class="spark-panel">
-        <div class="spark-panel-title">💡 Lista de ideas / cosas a explorar</div>
-        <div class="ideas-list" id="ideasList"></div>
-        <div class="add-idea-row">
-          <input class="idea-input" id="ideaInput" placeholder="Nueva idea…" />
-          <button class="idea-add-btn" onclick="addIdea()">＋</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Barra de ánimo del proyecto -->
-    <div class="spark-progress">
-      <span class="spark-prog-label">¿Cómo me siento con este proyecto estos días?</span>
-      <div class="spark-dots" id="sparkDots"></div>
-      <span id="sparkMoodLabel" style="font-size:.65rem;color:var(--beige);font-weight:700;min-width:70px;text-align:right"></span>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════════════════════════════════
-     SECCIÓN 6 · AGUA & COMIDAS
-══════════════════════════════════════════ -->
-<div id="sec-salud" style="scroll-margin-top:60px"></div>
-<section class="tracker-section" id="sec-tracker">
-  <span class="section-sub">💧 cuidado personal</span>
-  <h2 class="section-title"><em>Agua</em> & <em>Comidas</em></h2>
-  <div class="tracker-grid">
-
-    <!-- AGUA -->
-    <div class="tracker-card water-card">
-      <div class="tracker-card-title">💧 Vasos de agua al día</div>
-      <div class="water-days" id="waterGrid"></div>
-      <div class="water-goal-row">
-        <span>Meta diaria:</span>
-        <button class="goal-btn" onclick="changeGoal(-1)">−</button>
-        <span id="goalLabel">8 vasos</span>
-        <button class="goal-btn" onclick="changeGoal(1)">＋</button>
-        <span style="margin-left:auto;font-size:.6rem;color:var(--muted2)">haz clic en las gotitas 💧</span>
-      </div>
-    </div>
-
-    <!-- COMIDAS -->
-    <div class="tracker-card food-card">
-      <div class="tracker-card-title">🍽️ Comidas del día</div>
-      <div class="food-days" id="foodGrid"></div>
-      <div class="food-legend">
-        <div class="food-legend-item">🌅 Desayuno</div>
-        <div class="food-legend-item">☀️ Almuerzo</div>
-        <div class="food-legend-item">🌙 Cena</div>
-        <div class="food-legend-item">🍎 Snack</div>
-      </div>
-    </div>
-
-  </div>
-</section>
-
-<script>
-// --- CONFIG -----------------------------------------------
-const DAYS   = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
-const SLOTS  = [
-  { id:'m', name:'Mañana',  icon:'🌅', time:'5-11 AM', cls:'slot-manana',  cellCls:'slot-manana-cell', pillCls:'pill-m' },
-  { id:'t', name:'Tarde',   icon:'☀️', time:'11 AM-6 PM', cls:'slot-tarde',   cellCls:'slot-tarde-cell',  pillCls:'pill-t' },
-  { id:'n', name:'Noche',   icon:'🌙', time:'6-10 PM', cls:'slot-noche',   cellCls:'slot-noche-cell',  pillCls:'pill-n' },
-];
-
-// --- STATE ------------------------------------------------
-let weekOffset = 0;
-
-// Recurring tasks: array of { id, text, slotId, recurrence, days, interval, createdAt }
-// recurrence: 'daily' | 'weekly' | 'once' | 'custom'
-// days: [0,1,2,3,4,5,6] indices (0=Mon) for 'weekly'
-// interval: number of days for 'custom'
-let recurringTasks = [];
-
-// Completion state: key "taskId|YYYY-MM-DD" => true/false
-let completions = {};
-
-// Legacy (kept for cloud sync compat)
-let data = {};
-let customTasks = {};
-
-function getWeekDates(offset) {
-  const now = new Date();
-  const start = new Date(now);
-  start.setDate(now.getDate() + offset * 3);
-  return Array.from({length:3}, (_,i) => {
-    const d = new Date(start);
-    d.setDate(start.getDate() + i);
-    return d;
-  });
-}
-
-function isTodayDate(d) {
-  const t = new Date();
-  return d.getDate()===t.getDate() && d.getMonth()===t.getMonth() && d.getFullYear()===t.getFullYear();
-}
-
-function taskKey(dayIdx, slotId, i) {
-  return `${weekOffset}|${dayIdx}|${slotId}|${i}`;
-}
-function customKey(dayIdx, slotId) {
-  return `${weekOffset}|${dayIdx}|${slotId}`;
-}
-
-// --- HELPERS -----------------------------------------------
-function dateKey(d) {
-  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-}
-
-function taskVisibleOnDate(task, date) {
-  const jsDay = date.getDay();
-  const dayIdx = jsDay === 0 ? 6 : jsDay - 1; // 0=Mon
-  if (task.recurrence === 'daily') return true;
-  if (task.recurrence === 'weekly') return (task.days || []).includes(dayIdx);
-  if (task.recurrence === 'once') {
-    return task.onceDate === dateKey(date);
-  }
-  if (task.recurrence === 'custom') {
-    const created = new Date(task.createdAt);
-    const diff = Math.round((date - created) / 86400000);
-    return diff >= 0 && diff % (task.interval || 1) === 0;
-  }
-  return false;
-}
-
-function completionKey(taskId, date) {
-  return taskId + '|' + dateKey(date);
-}
-
-// --- RENDER -----------------------------------------------
-function render() {
-  const dates = getWeekDates(weekOffset);
-
-  const fmt = d => d.toLocaleDateString('es-MX', {weekday:'short', day:'numeric', month:'short'});
-  document.getElementById('weekLabel').textContent =
-    fmt(dates[0]) + ' - ' + fmt(dates[2]);
-
-  const container = document.getElementById('gridOuter');
-  container.innerHTML = '';
-
-  // Days header
-  const daysRow = document.createElement('div');
-  daysRow.className = 'days-header';
-  daysRow.innerHTML = '<div></div>';
-  dates.forEach((d) => {
-    const isToday = isTodayDate(d);
-    const col = document.createElement('div');
-    col.className = 'day-col' + (isToday ? ' today' : '');
-    const jsDay = d.getDay();
-    const dayIdx = jsDay === 0 ? 6 : jsDay - 1;
-    col.innerHTML = `<div class="day-name">${DAYS[dayIdx]}</div><div class="day-num">${d.getDate()}</div>`;
-    daysRow.appendChild(col);
-  });
-  container.appendChild(daysRow);
-
-  // Slot rows
-  SLOTS.forEach(slot => {
-    const section = document.createElement('div');
-    section.className = 'block-section';
-    const row = document.createElement('div');
-    row.className = 'block-row';
-
-    const label = document.createElement('div');
-    label.className = `slot-label ${slot.cls}`;
-    label.innerHTML = `
-      <span class="slot-icon">${slot.icon}</span>
-      <span class="slot-name">${slot.name}</span>
-      <span class="slot-time">${slot.time}</span>`;
-    row.appendChild(label);
-
-    dates.forEach((date) => {
-      const isToday = isTodayDate(date);
-      const cell = document.createElement('div');
-      cell.className = `cell ${slot.cellCls}` + (isToday ? ' today-cell' : '');
-      renderCell(cell, slot, date);
-      row.appendChild(cell);
-    });
-
-    section.appendChild(row);
-    container.appendChild(section);
-  });
-
-  updateProgress();
-}
-
-// ── Render a single cell
-function renderCell(cell, slot, date) {
-  cell.innerHTML = '';
-  const pillCls = slot.pillCls;
-  const dk = dateKey(date);
-
-  // Get tasks visible on this date for this slot
-  const tasks = recurringTasks.filter(t => t.slotId === slot.id && taskVisibleOnDate(t, date));
-
-  tasks.forEach((task) => {
-    const cKey = completionKey(task.id, date);
-    const done = !!completions[cKey];
-
-    const pill = document.createElement('div');
-    pill.className = `task-pill ${pillCls}` + (done ? ' done' : '');
-
-    const chk = document.createElement('span');
-    chk.className = 'pill-check';
-    chk.textContent = done ? '✓' : '';
-    chk.onclick = (e) => {
-      e.stopPropagation();
-      completions[cKey] = !done;
-      saveData(); updateProgress(); renderCell(cell, slot, date);
-    };
-
-    const txt = document.createElement('span');
-    txt.className = 'pill-text';
-    txt.textContent = task.text;
-
-    // Recurrence badge
-    const badge = document.createElement('span');
-    badge.className = 'recur-badge';
-    const badgeMap = { daily:'🔁', weekly:'📅', once:'1️⃣', custom:'⚙️' };
-    badge.textContent = badgeMap[task.recurrence] || '';
-    badge.title = recurrenceLabel(task);
-
-    const editBtn = document.createElement('button');
-    editBtn.className = 'pill-action-btn pill-edit-btn';
-    editBtn.title = 'Configurar tarea';
-    editBtn.textContent = '✏️';
-    editBtn.onclick = (e) => { e.stopPropagation(); openTaskModal(task.id); };
-
-    const delBtn = document.createElement('button');
-    delBtn.className = 'pill-action-btn pill-del-btn';
-    delBtn.title = 'Eliminar tarea';
-    delBtn.textContent = '✕';
-    delBtn.onclick = (e) => {
-      e.stopPropagation();
-      if (confirm('¿Eliminar esta tarea y todas sus repeticiones?')) {
-        recurringTasks = recurringTasks.filter(t => t.id !== task.id);
-        // Clean completions for this task
-        Object.keys(completions).forEach(k => { if (k.startsWith(task.id + '|')) delete completions[k]; });
-        saveData(); updateProgress(); render();
-      }
-    };
-
-    pill.appendChild(chk);
-    pill.appendChild(txt);
-    pill.appendChild(badge);
-    pill.appendChild(editBtn);
-    pill.appendChild(delBtn);
-    cell.appendChild(pill);
-  });
-
-  // Add button
-  const addBtn = document.createElement('button');
-  addBtn.className = 'add-pill';
-  addBtn.innerHTML = '＋ agregar';
-  addBtn.onclick = () => openTaskModal(null, slot.id, date);
-  cell.appendChild(addBtn);
-}
-
-function recurrenceLabel(task) {
-  if (task.recurrence === 'daily') return 'Todos los días';
-  if (task.recurrence === 'once') return 'Una sola vez';
-  if (task.recurrence === 'custom') return `Cada ${task.interval} días`;
-  if (task.recurrence === 'weekly') {
-    const names = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
-    return 'Cada ' + (task.days||[]).map(d => names[d]).join(', ');
-  }
-  return '';
-}
-
-// --- PROGRESS ----------------------------------------------
-function updateProgress() {
-  const dates = getWeekDates(weekOffset);
-  let total = 0, done = 0;
-  dates.forEach(date => {
-    SLOTS.forEach(slot => {
-      recurringTasks.filter(t => t.slotId === slot.id && taskVisibleOnDate(t, date)).forEach(task => {
-        total++;
-        if (completions[completionKey(task.id, date)]) done++;
-      });
-    });
-  });
-  const pct = total > 0 ? Math.round((done/total)*100) : 0;
-  document.getElementById('progFill').style.width = pct + '%';
-  document.getElementById('progPct').textContent = pct + '%';
-}
-
-// --- PERSIST -----------------------------------------------
-function saveData() {
-  try { localStorage.setItem('recurring_tasks', JSON.stringify(recurringTasks)); } catch(e){}
-  try { localStorage.setItem('completions', JSON.stringify(completions)); } catch(e){}
-  if (window.cloudSave) {
-    window.cloudSave('recurring_tasks', recurringTasks);
-    window.cloudSave('completions', completions);
-  }
-}
-
-function loadData() {
-  recurringTasks = window._recurringTasks || JSON.parse(localStorage.getItem('recurring_tasks') || '[]');
-  completions    = window._completions    || JSON.parse(localStorage.getItem('completions')     || '{}');
-}
-
-function resetWeek() {
-  if (!confirm('¿Reiniciar las tareas completadas de esta semana?')) return;
-  const dates = getWeekDates(weekOffset);
-  dates.forEach(date => {
-    recurringTasks.forEach(task => {
-      delete completions[completionKey(task.id, date)];
-    });
-  });
-  saveData(); render();
-}
-
-function resetAll() {
-  if (!confirm('¿Borrar todas las tareas y completados?')) return;
-  recurringTasks = []; completions = {};
-  saveData(); render();
-}
-
-
-// ── TASK MODAL ────────────────────────────────────────────
-let _modalTaskId = null;  // null = new task
-
-function openTaskModal(taskId, defaultSlotId, defaultDate) {
-  _modalTaskId = taskId;
-  const existing = taskId ? recurringTasks.find(t => t.id === taskId) : null;
-
-  // Remove existing modal
-  const old = document.getElementById('taskModal');
-  if (old) old.remove();
-
-  const slot = existing ? existing.slotId : (defaultSlotId || 'm');
-  const recur = existing ? existing.recurrence : 'daily';
-  const days  = existing ? (existing.days || []) : [];
-  const interval = existing ? (existing.interval || 2) : 2;
-  const onceDate = existing ? (existing.onceDate || dateKey(defaultDate || new Date())) : dateKey(defaultDate || new Date());
-
-  const backdrop = document.createElement('div');
-  backdrop.className = 'modal-backdrop';
-  backdrop.id = 'taskModal';
-
-  const DAY_NAMES = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
-
-  backdrop.innerHTML = `
-    <div class="modal-box" id="modalBox">
-      <div class="modal-title">🐾 <em>${existing ? 'Editar' : 'Nueva'} tarea</em></div>
-
-      <div class="modal-field">
-        <label class="modal-label">Nombre de la tarea</label>
-        <input class="modal-input" id="mTaskText" placeholder="ej: Tomar medicamento, Revisar agenda..." value="${existing ? existing.text.replace(/"/g,"&quot;") : ''}">
-      </div>
-
-      <div class="modal-field">
-        <label class="modal-label">Franja del día</label>
-        <div class="modal-slot-row">
-          <button class="slot-chip ${slot==='m'?'active-m':''}" data-slot="m" onclick="modalSelectSlot(this,'m')">🌅 Mañana</button>
-          <button class="slot-chip ${slot==='t'?'active-t':''}" data-slot="t" onclick="modalSelectSlot(this,'t')">☀️ Tarde</button>
-          <button class="slot-chip ${slot==='n'?'active-n':''}" data-slot="n" onclick="modalSelectSlot(this,'n')">🌙 Noche</button>
-        </div>
-      </div>
-
-      <div class="modal-field">
-        <label class="modal-label">Repetición</label>
-        <div class="recur-options">
-          <button class="recur-chip ${recur==='daily'?'active':''}"  data-recur="daily"  onclick="modalSelectRecur(this)">🔁 Todos los días</button>
-          <button class="recur-chip ${recur==='weekly'?'active':''}" data-recur="weekly" onclick="modalSelectRecur(this)">📅 Días específicos</button>
-          <button class="recur-chip ${recur==='once'?'active':''}"   data-recur="once"   onclick="modalSelectRecur(this)">1️⃣ Una sola vez</button>
-          <button class="recur-chip ${recur==='custom'?'active':''}" data-recur="custom" onclick="modalSelectRecur(this)">⚙️ Personalizar</button>
-        </div>
-
-        <div id="mWeeklyDays" style="display:${recur==='weekly'?'block':'none'}">
-          <div class="days-selector">
-            ${DAY_NAMES.map((d,i) => `<button class="day-chip ${days.includes(i)?'active':''}" data-day="${i}" onclick="this.classList.toggle('active')">${d}</button>`).join('')}
-          </div>
-        </div>
-
-        <div id="mOnceDate" style="display:${recur==='once'?'block':'none'};margin-top:.5rem">
-          <input class="modal-input" type="date" id="mDatePicker" value="${onceDate}">
-        </div>
-
-        <div id="mCustomInterval" style="display:${recur==='custom'?'flex':'none'}" class="modal-interval-row">
-          <span style="font-size:.75rem;color:var(--muted);font-weight:600">Cada</span>
-          <button class="interval-btn" onclick="changeInterval(-1)">−</button>
-          <span class="interval-val" id="mIntervalVal">${interval}</span>
-          <button class="interval-btn" onclick="changeInterval(1)">＋</button>
-          <span style="font-size:.75rem;color:var(--muted);font-weight:600">días</span>
-        </div>
-      </div>
-
-      <div class="modal-btns">
-        <button class="modal-btn-cancel" onclick="closeTaskModal()">Cancelar</button>
-        <button class="modal-btn-save"   onclick="saveTaskModal()">Guardar 🐱</button>
-      </div>
-    </div>`;
-
-  // Close on backdrop click
-  backdrop.onclick = (e) => { if (e.target === backdrop) closeTaskModal(); };
-
-  document.body.appendChild(backdrop);
-  document.getElementById('mTaskText').focus();
-}
-
-function modalSelectSlot(btn, slotId) {
-  document.querySelectorAll('#taskModal .slot-chip').forEach(b => {
-    b.className = 'slot-chip';
-  });
-  btn.classList.add('active-' + slotId);
-}
-
-function modalSelectRecur(btn) {
-  document.querySelectorAll('#taskModal .recur-chip').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const recur = btn.dataset.recur;
-  document.getElementById('mWeeklyDays').style.display    = recur === 'weekly' ? 'block' : 'none';
-  document.getElementById('mOnceDate').style.display      = recur === 'once'   ? 'block' : 'none';
-  document.getElementById('mCustomInterval').style.display= recur === 'custom' ? 'flex'  : 'none';
-}
-
-function changeInterval(delta) {
-  const el = document.getElementById('mIntervalVal');
-  const val = Math.max(2, parseInt(el.textContent) + delta);
-  el.textContent = val;
-}
-
-function closeTaskModal() {
-  const m = document.getElementById('taskModal');
-  if (m) m.remove();
-}
-
-function saveTaskModal() {
-  const text = document.getElementById('mTaskText').value.trim();
-  if (!text) { document.getElementById('mTaskText').focus(); return; }
-
-  const slotBtn  = document.querySelector('#taskModal .slot-chip[class*="active"]');
-  const slotId   = slotBtn ? slotBtn.dataset.slot : 'm';
-  const recurBtn = document.querySelector('#taskModal .recur-chip.active');
-  const recur    = recurBtn ? recurBtn.dataset.recur : 'daily';
-
-  const days = recur === 'weekly'
-    ? [...document.querySelectorAll('#taskModal .day-chip.active')].map(b => parseInt(b.dataset.day))
-    : [];
-  const interval = recur === 'custom' ? parseInt(document.getElementById('mIntervalVal').textContent) : 1;
-  const onceDate = recur === 'once'   ? document.getElementById('mDatePicker').value : null;
-
-  if (recur === 'weekly' && days.length === 0) {
-    alert('Selecciona al menos un día de la semana 🐱');
-    return;
-  }
-
-  if (_modalTaskId) {
-    // Edit existing
-    const t = recurringTasks.find(t => t.id === _modalTaskId);
-    if (t) {
-      t.text = text; t.slotId = slotId; t.recurrence = recur;
-      t.days = days; t.interval = interval; t.onceDate = onceDate;
-    }
-  } else {
-    // New task
-    recurringTasks.push({
-      id: 'task_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
-      text, slotId, recurrence: recur, days, interval, onceDate,
-      createdAt: new Date().toISOString()
-    });
-  }
-
-  saveData();
-  render();
-  closeTaskModal();
-}
-
-// --- NAVIGATION --------------------------------------------
-document.getElementById('prevWeek').onclick = () => { weekOffset--; render(); };
-document.getElementById('nextWeek').onclick = () => { weekOffset++; render(); };
-
-// --- SYNC FROM CLOUD ---------------------------------------
-window.syncFromCloud = function() {
-  if (window._recurringTasks !== undefined) recurringTasks = window._recurringTasks;
-  if (window._completions    !== undefined) completions    = window._completions;
-  render();
-  if (typeof renderCheckin === 'function') { loadCheckin(); renderCheckin(); }
-  if (typeof loadSpark     === 'function') { loadSpark(); }
-  if (typeof renderTracker === 'function') { loadTracker(); renderTracker(); }
-  if (typeof renderLogros  === 'function') { loadLogros(); renderLogros(); }
-  if (typeof renderCambio  === 'function') { loadCambio(); renderCambio(); }
-  if (typeof renderCuida   === 'function') { loadCuida(); renderCuida(); }
-  if (typeof renderTimeline=== 'function') { renderTimeline(); }
-};
-
-// --- INIT --------------------------------------------------
-// Show loading indicator while Firebase connects
-document.addEventListener('DOMContentLoaded', () => {
-  const loader = document.getElementById('cloudLoader');
-  if (loader) loader.style.display = 'flex';
-});
-
-async function initApp() {
-  // Load from cloud if available, else use localStorage immediately
-  if (window.cloudLoad) {
-    try {
-      const raw = await window.cloudLoad();
-      if (raw.sem_data)    window._data        = JSON.parse(raw.sem_data);
-      if (raw.sem_custom)  window._customTasks = JSON.parse(raw.sem_custom);
-      if (raw.ci_state)    window._checkinState= JSON.parse(raw.ci_state);
-      if (raw.nd_state)    window._needsState  = JSON.parse(raw.nd_state);
-      if (raw.calm_tools)  window._calmTools   = JSON.parse(raw.calm_tools);
-      if (raw.water_goal)  window._waterGoal   = parseInt(raw.water_goal);
-      if (raw.water_state) window._waterState  = JSON.parse(raw.water_state);
-      if (raw.food_state)  window._foodState   = JSON.parse(raw.food_state);
-      if (raw.logros_data) window._logrosData  = JSON.parse(raw.logros_data);
-      if (raw.fortalezas)  window._fortalezas  = JSON.parse(raw.fortalezas);
-      if (raw.cambio_state)window._cambioState = JSON.parse(raw.cambio_state);
-      if (raw.cambio_custom)window._cambioCustom=JSON.parse(raw.cambio_custom);
-    } catch(e) { console.warn('Cloud load failed, using localStorage', e); }
-  }
-  const loader = document.getElementById('cloudLoader');
-  if (loader) loader.style.display = 'none';
-  loadData();
-  render();
-}
-
-if (window._firebaseReady) {
-  initApp();
-} else {
-  document.addEventListener('firebase-ready', initApp);
-  // Fallback: render after 3s even if Firebase doesn't respond
-  setTimeout(() => { if (!document.getElementById('cloudLoader') || document.getElementById('cloudLoader').style.display !== 'none') initApp(); }, 3000);
-}
-
-// ============================================================
-//  SECCIÓN 4 · CHECK-IN SENSORIAL
-// ============================================================
-const MOODS = [
-  { emoji:'😸', label:'Tranquila' },
-  { emoji:'🐱', label:'Bien' },
-  { emoji:'😐', label:'Neutral' },
-  { emoji:'😼', label:'Con energía' },
-  { emoji:'🙀', label:'Ansiosa' },
-  { emoji:'😿', label:'Abrumada' },
-  { emoji:'😾', label:'Triste' },
-  { emoji:'🤯', label:'Saturada' },
-];
-
-const NEEDS = [
-  { id:'silencio',  icon:'🔇', label:'Silencio' },
-  { id:'manta',     icon:'🛋️', label:'Manta / peso' },
-  { id:'soledad',   icon:'🚪', label:'Espacio solo' },
-  { id:'musica',    icon:'🎵', label:'Música' },
-  { id:'mover',     icon:'🚶', label:'Moverme' },
-  { id:'comer',     icon:'🍵', label:'Algo rico' },
-];
-
-const DEFAULT_CALM = ['Respirar profundo','Música con audífonos','Pedir un abrazo','Salir a caminar','Tiempo sin pantallas'];
-
-let checkinState = {};   // key: "wo|dayIdx|mood" => emoji
-let needsState   = {};   // key: "wo|dayIdx|needId" => bool
-let calmTools    = [];   // array of strings
-
-function checkinKey(dayIdx)     { return `ci_${weekOffset}_${dayIdx}`; }
-function needKey(dayIdx, needId){ return `nd_${weekOffset}_${dayIdx}_${needId}`; }
-
-function loadCheckin() {
-  checkinState = window._checkinState || JSON.parse(localStorage.getItem('ci_state')   || '{}');
-  needsState   = window._needsState   || JSON.parse(localStorage.getItem('nd_state')   || '{}');
-  calmTools    = window._calmTools    || JSON.parse(localStorage.getItem('calm_tools')  || 'null') || [...DEFAULT_CALM];
-}
-
-function saveCheckin() {
-  try { localStorage.setItem('ci_state',   JSON.stringify(checkinState)); } catch(e){}
-  try { localStorage.setItem('nd_state',   JSON.stringify(needsState));   } catch(e){}
-  try { localStorage.setItem('calm_tools', JSON.stringify(calmTools));    } catch(e){}
-  if (window.cloudSave) {
-    window.cloudSave('ci_state',   checkinState);
-    window.cloudSave('nd_state',   needsState);
-    window.cloudSave('calm_tools', calmTools);
-  }
-}
-
-function renderCheckin() {
-  const dates = getWeekDates(weekOffset);
-  const grid  = document.getElementById('checkinGrid');
-  if (!grid) return;
-  grid.innerHTML = '';
-
-  dates.forEach((d, dayIdx) => {
-    const isToday = isTodayDate(d);
-    const cell = document.createElement('div');
-    cell.className = 'checkin-day' + (isToday ? ' today-cell' : '');
-
-    const selectedMood = checkinState[checkinKey(dayIdx)] || null;
-
-    // Day name - derivado de la fecha real, no del índice
-    const jsDay = d.getDay();
-    const realDayIdx = jsDay === 0 ? 6 : jsDay - 1;
-    cell.innerHTML = `<div class="checkin-dayname">${DAYS[realDayIdx]}</div>`;
-
-    // Mood buttons
-    const moodRow = document.createElement('div');
-    moodRow.className = 'mood-row';
-    MOODS.forEach(m => {
-      const btn = document.createElement('button');
-      btn.className = 'mood-btn' + (selectedMood === m.emoji ? ' selected-mood' : '');
-      btn.textContent = m.emoji;
-      btn.title = m.label;
-      btn.onclick = () => {
-        checkinState[checkinKey(dayIdx)] = (selectedMood === m.emoji) ? null : m.emoji;
-        saveCheckin();
-        renderCheckin();
-      };
-      moodRow.appendChild(btn);
-    });
-    cell.appendChild(moodRow);
-
-    // Selected label
-    if (selectedMood) {
-      const found = MOODS.find(m => m.emoji === selectedMood);
-      const lbl = document.createElement('div');
-      lbl.style.cssText = 'font-size:.6rem;font-weight:700;color:var(--rosa);text-align:center;margin-top:2px;';
-      lbl.textContent = found ? found.label : '';
-      cell.appendChild(lbl);
-    }
-
-    // Needs list
-    const needsDiv = document.createElement('div');
-    needsDiv.className = 'needs-list';
-    NEEDS.forEach(n => {
-      const nk = needKey(dayIdx, n.id);
-      const on = !!needsState[nk];
-      const item = document.createElement('div');
-      item.className = 'need-item' + (on ? ' need-on' : '');
-      item.innerHTML = `<div class="need-dot"></div><span>${n.icon} ${n.label}</span>`;
-      item.onclick = () => {
-        needsState[nk] = !needsState[nk];
-        saveCheckin();
-        renderCheckin();
-      };
-      needsDiv.appendChild(item);
-    });
-    cell.appendChild(needsDiv);
-    grid.appendChild(cell);
-  });
-
-  renderCalmTools();
-}
-
-function renderCalmTools() {
-  const wrap = document.getElementById('calmTools');
-  if (!wrap) return;
-  wrap.innerHTML = '';
-  calmTools.forEach((tool, i) => {
-    const el = document.createElement('div');
-    el.className = 'calm-tool';
-    el.innerHTML = `<span>🌸 ${tool}</span><span class="del-tool" title="Eliminar">✕</span>`;
-    el.querySelector('.del-tool').onclick = (e) => {
-      e.stopPropagation();
-      calmTools.splice(i,1);
-      saveCheckin();
-      renderCalmTools();
-    };
-    wrap.appendChild(el);
-  });
-}
-
-function addCalmTool() {
-  const input = document.getElementById('calmInput');
-  const val = input.value.trim();
-  if (!val) return;
-  calmTools.push(val);
-  input.value = '';
-  saveCheckin();
-  renderCalmTools();
-}
-document.getElementById('calmInput').onkeydown = e => { if(e.key==='Enter') addCalmTool(); };
-
-// ============================================================
-//  SECCIÓN 5 · ZONA DE HIPERENFOQUE
-// ============================================================
-const SPARK_ICONS = ['⭐','🔬','🎨','🎮','📚','🌸','🎵','🦋','🚀','🧩','🌿','💎'];
-let sparkIconIdx = 0;
-let ideas = [];
-
-function loadSpark() {
-  try {
-    const key = `spark_${weekOffset}`;
-    const raw = window[`_spark_${weekOffset}`] || JSON.parse(localStorage.getItem(key) || '{}');
-    document.getElementById('sparkTitle').value  = raw.title || '';
-    document.getElementById('sparkNotes').value  = raw.notes || '';
-    sparkIconIdx = raw.iconIdx || 0;
-    document.getElementById('sparkEmoji').textContent = SPARK_ICONS[sparkIconIdx];
-    ideas = raw.ideas || [];
-    renderIdeas();
-    renderSparkDots(raw.dotLevel || 0);
-
-    // Mostrar rango de fechas actual en el label
-    const dates = getWeekDates(weekOffset);
-    const fmt = d => d.toLocaleDateString('es-MX', {day:'numeric', month:'short'});
-    const lbl = document.getElementById('sparkRangeLabel');
-    if (lbl) lbl.textContent = `Mi proyecto / interés especial · ${fmt(dates[0])} - ${fmt(dates[2])}`;
-  } catch(e) {}
-}
-
-function saveSpark() {
-  const val = {
-    title:    document.getElementById('sparkTitle').value,
-    notes:    document.getElementById('sparkNotes').value,
-    iconIdx:  sparkIconIdx,
-    ideas:    ideas,
-    dotLevel: currentDotLevel,
-  };
-  try { localStorage.setItem(`spark_${weekOffset}`, JSON.stringify(val)); } catch(e){}
-  if (window.cloudSave) window.cloudSave(`spark_${weekOffset}`, val);
-}
-
-function cycleSparkIcon() {
-  sparkIconIdx = (sparkIconIdx + 1) % SPARK_ICONS.length;
-  document.getElementById('sparkEmoji').textContent = SPARK_ICONS[sparkIconIdx];
-  saveSpark();
-}
-
-document.getElementById('sparkTitle').oninput = saveSpark;
-document.getElementById('sparkNotes').oninput = saveSpark;
-
-function renderIdeas() {
-  const list = document.getElementById('ideasList');
-  if (!list) return;
-  list.innerHTML = '';
-  ideas.forEach((idea, i) => {
-    const el = document.createElement('div');
-    el.className = 'idea-item';
-    el.innerHTML = `<span>💡 ${idea}</span>
-      <button class="idea-del" onclick="removeIdea(${i})">✕</button>`;
-    list.appendChild(el);
-  });
-}
-
-function addIdea() {
-  const input = document.getElementById('ideaInput');
-  const val = input.value.trim();
-  if (!val) return;
-  ideas.push(val);
-  input.value = '';
-  renderIdeas();
-  saveSpark();
-}
-document.getElementById('ideaInput').onkeydown = e => { if(e.key==='Enter') addIdea(); };
-
-function removeIdea(i) {
-  ideas.splice(i, 1);
-  renderIdeas();
-  saveSpark();
-}
-
-const DOT_LABELS = ['','Recién empezando 🌱','Explorando 🔍','Avanzando bien ✨','¡Muy metida! 🔥','¡En la zona! 🚀'];
-let currentDotLevel = 0;
-
-function renderSparkDots(level) {
-  currentDotLevel = level;
-  const wrap = document.getElementById('sparkDots');
-  const lbl  = document.getElementById('sparkMoodLabel');
-  if (!wrap) return;
-  wrap.innerHTML = '';
-  for (let i = 1; i <= 5; i++) {
-    const dot = document.createElement('div');
-    dot.className = 'spark-dot' + (i <= level ? ' dot-on' : '');
-    dot.title = DOT_LABELS[i];
-    dot.onclick = () => { renderSparkDots(i === level ? 0 : i); saveSpark(); };
-    wrap.appendChild(dot);
-  }
-  lbl.textContent = DOT_LABELS[level] || '';
-}
-
-// Override render to also re-render checkin/spark when week changes
-const _origRender = render;
-// patch nav buttons to also refresh extra sections
-document.getElementById('prevWeek').addEventListener('click', () => { loadCheckin(); renderCheckin(); loadSpark(); });
-document.getElementById('nextWeek').addEventListener('click', () => { loadCheckin(); renderCheckin(); loadSpark(); });
-
-loadCheckin();
-renderCheckin();
-loadSpark();
-renderSparkDots(0);
-
-// ============================================================
-//  SECCIÓN 6 · AGUA & COMIDAS
-// ============================================================
-const MEALS = [
-  { id:'desayuno', icon:'🌅', label:'Desa.' },
-  { id:'almuerzo', icon:'☀️', label:'Alm.' },
-  { id:'cena',     icon:'🌙', label:'Cena' },
-  { id:'snack',    icon:'🍎', label:'Snack' },
-];
-
-let waterGoal  = 8;
-let waterState = {}; // key: "wo|dayIdx" => count (number)
-let foodState  = {}; // key: "wo|dayIdx|mealId" => bool
-
-function wKey(dayIdx)          { return `w_${weekOffset}_${dayIdx}`; }
-function fKey(dayIdx, mealId)  { return `f_${weekOffset}_${dayIdx}_${mealId}`; }
-
-function loadTracker() {
-  waterGoal  = window._waterGoal  || parseInt(localStorage.getItem('water_goal') || '8');
-  waterState = window._waterState || JSON.parse(localStorage.getItem('water_state') || '{}');
-  foodState  = window._foodState  || JSON.parse(localStorage.getItem('food_state')  || '{}');
-}
-
-function saveTracker() {
-  try { localStorage.setItem('water_goal',  waterGoal); } catch(e){}
-  try { localStorage.setItem('water_state', JSON.stringify(waterState)); } catch(e){}
-  try { localStorage.setItem('food_state',  JSON.stringify(foodState)); } catch(e){}
-  if (window.cloudSave) {
-    window.cloudSave('water_goal',  waterGoal);
-    window.cloudSave('water_state', waterState);
-    window.cloudSave('food_state',  foodState);
-  }
-}
-
-function changeGoal(delta) {
-  waterGoal = Math.max(1, Math.min(16, waterGoal + delta));
-  saveTracker();
-  renderTracker();
-}
-
-function renderTracker() {
-  const dates = getWeekDates(weekOffset);
-  document.getElementById('goalLabel').textContent = waterGoal + ' vasos';
-
-  // -- WATER
-  const wGrid = document.getElementById('waterGrid');
-  wGrid.innerHTML = '';
-  dates.forEach((d, dayIdx) => {
-    const isToday = isTodayDate(d);
-    const count   = waterState[wKey(dayIdx)] || 0;
-    const col = document.createElement('div');
-    col.className = 'water-day-col' + (isToday ? ' today-w' : '');
-    const wJsDay = d.getDay(); const wRealIdx = wJsDay === 0 ? 6 : wJsDay - 1;
-    col.innerHTML = `<div class="water-day-label">${DAYS[wRealIdx]}</div>`;
-
-    // Drop buttons up to goal
-    for (let i = 1; i <= waterGoal; i++) {
-      const btn = document.createElement('button');
-      btn.className = 'drop-btn' + (i <= count ? ' filled' : '');
-      btn.textContent = '💧';
-      btn.title = `${i} vaso${i>1?'s':''}`;
-      const captured = { dayIdx, i };
-      btn.onclick = () => {
-        const cur = waterState[wKey(captured.dayIdx)] || 0;
-        waterState[wKey(captured.dayIdx)] = (cur === captured.i) ? captured.i - 1 : captured.i;
-        saveTracker();
-        renderTracker();
-      };
-      col.appendChild(btn);
-    }
-
-    const countLbl = document.createElement('div');
-    countLbl.className = 'water-count';
-    countLbl.textContent = `${count}/${waterGoal}`;
-    col.appendChild(countLbl);
-    wGrid.appendChild(col);
-  });
-
-  // -- FOOD
-  const fGrid = document.getElementById('foodGrid');
-  fGrid.innerHTML = '';
-  dates.forEach((d, dayIdx) => {
-    const isToday = isTodayDate(d);
-    const col = document.createElement('div');
-    col.className = 'food-day-col' + (isToday ? ' today-f' : '');
-    const fJsDay = d.getDay(); const fRealIdx = fJsDay === 0 ? 6 : fJsDay - 1;
-    col.innerHTML = `<div class="food-day-label">${DAYS[fRealIdx]}</div>`;
-
-    MEALS.forEach(meal => {
-      const key   = fKey(dayIdx, meal.id);
-      const eaten = !!foodState[key];
-
-      const dot = document.createElement('div');
-      dot.className = 'meal-dot' + (eaten ? ' eaten' : '');
-      dot.textContent = meal.icon;
-      dot.title = meal.label + (eaten ? ' ✓' : ' - pendiente');
-      dot.onclick = () => {
-        foodState[key] = !foodState[key];
-        saveTracker();
-        renderTracker();
-      };
-
-      const lbl = document.createElement('div');
-      lbl.className = 'meal-dot-label';
-      lbl.textContent = meal.label;
-
-      col.appendChild(dot);
-      col.appendChild(lbl);
-    });
-
-    fGrid.appendChild(col);
-  });
-}
-
-// Patch nav buttons for tracker too
-document.getElementById('prevWeek').addEventListener('click', () => renderTracker());
-document.getElementById('nextWeek').addEventListener('click', () => renderTracker());
-
-loadTracker();
-renderTracker();
-</script>
-
-<!-- ══════════════════════════════════════════
-     SECCIÓN 7 · ALERTAS DE CAMBIO / PLAN B
-══════════════════════════════════════════ -->
-<section class="cambio-section" id="sec-cambio">
-  <span class="section-sub">🔄 flexibilidad</span>
-  <h2 class="section-title"><em>Tarjetas de</em> Cambio</h2>
-  <div class="tl-day-selector" id="cambioDaySelector"></div>
-  <div class="cambio-grid" id="cambioGrid"></div>
-  <div class="cambio-custom">
-    <div class="cambio-custom-title">✏️ Mis planes B personales</div>
-    <div class="cambio-custom-row">
-      <input class="cambio-custom-input" id="cambioInput" placeholder="Ej: Si cancela mi clase, puedo…" />
-      <button class="cambio-add-btn" onclick="addCambio()">＋</button>
-    </div>
-    <div class="cambio-custom-list" id="cambioList"></div>
-  </div>
-</section>
-
-<!-- ══════════════════════════════════════════
-     SECCIÓN 8 · LOGROS & FORTALEZAS
-══════════════════════════════════════════ -->
-<section class="logros-section" id="sec-logros">
-  <span class="section-sub">⭐ autocompasión</span>
-  <h2 class="section-title"><em>Mis Logros</em> del Día</h2>
-  <div class="logros-week-grid" id="logrosGrid"></div>
-  <div class="fortalezas-box">
-    <div class="fortalezas-title">💪 Mis Fortalezas en Acción esta semana</div>
-    <div class="fortalezas-chips" id="fortalezasChips"></div>
-    <div class="add-fortaleza-row">
-      <input class="fortaleza-input" id="fortalezaInput" placeholder="Ej: Soy muy detallista, recuerdo cosas importantes…" />
-      <button class="fortaleza-add-btn" onclick="addFortaleza()">＋</button>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════════════════════════════════
-     SECCIÓN 9 · AUTOCUIDADO & CITA SEMANAL
-══════════════════════════════════════════ -->
-<section class="cuida-section" id="sec-cuida">
-  <span class="section-sub">🌸 bienestar</span>
-  <h2 class="section-title"><em>Mi Tiempo de</em> Recarga</h2>
-  <div class="section-sub" id="cuidaFecha" style="margin-top:-.3rem;margin-bottom:.2rem;font-size:.65rem;color:var(--muted);letter-spacing:.08em;"></div>
-  <div class="cuida-grid">
-    <div class="cuida-card recarga-card">
-      <div class="cuida-card-title">🌿 Actividades de recarga</div>
-      <div class="recarga-items" id="recargaItems"></div>
-    </div>
-    <div class="cuida-card reminder-card">
-      <div class="cuida-card-title">🔔 Recordatorios de hoy</div>
-      <div class="reminder-items" id="reminderItems"></div>
-    </div>
-  </div>
-  <div class="quote-card">
-    <div class="quote-text" id="quoteText"></div>
-    <div class="quote-author" id="quoteAuthor"></div>
-    <div class="quote-nav" id="quoteNav"></div>
-  </div>
-</section>
-
-<!-- ══════════════════════════════════════════
-     SECCIÓN 10 · LÍNEA DE TIEMPO VISUAL
-══════════════════════════════════════════ -->
-<section class="timeline-section" id="sec-timeline">
-  <span class="section-sub">⏱️ visualización del día</span>
-  <h2 class="section-title"><em>Mi Línea</em> de Tiempo</h2>
-  <div class="timeline-wrap">
-    <div class="tl-day-selector" id="tlDaySelector"></div>
-    <div class="tl-track" id="tlTrack"></div>
-    <div class="tl-day-prog">
-      <span class="tl-prog-label">Progreso de hoy</span>
-      <div class="tl-prog-track"><div class="tl-prog-fill" id="tlProgFill"></div></div>
-      <span class="tl-prog-stars" id="tlProgStars"></span>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════════════════════════════════
-     SECCIÓN · AGRADECIMIENTO + SUEÑO + MENSTRUACIÓN
-══════════════════════════════════════════ -->
-
-<!-- JOURNAL DE AGRADECIMIENTO -->
-<section class="gratitud-section" id="sec-gratitud">
-  <span class="section-sub">🌸 bienestar emocional</span>
-  <h2 class="section-title"><em>Agradecimiento</em> del Día</h2>
-  <div class="gratitud-grid" id="gratitudGrid"></div>
-</section>
-
-<!-- TRACKER DE SUEÑO -->
-<section class="sueno-section" id="sec-sueno">
-  <span class="section-sub">🌙 descanso</span>
-  <h2 class="section-title"><em>Mi Sueño</em></h2>
-  <div class="sueno-grid" id="suenoGrid"></div>
-</section>
-
-<!-- TRACKER DE MENSTRUACIÓN -->
-<section class="mens-section" id="sec-mens">
-  <span class="section-sub">🩸 ciclo</span>
-  <h2 class="section-title"><em>Mi Ciclo</em></h2>
-  <div class="mens-card" id="mensCard"></div>
-</section>
-
-<!-- SECCIÓN · RUTINAS DE EJERCICIO -->
-<section class="ejercicio-section" id="sec-ejercicio">
-  <span class="section-sub">💪 movimiento</span>
-  <h2 class="section-title"><em>Rutinas</em> de Ejercicio</h2>
-  <p style="font-size:.75rem;color:var(--muted);margin-bottom:1.2rem;font-weight:600">
-    Crea tus rutinas y registra cuál hiciste cada día 🏃‍♀️
-  </p>
-
-  <!-- Selector de día -->
-  <div class="ejercicio-date-row">
-    <button class="nav-btn" id="ejPrevDay">‹</button>
-    <span class="ejercicio-date-lbl" id="ejDateLbl"></span>
-    <button class="nav-btn" id="ejNextDay">›</button>
-  </div>
-
-  <!-- Rutinas del día seleccionado -->
-  <div class="ejercicio-day-wrap" id="ejDayWrap"></div>
-
-  <!-- Mis plantillas de rutina -->
-  <div class="ejercicio-plantillas-wrap">
-    <div class="ejercicio-plantillas-hdr">
-      <span class="ejercicio-plantillas-title">🏋️ Mis rutinas</span>
-      <button class="rutina-new-btn" id="ejNewBtn">＋ Nueva rutina</button>
-    </div>
-    <div id="ejPlantillasList"></div>
-  </div>
-</section>
-
-<style>
-  /* ── AGRADECIMIENTO ── */
-  .gratitud-section, .sueno-section, .mens-section {
-    max-width: 900px;
-    margin: 2.2rem auto 0;
-    animation: fadeUp .5s .35s ease both;
-    opacity: 0;
-    animation-fill-mode: both;
-  }
-
-  .gratitud-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-  }
-
-  .gratitud-day-card {
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: .8rem .7rem;
-    display: flex;
-    flex-direction: column;
-    gap: .5rem;
-  }
-
-  .gratitud-day-card.today-cell { box-shadow: 0 0 0 2px var(--rosa-soft); }
-
-  .gratitud-day-name {
-    font-size: .62rem;
-    font-weight: 700;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: .1rem;
-  }
-  .gratitud-day-card.today-cell .gratitud-day-name { color: var(--rosa); }
-
-  .gratitud-item {
-    display: flex;
-    align-items: flex-start;
-    gap: .4rem;
-  }
-
-  .gratitud-num {
-    font-size: .6rem;
-    font-weight: 700;
-    color: var(--rosa);
-    min-width: 12px;
-    margin-top: 3px;
-    flex-shrink: 0;
-  }
-
-  .gratitud-input {
-    font-family: 'Nunito', sans-serif;
-    font-size: .7rem;
-    font-weight: 600;
-    border: none;
-    border-bottom: 1.5px solid var(--border);
-    background: transparent;
-    color: var(--text);
-    outline: none;
-    width: 100%;
-    padding: .1rem 0;
-    transition: border-color .2s;
-    resize: none;
-    line-height: 1.3;
-  }
-  .gratitud-input:focus { border-color: var(--rosa); }
-  .gratitud-input::placeholder { color: var(--muted2); }
-
-  /* ── SUEÑO ── */
-  .sueno-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-  }
-
-  .sueno-day-card {
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: .8rem .7rem;
-    display: flex;
-    flex-direction: column;
-    gap: .55rem;
-  }
-  .sueno-day-card.today-cell { box-shadow: 0 0 0 2px var(--rosa-soft); }
-
-  .sueno-day-name {
-    font-size: .62rem;
-    font-weight: 700;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-  .sueno-day-card.today-cell .sueno-day-name { color: var(--rosa); }
-
-  .sueno-field {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .sueno-label {
-    font-size: .58rem;
-    font-weight: 700;
-    color: var(--muted2);
-    text-transform: uppercase;
-    letter-spacing: .06em;
-  }
-
-  .sueno-time-input {
-    font-family: 'Nunito', sans-serif;
-    font-size: .78rem;
-    font-weight: 700;
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg);
-    color: var(--text);
-    outline: none;
-    padding: .25rem .4rem;
-    width: 100%;
-    transition: border-color .2s;
-  }
-  .sueno-time-input:focus { border-color: var(--rosa); }
-
-  .sueno-horas {
-    font-size: .68rem;
-    font-weight: 700;
-    color: var(--verde);
-    text-align: center;
-    min-height: 16px;
-  }
-
-  .sueno-calidad-row {
-    display: flex;
-    justify-content: space-around;
-    margin-top: .1rem;
-  }
-
-  .sueno-emoji-btn {
-    font-size: 1.1rem;
-    background: none;
-    border: 2px solid transparent;
-    border-radius: 50%;
-    width: 30px; height: 30px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: all .15s;
-  }
-  .sueno-emoji-btn:hover { transform: scale(1.2); }
-  .sueno-emoji-btn.selected-calidad {
-    border-color: var(--rosa);
-    background: var(--rosa-soft);
-  }
-
-  /* ── MENSTRUACIÓN ── */
-  .mens-card {
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.2rem 1.4rem;
-    max-width: 420px;
-  }
-
-  .mens-header {
-    display: flex;
-    align-items: center;
-    gap: .7rem;
-    margin-bottom: 1rem;
-  }
-
-  .mens-drop {
-    font-size: 2rem;
-    cursor: pointer;
-    transition: transform .2s;
-    user-select: none;
-  }
-  .mens-drop:hover { transform: scale(1.15); }
-  .mens-drop.active { filter: drop-shadow(0 0 6px rgba(212,100,100,.5)); }
-
-  .mens-info {
-    flex: 1;
-  }
-
-  .mens-title {
-    font-size: .8rem;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 2px;
-  }
-
-  .mens-date-label {
-    font-size: .72rem;
-    color: var(--muted);
-    font-weight: 600;
-  }
-
-  .mens-days-since {
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: #c0556a;
-    line-height: 1;
-  }
-
-  .mens-days-label {
-    font-size: .65rem;
-    color: var(--muted);
-    font-weight: 600;
-    margin-top: 2px;
-  }
-
-  .mens-hint {
-    font-size: .68rem;
-    color: var(--muted2);
-    font-weight: 600;
-    margin-top: .8rem;
-    font-style: italic;
-  }
-
-  .mens-clear-btn {
-    background: transparent;
-    border: 1.5px solid var(--border);
-    border-radius: 20px;
-    padding: .25rem .7rem;
-    font-family: 'Nunito', sans-serif;
-    font-size: .65rem;
-    font-weight: 700;
-    color: var(--muted);
-    cursor: pointer;
-    margin-top: .7rem;
-    transition: all .2s;
-  }
-  .mens-clear-btn:hover { border-color: var(--rosa); color: var(--rosa); }
-
-  @media (max-width: 640px) {
-    .gratitud-grid, .sueno-grid { grid-template-columns: 1fr; }
-  }
-</style>
-
-<script>
-// ══════════════════════════════════════════
-//  JOURNAL DE AGRADECIMIENTO
-// ══════════════════════════════════════════
-let gratitudData = {}; // { 'YYYY-MM-DD': ['cosa1','cosa2','cosa3'] }
-
-function saveGratitud() {
-  try { localStorage.setItem('gratitud_data', JSON.stringify(gratitudData)); } catch(e){}
-  if (window.cloudSave) window.cloudSave('gratitud_data', gratitudData);
-}
-function loadGratitud() {
-  gratitudData = window._gratitudData || JSON.parse(localStorage.getItem('gratitud_data') || '{}');
-}
-
-function renderGratitud() {
-  const grid = document.getElementById('gratitudGrid');
-  if (!grid) return;
-  grid.innerHTML = '';
-  const dates = getWeekDates(weekOffset);
-  const DIAS_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-
-  dates.forEach(date => {
-    const dk = dateKey(date);
-    const isToday = isTodayDate(date);
-    if (!gratitudData[dk]) gratitudData[dk] = ['','',''];
-
-    const card = document.createElement('div');
-    card.className = 'gratitud-day-card' + (isToday ? ' today-cell' : '');
-
-    const dayName = document.createElement('div');
-    dayName.className = 'gratitud-day-name';
-    dayName.textContent = DIAS_ES[date.getDay()] + ' ' + date.getDate();
-    card.appendChild(dayName);
-
-    [0,1,2].forEach(i => {
-      const row = document.createElement('div');
-      row.className = 'gratitud-item';
-
-      const num = document.createElement('span');
-      num.className = 'gratitud-num';
-      num.textContent = (i+1) + '.';
-
-      const input = document.createElement('textarea');
-      input.className = 'gratitud-input';
-      input.rows = 1;
-      input.placeholder = i === 0 ? 'Algo lindo de hoy...' : i === 1 ? 'Una persona que me importa...' : 'Algo de mí misma...';
-      input.value = gratitudData[dk][i] || '';
-      input.oninput = () => {
-        input.style.height = 'auto';
-        input.style.height = input.scrollHeight + 'px';
-        gratitudData[dk][i] = input.value;
-        saveGratitud();
-      };
-      // Auto-resize on render
-      setTimeout(() => {
-        input.style.height = 'auto';
-        input.style.height = input.scrollHeight + 'px';
-      }, 0);
-
-      row.appendChild(num);
-      row.appendChild(input);
-      card.appendChild(row);
-    });
-
-    grid.appendChild(card);
-  });
-}
-
-// ══════════════════════════════════════════
-//  TRACKER DE SUEÑO
-// ══════════════════════════════════════════
-const SUENO_CALIDAD = ['😴','😪','😐','😊','🌟'];
-let suenoData = {}; // { 'YYYY-MM-DD': { dormirse:'23:00', despertar:'07:00', calidad:'😊' } }
-
-function savesueno() {
-  try { localStorage.setItem('sueno_data', JSON.stringify(suenoData)); } catch(e){}
-  if (window.cloudSave) window.cloudSave('sueno_data', suenoData);
-}
-function loadSueno() {
-  suenoData = window._suenoData || JSON.parse(localStorage.getItem('sueno_data') || '{}');
-}
-
-function calcHoras(dormirseStr, despertarStr) {
-  if (!dormirseStr || !despertarStr) return '';
-  const [h1,m1] = dormirseStr.split(':').map(Number);
-  const [h2,m2] = despertarStr.split(':').map(Number);
-  let mins = (h2*60+m2) - (h1*60+m1);
-  if (mins < 0) mins += 24*60;
-  const h = Math.floor(mins/60);
-  const m = mins % 60;
-  return h + 'h ' + (m > 0 ? m + 'min' : '');
-}
-
-function renderSueno() {
-  const grid = document.getElementById('suenoGrid');
-  if (!grid) return;
-  grid.innerHTML = '';
-  const dates = getWeekDates(weekOffset);
-  const DIAS_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-
-  dates.forEach(date => {
-    const dk = dateKey(date);
-    const isToday = isTodayDate(date);
-    if (!suenoData[dk]) suenoData[dk] = { dormirse:'', despertar:'', calidad:'' };
-    const entry = suenoData[dk];
-
-    const card = document.createElement('div');
-    card.className = 'sueno-day-card' + (isToday ? ' today-cell' : '');
-
-    const dayName = document.createElement('div');
-    dayName.className = 'sueno-day-name';
-    dayName.textContent = DIAS_ES[date.getDay()] + ' ' + date.getDate();
-    card.appendChild(dayName);
-
-    // Dormir
-    const fDormir = document.createElement('div');
-    fDormir.className = 'sueno-field';
-    fDormir.innerHTML = '<span class="sueno-label">🌙 Me dormí</span>';
-    const inDormir = document.createElement('input');
-    inDormir.type = 'time'; inDormir.className = 'sueno-time-input';
-    inDormir.value = entry.dormirse || '';
-    inDormir.onchange = () => {
-      suenoData[dk].dormirse = inDormir.value;
-      savesueno();
-      horasEl.textContent = calcHoras(suenoData[dk].dormirse, suenoData[dk].despertar);
-    };
-    fDormir.appendChild(inDormir);
-    card.appendChild(fDormir);
-
-    // Despertar
-    const fDespertar = document.createElement('div');
-    fDespertar.className = 'sueno-field';
-    fDespertar.innerHTML = '<span class="sueno-label">🌅 Desperté</span>';
-    const inDespertar = document.createElement('input');
-    inDespertar.type = 'time'; inDespertar.className = 'sueno-time-input';
-    inDespertar.value = entry.despertar || '';
-    inDespertar.onchange = () => {
-      suenoData[dk].despertar = inDespertar.value;
-      savesueno();
-      horasEl.textContent = calcHoras(suenoData[dk].dormirse, suenoData[dk].despertar);
-    };
-    fDespertar.appendChild(inDespertar);
-    card.appendChild(fDespertar);
-
-    // Horas calculadas
-    const horasEl = document.createElement('div');
-    horasEl.className = 'sueno-horas';
-    horasEl.textContent = calcHoras(entry.dormirse, entry.despertar);
-    card.appendChild(horasEl);
-
-    // Calidad
-    const calLabel = document.createElement('div');
-    calLabel.className = 'sueno-label';
-    calLabel.textContent = '¿Cómo dormí?';
-    card.appendChild(calLabel);
-
-    const calidadRow = document.createElement('div');
-    calidadRow.className = 'sueno-calidad-row';
-    SUENO_CALIDAD.forEach(emoji => {
-      const btn = document.createElement('button');
-      btn.className = 'sueno-emoji-btn' + (entry.calidad === emoji ? ' selected-calidad' : '');
-      btn.textContent = emoji;
-      btn.onclick = () => {
-        suenoData[dk].calidad = suenoData[dk].calidad === emoji ? '' : emoji;
-        savesueno(); renderSueno();
-      };
-      calidadRow.appendChild(btn);
-    });
-    card.appendChild(calidadRow);
-
-    grid.appendChild(card);
-  });
-}
-
-// ══════════════════════════════════════════
-//  TRACKER DE MENSTRUACIÓN
-// ══════════════════════════════════════════
-let mensData = { lastDate: null }; // { lastDate: 'YYYY-MM-DD' }
-
-function saveMens() {
-  try { localStorage.setItem('mens_data', JSON.stringify(mensData)); } catch(e){}
-  if (window.cloudSave) window.cloudSave('mens_data', mensData);
-}
-function loadMens() {
-  mensData = window._mensData || JSON.parse(localStorage.getItem('mens_data') || '{"lastDate":null}');
-}
-
-function renderMens() {
-  const card = document.getElementById('mensCard');
-  if (!card) return;
-  card.innerHTML = '';
-
-  const today = new Date();
-  const lastDate = mensData.lastDate ? new Date(mensData.lastDate + 'T12:00:00') : null;
-  const daysSince = lastDate ? Math.floor((today - lastDate) / 86400000) : null;
-
-  const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-
-  const header = document.createElement('div');
-  header.className = 'mens-header';
-
-  const drop = document.createElement('div');
-  drop.className = 'mens-drop' + (lastDate ? ' active' : '');
-  drop.textContent = '🩸';
-  drop.title = 'Click para marcar hoy como inicio de periodo';
-  drop.onclick = () => {
-    if (confirm('¿Marcar hoy como inicio de tu periodo?')) {
-      mensData.lastDate = dateKey(today);
-      saveMens(); renderMens();
-    }
-  };
-
-  const info = document.createElement('div');
-  info.className = 'mens-info';
-
-  const title = document.createElement('div');
-  title.className = 'mens-title';
-  title.textContent = 'Último periodo';
-
-  const dateLabel = document.createElement('div');
-  dateLabel.className = 'mens-date-label';
-  dateLabel.textContent = lastDate
-    ? `${lastDate.getDate()} de ${MESES_ES[lastDate.getMonth()]} de ${lastDate.getFullYear()}`
-    : 'Toca 🩸 para marcar la fecha';
-
-  info.appendChild(title);
-  info.appendChild(dateLabel);
-  header.appendChild(drop);
-  header.appendChild(info);
-
-  if (daysSince !== null) {
-    const daysEl = document.createElement('div');
-    daysEl.style.textAlign = 'right';
-    const num = document.createElement('div');
-    num.className = 'mens-days-since';
-    num.textContent = daysSince;
-    const lbl = document.createElement('div');
-    lbl.className = 'mens-days-label';
-    lbl.textContent = daysSince === 1 ? 'dia desde tu ultimo periodo' : 'dias desde tu ultimo periodo';
-    daysEl.appendChild(num);
-    daysEl.appendChild(lbl);
-    header.appendChild(daysEl);
-  }
-
-  card.appendChild(header);
-
-  if (lastDate) {
-    const hint = document.createElement('div');
-    hint.className = 'mens-hint';
-    hint.textContent = '🩸 Toca la gotita para actualizar la fecha';
-    card.appendChild(hint);
-
-    const clearBtn = document.createElement('button');
-    clearBtn.className = 'mens-clear-btn';
-    clearBtn.textContent = 'Borrar registro';
-    clearBtn.onclick = () => {
-      if (confirm('¿Borrar el registro del periodo?')) {
-        mensData.lastDate = null;
-        saveMens(); renderMens();
-      }
-    };
-    card.appendChild(clearBtn);
-  }
-}
-
-// Patch cloud sync
-const _origSyncS = window.syncFromCloud;
-window.syncFromCloud = function() {
-  if (window._gratitudData) gratitudData = window._gratitudData;
-  if (window._suenoData)    suenoData    = window._suenoData;
-  if (window._mensData)     mensData     = window._mensData;
-  if (_origSyncS) _origSyncS();
-  renderGratitud(); renderSueno(); renderMens();
-};
-
-loadGratitud(); renderGratitud();
-loadSueno();    renderSueno();
-loadMens();     renderMens();
-</script>
-
-<script>
-// ============================================================
-//  SECCIÓN 7 · ALERTAS DE CAMBIO / PLAN B
-// ============================================================
-const CAMBIO_CARDS = [
-  { id:'c1', icon:'⚠️', title:'Alerta de Cambio', desc:'Algo cambió en mi plan. Está bien, puedo adaptarme.', type:'alerta' },
-  { id:'c2', icon:'🗺️', title:'Plan B Activo',    desc:'Tengo un plan alternativo listo para usar.', type:'planb' },
-  { id:'c3', icon:'😮‍💨', title:'Pausa y Respira', desc:'Necesito un momento antes de continuar.', type:'alerta' },
-  { id:'c4', icon:'🔄', title:'Rutina Flexible',  desc:'Hoy el orden puede ser diferente. Está permitido.', type:'planb' },
-  { id:'c5', icon:'🆘', title:'Pedir Ayuda',      desc:'Puedo pedir ayuda. No tengo que manejarlo sola.', type:'alerta' },
-  { id:'c6', icon:'🧘', title:'Tiempo Fuera',     desc:'Me doy permiso de pausar y recargarme.', type:'planb' },
-];
-
-let cambioState   = {}; // key: "wo|dayIdx|cardId" => bool
-let cambioCustom  = []; // array of strings (global, not per day)
-let cambioDayIdx  = 0; // siempre empieza en el primer día del rango visible
-
-function cambioKey(dayIdx, cardId) { return `cb_${weekOffset}_${dayIdx}_${cardId}`; }
-
-function loadCambio() {
-  cambioState  = window._cambioState  || JSON.parse(localStorage.getItem('cambio_state')  || '{}');
-  cambioCustom = window._cambioCustom || JSON.parse(localStorage.getItem('cambio_custom') || '[]');
-}
-function saveCambio() {
-  try { localStorage.setItem('cambio_state',  JSON.stringify(cambioState));  } catch(e){}
-  try { localStorage.setItem('cambio_custom', JSON.stringify(cambioCustom)); } catch(e){}
-  if (window.cloudSave) {
-    window.cloudSave('cambio_state',  cambioState);
-    window.cloudSave('cambio_custom', cambioCustom);
-  }
-}
-
-function renderCambio() {
-  // Day selector
-  const dates = getWeekDates(weekOffset);
-  const sel = document.getElementById('cambioDaySelector');
-  sel.innerHTML = '';
-  dates.forEach((d, i) => {
-    const isToday = isTodayDate(d);
-    const btn = document.createElement('button');
-    btn.className = 'tl-day-btn' + (i === cambioDayIdx ? ' active' : '') + (isToday ? ' today-tl' : '');
-    const cJsDay = d.getDay(); const cRealIdx = cJsDay === 0 ? 6 : cJsDay - 1;
-    btn.textContent = DAYS[cRealIdx] + ' ' + d.getDate();
-    btn.onclick = () => { cambioDayIdx = i; renderCambio(); };
-    sel.appendChild(btn);
-  });
-
-  // Cards for selected day
-  const grid = document.getElementById('cambioGrid');
-  grid.innerHTML = '';
-  CAMBIO_CARDS.forEach(c => {
-    const key = cambioKey(cambioDayIdx, c.id);
-    const on = !!cambioState[key];
-    const card = document.createElement('div');
-    card.className = `cambio-card ${on ? (c.type === 'alerta' ? 'alerta-on' : 'planb-on') : ''}`;
-    card.innerHTML = `
-      <span class="cambio-badge">${on ? (c.type==='alerta' ? '⚡ activa' : '✓ plan b') : ''}</span>
-      <span class="cambio-icon">${c.icon}</span>
-      <div class="cambio-title">${c.title}</div>
-      <div class="cambio-desc">${c.desc}</div>`;
-    card.onclick = () => { cambioState[key] = !on; saveCambio(); renderCambio(); };
-    grid.appendChild(card);
-  });
-  renderCambioCustom();
-}
-
-function renderCambioCustom() {
-  const list = document.getElementById('cambioList');
-  list.innerHTML = '';
-  cambioCustom.forEach((text, i) => {
-    const pill = document.createElement('div');
-    pill.className = 'cambio-custom-pill';
-    pill.innerHTML = `<span>🗒️ ${text}</span><button onclick="removeCambio(${i})">✕</button>`;
-    list.appendChild(pill);
-  });
-}
-
-function addCambio() {
-  const input = document.getElementById('cambioInput');
-  const val = input.value.trim();
-  if (!val) return;
-  cambioCustom.push(val);
-  input.value = '';
-  saveCambio(); renderCambioCustom();
-}
-function removeCambio(i) { cambioCustom.splice(i,1); saveCambio(); renderCambioCustom(); }
-document.getElementById('cambioInput').onkeydown = e => { if(e.key==='Enter') addCambio(); };
-
-// ============================================================
-//  SECCIÓN 8 · LOGROS & FORTALEZAS
-// ============================================================
-let logrosData    = {}; // key: "wo|dayIdx" => [string]
-let fortalezas    = [];
-
-const DEFAULT_FORTALEZAS = ['Atención al detalle','Pensamiento profundo','Honestidad','Creatividad única','Memoria especial'];
-
-function loadLogros() {
-  logrosData = window._logrosData || JSON.parse(localStorage.getItem('logros_data') || '{}');
-  fortalezas = window._fortalezas || JSON.parse(localStorage.getItem('fortalezas')  || 'null') || [...DEFAULT_FORTALEZAS];
-}
-function saveLogros() {
-  try { localStorage.setItem('logros_data', JSON.stringify(logrosData)); } catch(e){}
-  try { localStorage.setItem('fortalezas',  JSON.stringify(fortalezas)); } catch(e){}
-  if (window.cloudSave) {
-    window.cloudSave('logros_data', logrosData);
-    window.cloudSave('fortalezas',  fortalezas);
-  }
-}
-function logroKey(dayIdx) { return `lg_${weekOffset}_${dayIdx}`; }
-
-function renderLogros() {
-  const dates = getWeekDates(weekOffset);
-  const grid  = document.getElementById('logrosGrid');
-  grid.innerHTML = '';
-
-  dates.forEach((d, dayIdx) => {
-    const isToday = isTodayDate(d);
-    const key     = logroKey(dayIdx);
-    const items   = logrosData[key] || [];
-
-    const col = document.createElement('div');
-    col.className = 'logro-day-col' + (isToday ? ' today-l' : '');
-    const lJsDay = d.getDay(); const lRealIdx = lJsDay === 0 ? 6 : lJsDay - 1;
-    col.innerHTML = `<div class="logro-dayname">${DAYS[lRealIdx]}</div>`;
-
-    items.forEach((text, i) => {
-      const item = document.createElement('div');
-      item.className = 'logro-item';
-      item.innerHTML = `<span class="logro-item-star">⭐</span>
-        <span class="logro-item-text">${text}</span>
-        <button class="logro-item-del" onclick="removeLogro(${dayIdx},${i})">✕</button>`;
-      col.appendChild(item);
-    });
-
-    const addBtn = document.createElement('button');
-    addBtn.className = 'logro-add-btn';
-    addBtn.innerHTML = '＋ logro';
-    addBtn.onclick = () => startLogroInput(col, addBtn, key);
-    col.appendChild(addBtn);
-    grid.appendChild(col);
-  });
-
-  renderFortalezas();
-}
-
-function startLogroInput(col, addBtn, key) {
-  addBtn.style.display = 'none';
-  const input = document.createElement('input');
-  input.className = 'logro-edit-input';
-  input.placeholder = '¿Qué hiciste bien hoy? 🌟';
-  col.appendChild(input);
-  input.focus();
-  const commit = () => {
-    const val = input.value.trim();
-    if (val) {
-      if (!logrosData[key]) logrosData[key] = [];
-      logrosData[key].push(val);
-      saveLogros();
-    }
-    renderLogros();
-  };
-  input.onkeydown = e => { if(e.key==='Enter') commit(); if(e.key==='Escape') renderLogros(); };
-  input.onblur = commit;
-}
-
-function removeLogro(dayIdx, i) {
-  const key = logroKey(dayIdx);
-  if (logrosData[key]) { logrosData[key].splice(i,1); saveLogros(); renderLogros(); }
-}
-
-function renderFortalezas() {
-  const wrap = document.getElementById('fortalezasChips');
-  wrap.innerHTML = '';
-  fortalezas.forEach((f, i) => {
-    const chip = document.createElement('div');
-    chip.className = 'fortaleza-chip';
-    chip.innerHTML = `<span>✨ ${f}</span><button onclick="removeFortaleza(${i})">✕</button>`;
-    wrap.appendChild(chip);
-  });
-}
-
-function addFortaleza() {
-  const input = document.getElementById('fortalezaInput');
-  const val = input.value.trim();
-  if (!val) return;
-  fortalezas.push(val); input.value = '';
-  saveLogros(); renderFortalezas();
-}
-function removeFortaleza(i) { fortalezas.splice(i,1); saveLogros(); renderFortalezas(); }
-document.getElementById('fortalezaInput').onkeydown = e => { if(e.key==='Enter') addFortaleza(); };
-
-// ============================================================
-//  SECCIÓN 9 · AUTOCUIDADO & CITA
-// ============================================================
-const RECARGAS = [
-  { id:'r1', icon:'🎧', text:'Música con audífonos' },
-  { id:'r2', icon:'🛁', text:'Baño largo y tranquilo' },
-  { id:'r3', icon:'📖', text:'Leer sin interrupciones' },
-  { id:'r4', icon:'🌿', text:'Tiempo en la naturaleza' },
-  { id:'r5', icon:'🎨', text:'Crear algo con mis manos' },
-  { id:'r6', icon:'😴', text:'Siesta / descanso sin culpa' },
-];
-const REMINDERS = [
-  { id:'rm1', icon:'💧', text:'Tomar agua cada hora' },
-  { id:'rm2', icon:'🍽️', text:'Comer a mis horas' },
-  { id:'rm3', icon:'🚶', text:'Moverme un poco hoy' },
-  { id:'rm4', icon:'🌬️', text:'Respirar profundo' },
-  { id:'rm5', icon:'📵', text:'Descanso de pantallas' },
-];
-const QUOTES = [
-  { text: 'Mi cerebro funciona diferente, no defectuoso. Eso es una fortaleza.', author: '- Comunidad neurodivergente' },
-  { text: 'No tengo que ser neurotypical para ser valiosa. Soy suficiente tal como soy.', author: '- Autocompasión neurodivergente' },
-  { text: 'Cada pequeño logro del día cuenta. No hay victorias demasiado pequeñas.', author: '- Para ti, hoy' },
-  { text: 'Pedir ayuda es inteligente, no debilidad. Conocerme a mí misma es mi superpoder.', author: '- Sabiduría neurodivergente' },
-  { text: 'Mis necesidades sensoriales son válidas. Cuidarme es mi prioridad.', author: '- Autocuidado neurodivergente' },
-  { text: 'El caos de hoy no define el mañana. Puedo empezar de nuevo en cualquier momento.', author: '- Para días difíciles' },
-];
-
-let recargaState  = {};
-let reminderState = {};
-let quoteIdx      = 0;
-
-function loadCuida() {
-  recargaState  = window._recargaState  || JSON.parse(localStorage.getItem(`recarga_${weekOffset}`)  || '{}');
-  reminderState = window._reminderState || JSON.parse(localStorage.getItem(`reminder_${weekOffset}`) || '{}');
-  quoteIdx = window._quoteIdx !== undefined ? window._quoteIdx : parseInt(localStorage.getItem(`quote_${weekOffset}`) || '0') % QUOTES.length;
-}
-function saveCuida() {
-  try { localStorage.setItem(`recarga_${weekOffset}`,  JSON.stringify(recargaState));  } catch(e){}
-  try { localStorage.setItem(`reminder_${weekOffset}`, JSON.stringify(reminderState)); } catch(e){}
-  try { localStorage.setItem(`quote_${weekOffset}`, quoteIdx); } catch(e){}
-  if (window.cloudSave) {
-    window.cloudSave(`recarga_${weekOffset}`,  recargaState);
-    window.cloudSave(`reminder_${weekOffset}`, reminderState);
-    window.cloudSave(`quote_${weekOffset}`,    quoteIdx);
-  }
-}
-
-function renderCuida() {
-  // Fecha de hoy
-  const hoy = new Date();
-  const DIAS_ES = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-  const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  const fechaEl = document.getElementById('cuidaFecha');
-  if (fechaEl) fechaEl.textContent = `📅 ${DIAS_ES[hoy.getDay()]}, ${hoy.getDate()} de ${MESES_ES[hoy.getMonth()]} de ${hoy.getFullYear()}`;
-
-  // Recargas
-  const rWrap = document.getElementById('recargaItems');
-  rWrap.innerHTML = '';
-  RECARGAS.forEach(r => {
-    const done = !!recargaState[r.id];
-    const el = document.createElement('div');
-    el.className = 'recarga-item' + (done ? ' done-r' : '');
-    el.innerHTML = `<span class="recarga-icon">${r.icon}</span>
-      <span class="recarga-text">${r.text}</span>
-      <div class="recarga-check">${done ? '✓' : ''}</div>`;
-    el.onclick = () => { recargaState[r.id] = !done; saveCuida(); renderCuida(); };
-    rWrap.appendChild(el);
-  });
-
-  // Reminders
-  const rmWrap = document.getElementById('reminderItems');
-  rmWrap.innerHTML = '';
-  REMINDERS.forEach(r => {
-    const done = !!reminderState[r.id];
-    const el = document.createElement('div');
-    el.className = 'reminder-item' + (done ? ' done-rm' : '');
-    el.innerHTML = `<span class="reminder-icon">${r.icon}</span>
-      <span class="reminder-text">${r.text}</span>
-      <div class="reminder-check">${done ? '✓' : ''}</div>`;
-    el.onclick = () => { reminderState[r.id] = !done; saveCuida(); renderCuida(); };
-    rmWrap.appendChild(el);
-  });
-
-  // Quote
-  const q = QUOTES[quoteIdx];
-  document.getElementById('quoteText').textContent   = q.text;
-  document.getElementById('quoteAuthor').textContent = q.author;
-  const nav = document.getElementById('quoteNav');
-  nav.innerHTML = '';
-  QUOTES.forEach((_,i) => {
-    const dot = document.createElement('div');
-    dot.className = 'quote-dot' + (i === quoteIdx ? ' active' : '');
-    dot.onclick = () => { quoteIdx = i; saveCuida(); renderCuida(); };
-    nav.appendChild(dot);
-  });
-}
-
-// ============================================================
-//  SECCIÓN 10 · LÍNEA DE TIEMPO VISUAL
-// ============================================================
-let tlDayIdx = 0; // siempre empieza en el primer día del rango visible
-
-const TL_SLOTS = [
-  { id:'m', icon:'🌅', name:'Mañana', time:'05-11h', chipCls:'tl-chip-m' },
-  { id:'t', icon:'☀️', name:'Tarde',  time:'11-18h', chipCls:'tl-chip-t' },
-  { id:'n', icon:'🌙', name:'Noche',  time:'18-22h', chipCls:'tl-chip-n' },
-];
-
-function renderTimeline() {
-  const dates = getWeekDates(weekOffset);
-
-  // Day selector
-  const sel = document.getElementById('tlDaySelector');
-  sel.innerHTML = '';
-  dates.forEach((d, i) => {
-    const isToday = isTodayDate(d);
-    const btn = document.createElement('button');
-    btn.className = 'tl-day-btn' + (i === tlDayIdx ? ' active' : '') + (isToday ? ' today-tl' : '');
-    const tJsDay = d.getDay(); const tRealIdx = tJsDay === 0 ? 6 : tJsDay - 1;
-    btn.textContent = DAYS[tRealIdx] + ' ' + d.getDate();
-    btn.onclick = () => { tlDayIdx = i; renderTimeline(); };
-    sel.appendChild(btn);
-  });
-
-  // Track
-  const track = document.getElementById('tlTrack');
-  track.innerHTML = '';
-
-  const isToday = isTodayDate(dates[tlDayIdx]);
-  const nowHour = new Date().getHours();
-
-  let totalTasks = 0, doneTasks = 0;
-
-  TL_SLOTS.forEach(slot => {
-    const date = dates[tlDayIdx];
-    const allTasks = recurringTasks.filter(t => t.slotId === slot.id && taskVisibleOnDate(t, date));
-
-    const slotHour = slot.id === 'm' ? 8 : slot.id === 't' ? 14 : 20;
-    const isCurrent = isToday && Math.abs(nowHour - slotHour) < 4;
-    const isPast    = isToday && nowHour > slotHour + 3;
-
-    const slotDone = allTasks.length > 0 && allTasks.every(t => !!completions[completionKey(t.id, date)]);
-
-    totalTasks += allTasks.length;
-
-    const el = document.createElement('div');
-    el.className = 'tl-slot' + (slotDone || isPast ? ' tl-done' : '') + (isCurrent ? ' tl-current' : '');
-
-    el.innerHTML = `<div class="tl-node">${slot.icon}</div>
-      <div class="tl-slot-header">
-        <span class="tl-slot-time">${slot.time}</span>
-        <span class="tl-slot-name">${slot.name}</span>
-      </div>`;
-
-    // Mini task chips
-    const chipsRow = document.createElement('div');
-    chipsRow.className = 'tl-tasks-mini';
-    allTasks.forEach(task => {
-      const cKey = completionKey(task.id, date);
-      const done = !!completions[cKey];
-      if (done) doneTasks++;
-      const chip = document.createElement('div');
-      chip.className = `tl-task-chip ${slot.chipCls}` + (done ? ' chip-done' : '');
-      chip.innerHTML = `${done ? '✓' : '○'} ${task.text}`;
-      chip.style.cursor = 'pointer';
-      chip.onclick = () => {
-        completions[cKey] = !done;
-        saveData(); updateProgress(); renderTimeline();
-      };
-      chipsRow.appendChild(chip);
-    });
-    el.appendChild(chipsRow);
-    track.appendChild(el);
-  });
-
-  // Day progress
-  const pct = totalTasks > 0 ? Math.round((doneTasks/totalTasks)*100) : 0;
-  document.getElementById('tlProgFill').style.width = pct + '%';
-  const stars = pct >= 80 ? '🌟🌟🌟' : pct >= 50 ? '⭐⭐' : pct > 0 ? '⭐' : '';
-  document.getElementById('tlProgStars').textContent = stars + ' ' + pct + '%';
-}
-
-// Patch nav for new sections
-document.getElementById('prevWeek').addEventListener('click', () => {
-  loadCuida(); renderCuida(); renderLogros(); renderTimeline(); renderCambio();
-});
-document.getElementById('nextWeek').addEventListener('click', () => {
-  loadCuida(); renderCuida(); renderLogros(); renderTimeline(); renderCambio();
-});
-
-loadCambio();   renderCambio();
-loadLogros();   renderLogros();
-loadCuida();    renderCuida();
-renderTimeline();
-</script>
-<!-- ══ BARRA DE NAVEGACIÓN INFERIOR ══ -->
-<nav class="bottom-nav">
-  <div class="nav-inner" id="bottomNav"></div>
-</nav>
-
-<script>
-const NAV_ITEMS = [
-  { icon:'🐱', label:'Mi Semana', target:'sec-semana'    },
-  { icon:'🌸', label:'Rutinas',   target:'sec-rutinas'   },
-  { icon:'⭐', label:'Bienestar', target:'sec-bienestar' },
-  { icon:'🦄', label:'Intereses', target:'sec-spark'     },
-  { icon:'🍏', label:'Salud',     target:'sec-salud'     },
-];
-
-let activeNav = 'sec-semana';
-
-function renderNav() {
-  const wrap = document.getElementById('bottomNav');
-  wrap.innerHTML = '';
-  NAV_ITEMS.forEach(item => {
-    const btn = document.createElement('button');
-    btn.className = 'nav-pill' + (activeNav === item.target ? ' active' : '');
-    btn.innerHTML = `<span class="nav-pill-icon">${item.icon}</span><span class="nav-pill-label">${item.label}</span>`;
-    btn.onclick = () => {
-      activeNav = item.target;
-      renderNav();
-      const el = document.getElementById(item.target);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    };
-    wrap.appendChild(btn);
-  });
-}
-
-// Highlight active section on scroll
-const sectionNavMap = {
-  'sec-semana':'sec-semana','sec-rutinas':'sec-rutinas',
-  'sec-dios':'sec-bienestar','sec-checkin':'sec-bienestar','sec-cambio':'sec-bienestar','sec-cuida':'sec-bienestar',
-  'sec-spark':'sec-spark',
-  'sec-tracker':'sec-salud','sec-logros':'sec-salud','sec-timeline':'sec-salud','sec-ejercicio':'sec-salud','sec-gratitud':'sec-salud','sec-sueno':'sec-salud','sec-mens':'sec-salud',
-};
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting && e.intersectionRatio > 0.3) {
-      const mapped = sectionNavMap[e.target.id];
-      if (mapped) { activeNav = mapped; renderNav(); }
-    }
-  });
-}, { threshold: 0.3 });
-
-// Observe all underlying sections for scroll highlighting
-const ALL_SECTIONS = [
-  { id:'sec-semana',    nav:'sec-semana'    },
-  { id:'sec-rutinas',   nav:'sec-rutinas'   },
-  { id:'sec-dios',      nav:'sec-bienestar' },
-  { id:'sec-checkin',   nav:'sec-bienestar' },
-  { id:'sec-cambio',    nav:'sec-bienestar' },
-  { id:'sec-cuida',     nav:'sec-bienestar' },
-  { id:'sec-spark',     nav:'sec-spark'     },
-  { id:'sec-tracker',   nav:'sec-salud'     },
-  { id:'sec-logros',    nav:'sec-salud'     },
-  { id:'sec-timeline',  nav:'sec-salud'     },
-  { id:'sec-gratitud',  nav:'sec-salud'     },
-  { id:'sec-sueno',     nav:'sec-salud'     },
-  { id:'sec-mens',      nav:'sec-salud'     },
-  { id:'sec-ejercicio', nav:'sec-salud'     },
-];
-ALL_SECTIONS.forEach(s => {
-  const el = document.getElementById(s.id);
-  if (el) observer.observe(el);
-});
-
-renderNav();
-</script>
+<div id="sec-rutinas-nav" style="scroll-margin-top:60px"></div>
 <!-- ══════════════════════════════════════════
      SECCIÓN · RUTINAS
 ══════════════════════════════════════════ -->
@@ -5557,6 +3508,11 @@ renderNav();
 </style>
 
 <script>
+// dateKey helper (needed early)
+function dateKey(d) {
+  if (typeof d === 'string') return d;
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
 // ══════════════════════════════════════════
 //  SECCIÓN · RUTINAS
 // ══════════════════════════════════════════
@@ -6450,6 +4406,12 @@ startImgTimer();
 
 <script>
 
+// --- dateKey helper (early definition) ---
+function dateKey(d) {
+  if (typeof d === 'string') return d;
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
 // ============================================================
 //  RUTINAS DE EJERCICIO
 // ============================================================
@@ -6822,10 +4784,6 @@ function openEjModal(templateId) {
   box.querySelector('#ejNombre').focus();
 }
 
-document.getElementById('ejPrevDay').onclick = function() { ejDateOffset--; renderEjercicio(); };
-document.getElementById('ejNextDay').onclick = function() { ejDateOffset++; renderEjercicio(); };
-document.getElementById('ejNewBtn').onclick   = function() { openEjModal(null); };
-
 // Patch cloud sync
 var _origSyncEj = window.syncFromCloud;
 window.syncFromCloud = function() {
@@ -6836,7 +4794,16 @@ window.syncFromCloud = function() {
 };
 
 loadEjercicio();
-renderEjercicio();
+
+document.addEventListener('DOMContentLoaded', function() {
+  var ejPrev = document.getElementById('ejPrevDay');
+  var ejNext = document.getElementById('ejNextDay');
+  var ejNew  = document.getElementById('ejNewBtn');
+  if (ejPrev) ejPrev.onclick = function() { ejDateOffset--; renderEjercicio(); };
+  if (ejNext) ejNext.onclick = function() { ejDateOffset++; renderEjercicio(); };
+  if (ejNew)  ejNew.onclick  = function() { openEjModal(null); };
+  renderEjercicio();
+});
 
 </script>
 <script>
@@ -7077,9 +5044,2088 @@ window.syncFromCloud = function() {
 };
 
 loadDios();
-renderDios();
+document.addEventListener('DOMContentLoaded', function() {
+  renderDios();
+});
 
 </script>
+<div id="sec-bienestar" style="scroll-margin-top:60px"></div>
+
+<!-- SECCIÓN · RELACIÓN CON DIOS -->
+<section class="dios-section" id="sec-dios">
+  <span class="section-sub">🌟 fe y espiritualidad</span>
+  <h2 class="section-title"><em>Mi Relación</em> con Dios</h2>
+  <div class="dios-card" id="diosCard"></div>
+</section>
+
+<section class="checkin-section" id="sec-checkin">
+  <span class="section-sub">🌡️ autorregulación</span>
+  <h2 class="section-title"><em>Check-in Sensorial</em> del Día</h2>
+  <div class="checkin-grid" id="checkinGrid"></div>
+
+  <!-- Caja de herramientas de calma -->
+  <div class="calm-box">
+    <div class="calm-box-title">🧸 Mis Herramientas de Calma</div>
+    <div class="calm-tools-grid" id="calmTools"></div>
+    <div class="add-calm-row">
+      <input class="calm-input" id="calmInput" placeholder="Añadir herramienta… (ej: música, manta, caminar)" />
+      <button class="calm-add-btn" onclick="addCalmTool()">＋</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECCIÓN 7 · ALERTAS DE CAMBIO / PLAN B
+══════════════════════════════════════════ -->
+<section class="cambio-section" id="sec-cambio">
+  <span class="section-sub">🔄 flexibilidad</span>
+  <h2 class="section-title"><em>Tarjetas de</em> Cambio</h2>
+  <div class="tl-day-selector" id="cambioDaySelector"></div>
+  <div class="cambio-grid" id="cambioGrid"></div>
+  <div class="cambio-custom">
+    <div class="cambio-custom-title">✏️ Mis planes B personales</div>
+    <div class="cambio-custom-row">
+      <input class="cambio-custom-input" id="cambioInput" placeholder="Ej: Si cancela mi clase, puedo…" />
+      <button class="cambio-add-btn" onclick="addCambio()">＋</button>
+    </div>
+    <div class="cambio-custom-list" id="cambioList"></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECCIÓN 9 · AUTOCUIDADO & CITA SEMANAL
+══════════════════════════════════════════ -->
+<section class="cuida-section" id="sec-cuida">
+  <span class="section-sub">🌸 bienestar</span>
+  <h2 class="section-title"><em>Mi Tiempo de</em> Recarga</h2>
+  <div class="section-sub" id="cuidaFecha" style="margin-top:-.3rem;margin-bottom:.2rem;font-size:.65rem;color:var(--muted);letter-spacing:.08em;"></div>
+  <div class="cuida-grid">
+    <div class="cuida-card recarga-card">
+      <div class="cuida-card-title">🌿 Actividades de recarga</div>
+      <div class="recarga-items" id="recargaItems"></div>
+    </div>
+    <div class="cuida-card reminder-card">
+      <div class="cuida-card-title">🔔 Recordatorios de hoy</div>
+      <div class="reminder-items" id="reminderItems"></div>
+    </div>
+  </div>
+  <div class="quote-card">
+    <div class="quote-text" id="quoteText"></div>
+    <div class="quote-author" id="quoteAuthor"></div>
+    <div class="quote-nav" id="quoteNav"></div>
+  </div>
+</section>
+
+<!-- JOURNAL DE AGRADECIMIENTO -->
+<section class="gratitud-section" id="sec-gratitud">
+  <span class="section-sub">🌸 bienestar emocional</span>
+  <h2 class="section-title"><em>Agradecimiento</em> del Día</h2>
+  <div class="gratitud-grid" id="gratitudGrid"></div>
+</section>
+<div id="sec-intereses-nav" style="scroll-margin-top:60px"></div>
+<!-- ══════════════════════════════════════════
+     SECCIÓN 5 · ZONA DE HIPERENFOQUE
+══════════════════════════════════════════ -->
+<section class="spark-section" id="sec-spark">
+  <span class="section-sub">✦ interés especial</span>
+  <h2 class="section-title"><em>Mi Zona de</em> Hiperenfoque</h2>
+  <div class="spark-card">
+    <div class="spark-header">
+      <div class="spark-icon-wrap" id="sparkEmoji" title="Haz clic para cambiar" style="cursor:pointer" onclick="cycleSparkIcon()">⭐</div>
+      <div class="spark-titles">
+        <span class="spark-label" id="sparkRangeLabel">Mi proyecto / interés especial de estos 3 días</span>
+        <input class="spark-title-input" id="sparkTitle" placeholder="¿En qué estoy enfocada estos días?" />
+      </div>
+    </div>
+
+    <div class="spark-body">
+      <!-- Panel notas libres -->
+      <div class="spark-panel">
+        <div class="spark-panel-title">📝 Notas e ideas libres</div>
+        <textarea class="spark-note" id="sparkNotes" placeholder="Escribe lo que quieras… ideas, pensamientos, cosas que descubriste…"></textarea>
+      </div>
+
+      <!-- Panel lista de ideas -->
+      <div class="spark-panel">
+        <div class="spark-panel-title">💡 Lista de ideas / cosas a explorar</div>
+        <div class="ideas-list" id="ideasList"></div>
+        <div class="add-idea-row">
+          <input class="idea-input" id="ideaInput" placeholder="Nueva idea…" />
+          <button class="idea-add-btn" onclick="addIdea()">＋</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de ánimo del proyecto -->
+    <div class="spark-progress">
+      <span class="spark-prog-label">¿Cómo me siento con este proyecto estos días?</span>
+      <div class="spark-dots" id="sparkDots"></div>
+      <span id="sparkMoodLabel" style="font-size:.65rem;color:var(--beige);font-weight:700;min-width:70px;text-align:right"></span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECCIÓN 6 · AGUA & COMIDAS
+══════════════════════════════════════════ -->
+<div id="sec-salud" style="scroll-margin-top:60px"></div>
+<section class="tracker-section" id="sec-tracker">
+  <span class="section-sub">💧 cuidado personal</span>
+  <h2 class="section-title"><em>Agua</em> & <em>Comidas</em></h2>
+  <div class="tracker-grid">
+
+    <!-- AGUA -->
+    <div class="tracker-card water-card">
+      <div class="tracker-card-title">💧 Vasos de agua al día</div>
+      <div class="water-days" id="waterGrid"></div>
+      <div class="water-goal-row">
+        <span>Meta diaria:</span>
+        <button class="goal-btn" onclick="changeGoal(-1)">−</button>
+        <span id="goalLabel">8 vasos</span>
+        <button class="goal-btn" onclick="changeGoal(1)">＋</button>
+        <span style="margin-left:auto;font-size:.6rem;color:var(--muted2)">haz clic en las gotitas 💧</span>
+      </div>
+    </div>
+
+    <!-- COMIDAS -->
+    <div class="tracker-card food-card">
+      <div class="tracker-card-title">🍽️ Comidas del día</div>
+      <div class="food-days" id="foodGrid"></div>
+      <div class="food-legend">
+        <div class="food-legend-item">🌅 Desayuno</div>
+        <div class="food-legend-item">☀️ Almuerzo</div>
+        <div class="food-legend-item">🌙 Cena</div>
+        <div class="food-legend-item">🍎 Snack</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+// --- CONFIG -----------------------------------------------
+const DAYS   = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+const SLOTS  = [
+  { id:'m', name:'Mañana',  icon:'🌅', time:'5:00 - 11:00 AM', cls:'slot-manana',  cellCls:'slot-manana-cell', pillCls:'pill-m' },
+  { id:'t', name:'Tarde',   icon:'☀️', time:'11:00 AM - 6:00 PM', cls:'slot-tarde',   cellCls:'slot-tarde-cell',  pillCls:'pill-t' },
+  { id:'n', name:'Noche',   icon:'🌙', time:'6:00 - 10:00 PM', cls:'slot-noche',   cellCls:'slot-noche-cell',  pillCls:'pill-n' },
+];
+
+// --- STATE ------------------------------------------------
+let weekOffset = 0;
+
+// Recurring tasks: array of { id, text, slotId, recurrence, days, interval, createdAt }
+// recurrence: 'daily' | 'weekly' | 'once' | 'custom'
+// days: [0,1,2,3,4,5,6] indices (0=Mon) for 'weekly'
+// interval: number of days for 'custom'
+let recurringTasks = [];
+
+// Completion state: key "taskId|YYYY-MM-DD" => true/false
+let completions = {};
+
+// Legacy (kept for cloud sync compat)
+let data = {};
+let customTasks = {};
+
+function getWeekDates(offset) {
+  const now = new Date();
+  const start = new Date(now);
+  start.setDate(now.getDate() + offset * 3);
+  return Array.from({length:3}, (_,i) => {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    return d;
+  });
+}
+
+function isTodayDate(d) {
+  const t = new Date();
+  return d.getDate()===t.getDate() && d.getMonth()===t.getMonth() && d.getFullYear()===t.getFullYear();
+}
+
+function taskKey(dayIdx, slotId, i) {
+  return `${weekOffset}|${dayIdx}|${slotId}|${i}`;
+}
+function customKey(dayIdx, slotId) {
+  return `${weekOffset}|${dayIdx}|${slotId}`;
+}
+
+function taskVisibleOnDate(task, date) {
+  const jsDay = date.getDay();
+  const dayIdx = jsDay === 0 ? 6 : jsDay - 1; // 0=Mon
+  if (task.recurrence === 'daily') return true;
+  if (task.recurrence === 'weekly') return (task.days || []).includes(dayIdx);
+  if (task.recurrence === 'once') {
+    return task.onceDate === dateKey(date);
+  }
+  if (task.recurrence === 'custom') {
+    const created = new Date(task.createdAt);
+    const diff = Math.round((date - created) / 86400000);
+    return diff >= 0 && diff % (task.interval || 1) === 0;
+  }
+  return false;
+}
+
+function completionKey(taskId, date) {
+  return taskId + '|' + dateKey(date);
+}
+
+// --- RENDER -----------------------------------------------
+function render() {
+  const dates = getWeekDates(weekOffset);
+
+  const fmt = d => d.toLocaleDateString('es-MX', {weekday:'short', day:'numeric', month:'short'});
+  document.getElementById('weekLabel').textContent =
+    fmt(dates[0]) + ' - ' + fmt(dates[2]);
+
+  const container = document.getElementById('gridOuter');
+  container.innerHTML = '';
+
+  // Days header
+  const daysRow = document.createElement('div');
+  daysRow.className = 'days-header';
+  daysRow.innerHTML = '<div></div>';
+  dates.forEach((d) => {
+    const isToday = isTodayDate(d);
+    const col = document.createElement('div');
+    col.className = 'day-col' + (isToday ? ' today' : '');
+    const jsDay = d.getDay();
+    const dayIdx = jsDay === 0 ? 6 : jsDay - 1;
+    col.innerHTML = `<div class="day-name">${DAYS[dayIdx]}</div><div class="day-num">${d.getDate()}</div>`;
+    daysRow.appendChild(col);
+  });
+  container.appendChild(daysRow);
+
+  // Slot rows
+  SLOTS.forEach(slot => {
+    const section = document.createElement('div');
+    section.className = 'block-section';
+    const row = document.createElement('div');
+    row.className = 'block-row';
+
+    const label = document.createElement('div');
+    label.className = `slot-label ${slot.cls}`;
+    label.innerHTML = `
+      <span class="slot-icon">${slot.icon}</span>
+      <span class="slot-name">${slot.name}</span>
+      <span class="slot-time">${slot.time}</span>`;
+    row.appendChild(label);
+
+    dates.forEach((date) => {
+      const isToday = isTodayDate(date);
+      const cell = document.createElement('div');
+      cell.className = `cell ${slot.cellCls}` + (isToday ? ' today-cell' : '');
+      renderCell(cell, slot, date);
+      row.appendChild(cell);
+    });
+
+    section.appendChild(row);
+    container.appendChild(section);
+  });
+
+  updateProgress();
+}
+
+// ── Render a single cell
+function renderCell(cell, slot, date) {
+  cell.innerHTML = '';
+  const pillCls = slot.pillCls;
+  const dk = dateKey(date);
+
+  // Get tasks visible on this date for this slot
+  const tasks = recurringTasks.filter(t => t.slotId === slot.id && taskVisibleOnDate(t, date));
+
+  tasks.forEach((task) => {
+    const cKey = completionKey(task.id, date);
+    const done = !!completions[cKey];
+
+    const pill = document.createElement('div');
+    pill.className = `task-pill ${pillCls}` + (done ? ' done' : '');
+
+    const chk = document.createElement('span');
+    chk.className = 'pill-check';
+    chk.textContent = done ? '✓' : '';
+    chk.onclick = (e) => {
+      e.stopPropagation();
+      completions[cKey] = !done;
+      saveData(); updateProgress(); renderCell(cell, slot, date);
+    };
+
+    const txt = document.createElement('span');
+    txt.className = 'pill-text';
+    txt.textContent = task.text;
+
+    // Recurrence badge
+    const badge = document.createElement('span');
+    badge.className = 'recur-badge';
+    const badgeMap = { daily:'🔁', weekly:'📅', once:'1️⃣', custom:'⚙️' };
+    badge.textContent = badgeMap[task.recurrence] || '';
+    badge.title = recurrenceLabel(task);
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'pill-action-btn pill-edit-btn';
+    editBtn.title = 'Configurar tarea';
+    editBtn.textContent = '✏️';
+    editBtn.onclick = (e) => { e.stopPropagation(); openTaskModal(task.id); };
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'pill-action-btn pill-del-btn';
+    delBtn.title = 'Eliminar tarea';
+    delBtn.textContent = '✕';
+    delBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (confirm('¿Eliminar esta tarea y todas sus repeticiones?')) {
+        recurringTasks = recurringTasks.filter(t => t.id !== task.id);
+        // Clean completions for this task
+        Object.keys(completions).forEach(k => { if (k.startsWith(task.id + '|')) delete completions[k]; });
+        saveData(); updateProgress(); render();
+      }
+    };
+
+    pill.appendChild(chk);
+    pill.appendChild(txt);
+    pill.appendChild(badge);
+    pill.appendChild(editBtn);
+    pill.appendChild(delBtn);
+    cell.appendChild(pill);
+  });
+
+  // Add button
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-pill';
+  addBtn.innerHTML = '＋ agregar';
+  addBtn.onclick = () => openTaskModal(null, slot.id, date);
+  cell.appendChild(addBtn);
+}
+
+function recurrenceLabel(task) {
+  if (task.recurrence === 'daily') return 'Todos los días';
+  if (task.recurrence === 'once') return 'Una sola vez';
+  if (task.recurrence === 'custom') return `Cada ${task.interval} días`;
+  if (task.recurrence === 'weekly') {
+    const names = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+    return 'Cada ' + (task.days||[]).map(d => names[d]).join(', ');
+  }
+  return '';
+}
+
+// --- PROGRESS ----------------------------------------------
+function updateProgress() {
+  const dates = getWeekDates(weekOffset);
+  let total = 0, done = 0;
+  dates.forEach(date => {
+    SLOTS.forEach(slot => {
+      recurringTasks.filter(t => t.slotId === slot.id && taskVisibleOnDate(t, date)).forEach(task => {
+        total++;
+        if (completions[completionKey(task.id, date)]) done++;
+      });
+    });
+  });
+  const pct = total > 0 ? Math.round((done/total)*100) : 0;
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progPct').textContent = pct + '%';
+}
+
+// --- PERSIST -----------------------------------------------
+function saveData() {
+  try { localStorage.setItem('recurring_tasks', JSON.stringify(recurringTasks)); } catch(e){}
+  try { localStorage.setItem('completions', JSON.stringify(completions)); } catch(e){}
+  if (window.cloudSave) {
+    window.cloudSave('recurring_tasks', recurringTasks);
+    window.cloudSave('completions', completions);
+  }
+}
+
+function loadData() {
+  recurringTasks = window._recurringTasks || JSON.parse(localStorage.getItem('recurring_tasks') || '[]');
+  completions    = window._completions    || JSON.parse(localStorage.getItem('completions')     || '{}');
+}
+
+function resetWeek() {
+  if (!confirm('¿Reiniciar las tareas completadas de esta semana?')) return;
+  const dates = getWeekDates(weekOffset);
+  dates.forEach(date => {
+    recurringTasks.forEach(task => {
+      delete completions[completionKey(task.id, date)];
+    });
+  });
+  saveData(); render();
+}
+
+function resetAll() {
+  if (!confirm('¿Borrar todas las tareas y completados?')) return;
+  recurringTasks = []; completions = {};
+  saveData(); render();
+}
+
+
+// ── TASK MODAL ────────────────────────────────────────────
+let _modalTaskId = null;  // null = new task
+
+function openTaskModal(taskId, defaultSlotId, defaultDate) {
+  _modalTaskId = taskId;
+  const existing = taskId ? recurringTasks.find(t => t.id === taskId) : null;
+
+  // Remove existing modal
+  const old = document.getElementById('taskModal');
+  if (old) old.remove();
+
+  const slot = existing ? existing.slotId : (defaultSlotId || 'm');
+  const recur = existing ? existing.recurrence : 'daily';
+  const days  = existing ? (existing.days || []) : [];
+  const interval = existing ? (existing.interval || 2) : 2;
+  const onceDate = existing ? (existing.onceDate || dateKey(defaultDate || new Date())) : dateKey(defaultDate || new Date());
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+  backdrop.id = 'taskModal';
+
+  const DAY_NAMES = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+
+  backdrop.innerHTML = `
+    <div class="modal-box" id="modalBox">
+      <div class="modal-title">🐾 <em>${existing ? 'Editar' : 'Nueva'} tarea</em></div>
+
+      <div class="modal-field">
+        <label class="modal-label">Nombre de la tarea</label>
+        <input class="modal-input" id="mTaskText" placeholder="ej: Tomar medicamento, Revisar agenda..." value="${existing ? existing.text.replace(/"/g,"&quot;") : ''}">
+      </div>
+
+      <div class="modal-field">
+        <label class="modal-label">Franja del día</label>
+        <div class="modal-slot-row">
+          <button class="slot-chip ${slot==='m'?'active-m':''}" data-slot="m" onclick="modalSelectSlot(this,'m')">🌅 Mañana</button>
+          <button class="slot-chip ${slot==='t'?'active-t':''}" data-slot="t" onclick="modalSelectSlot(this,'t')">☀️ Tarde</button>
+          <button class="slot-chip ${slot==='n'?'active-n':''}" data-slot="n" onclick="modalSelectSlot(this,'n')">🌙 Noche</button>
+        </div>
+      </div>
+
+      <div class="modal-field">
+        <label class="modal-label">Repetición</label>
+        <div class="recur-options">
+          <button class="recur-chip ${recur==='daily'?'active':''}"  data-recur="daily"  onclick="modalSelectRecur(this)">🔁 Todos los días</button>
+          <button class="recur-chip ${recur==='weekly'?'active':''}" data-recur="weekly" onclick="modalSelectRecur(this)">📅 Días específicos</button>
+          <button class="recur-chip ${recur==='once'?'active':''}"   data-recur="once"   onclick="modalSelectRecur(this)">1️⃣ Una sola vez</button>
+          <button class="recur-chip ${recur==='custom'?'active':''}" data-recur="custom" onclick="modalSelectRecur(this)">⚙️ Personalizar</button>
+        </div>
+
+        <div id="mWeeklyDays" style="display:${recur==='weekly'?'block':'none'}">
+          <div class="days-selector">
+            ${DAY_NAMES.map((d,i) => `<button class="day-chip ${days.includes(i)?'active':''}" data-day="${i}" onclick="this.classList.toggle('active')">${d}</button>`).join('')}
+          </div>
+        </div>
+
+        <div id="mOnceDate" style="display:${recur==='once'?'block':'none'};margin-top:.5rem">
+          <input class="modal-input" type="date" id="mDatePicker" value="${onceDate}">
+        </div>
+
+        <div id="mCustomInterval" style="display:${recur==='custom'?'flex':'none'}" class="modal-interval-row">
+          <span style="font-size:.75rem;color:var(--muted);font-weight:600">Cada</span>
+          <button class="interval-btn" onclick="changeInterval(-1)">−</button>
+          <span class="interval-val" id="mIntervalVal">${interval}</span>
+          <button class="interval-btn" onclick="changeInterval(1)">＋</button>
+          <span style="font-size:.75rem;color:var(--muted);font-weight:600">días</span>
+        </div>
+      </div>
+
+      <div class="modal-btns">
+        <button class="modal-btn-cancel" onclick="closeTaskModal()">Cancelar</button>
+        <button class="modal-btn-save"   onclick="saveTaskModal()">Guardar 🐱</button>
+      </div>
+    </div>`;
+
+  // Close on backdrop click
+  backdrop.onclick = (e) => { if (e.target === backdrop) closeTaskModal(); };
+
+  document.body.appendChild(backdrop);
+  document.getElementById('mTaskText').focus();
+}
+
+function modalSelectSlot(btn, slotId) {
+  document.querySelectorAll('#taskModal .slot-chip').forEach(b => {
+    b.className = 'slot-chip';
+  });
+  btn.classList.add('active-' + slotId);
+}
+
+function modalSelectRecur(btn) {
+  document.querySelectorAll('#taskModal .recur-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const recur = btn.dataset.recur;
+  document.getElementById('mWeeklyDays').style.display    = recur === 'weekly' ? 'block' : 'none';
+  document.getElementById('mOnceDate').style.display      = recur === 'once'   ? 'block' : 'none';
+  document.getElementById('mCustomInterval').style.display= recur === 'custom' ? 'flex'  : 'none';
+}
+
+function changeInterval(delta) {
+  const el = document.getElementById('mIntervalVal');
+  const val = Math.max(2, parseInt(el.textContent) + delta);
+  el.textContent = val;
+}
+
+function closeTaskModal() {
+  const m = document.getElementById('taskModal');
+  if (m) m.remove();
+}
+
+function saveTaskModal() {
+  const text = document.getElementById('mTaskText').value.trim();
+  if (!text) { document.getElementById('mTaskText').focus(); return; }
+
+  const slotBtn  = document.querySelector('#taskModal .slot-chip[class*="active"]');
+  const slotId   = slotBtn ? slotBtn.dataset.slot : 'm';
+  const recurBtn = document.querySelector('#taskModal .recur-chip.active');
+  const recur    = recurBtn ? recurBtn.dataset.recur : 'daily';
+
+  const days = recur === 'weekly'
+    ? [...document.querySelectorAll('#taskModal .day-chip.active')].map(b => parseInt(b.dataset.day))
+    : [];
+  const interval = recur === 'custom' ? parseInt(document.getElementById('mIntervalVal').textContent) : 1;
+  const onceDate = recur === 'once'   ? document.getElementById('mDatePicker').value : null;
+
+  if (recur === 'weekly' && days.length === 0) {
+    alert('Selecciona al menos un día de la semana 🐱');
+    return;
+  }
+
+  if (_modalTaskId) {
+    // Edit existing
+    const t = recurringTasks.find(t => t.id === _modalTaskId);
+    if (t) {
+      t.text = text; t.slotId = slotId; t.recurrence = recur;
+      t.days = days; t.interval = interval; t.onceDate = onceDate;
+    }
+  } else {
+    // New task
+    recurringTasks.push({
+      id: 'task_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+      text, slotId, recurrence: recur, days, interval, onceDate,
+      createdAt: new Date().toISOString()
+    });
+  }
+
+  saveData();
+  render();
+  closeTaskModal();
+}
+
+// --- NAVIGATION --------------------------------------------
+document.getElementById('prevWeek').onclick = () => { weekOffset--; render(); };
+document.getElementById('nextWeek').onclick = () => { weekOffset++; render(); };
+
+// --- SYNC FROM CLOUD ---------------------------------------
+window.syncFromCloud = function() {
+  if (window._recurringTasks !== undefined) recurringTasks = window._recurringTasks;
+  if (window._completions    !== undefined) completions    = window._completions;
+  render();
+  if (typeof renderCheckin === 'function') { loadCheckin(); renderCheckin(); }
+  if (typeof loadSpark     === 'function') { loadSpark(); }
+  if (typeof renderTracker === 'function') { loadTracker(); renderTracker(); }
+  if (typeof renderLogros  === 'function') { loadLogros(); renderLogros(); }
+  if (typeof renderCambio  === 'function') { loadCambio(); renderCambio(); }
+  if (typeof renderCuida   === 'function') { loadCuida(); renderCuida(); }
+  if (typeof renderTimeline=== 'function') { renderTimeline(); }
+};
+
+// --- INIT --------------------------------------------------
+// Show loading indicator while Firebase connects
+document.addEventListener('DOMContentLoaded', () => {
+  const loader = document.getElementById('cloudLoader');
+  if (loader) loader.style.display = 'flex';
+});
+
+async function initApp() {
+  // Load from cloud if available, else use localStorage immediately
+  if (window.cloudLoad) {
+    try {
+      const raw = await window.cloudLoad();
+      if (raw.sem_data)    window._data        = JSON.parse(raw.sem_data);
+      if (raw.sem_custom)  window._customTasks = JSON.parse(raw.sem_custom);
+      if (raw.ci_state)    window._checkinState= JSON.parse(raw.ci_state);
+      if (raw.nd_state)    window._needsState  = JSON.parse(raw.nd_state);
+      if (raw.calm_tools)  window._calmTools   = JSON.parse(raw.calm_tools);
+      if (raw.water_goal)  window._waterGoal   = parseInt(raw.water_goal);
+      if (raw.water_state) window._waterState  = JSON.parse(raw.water_state);
+      if (raw.food_state)  window._foodState   = JSON.parse(raw.food_state);
+      if (raw.logros_data) window._logrosData  = JSON.parse(raw.logros_data);
+      if (raw.fortalezas)  window._fortalezas  = JSON.parse(raw.fortalezas);
+      if (raw.cambio_state)window._cambioState = JSON.parse(raw.cambio_state);
+      if (raw.cambio_custom)window._cambioCustom=JSON.parse(raw.cambio_custom);
+    } catch(e) { console.warn('Cloud load failed, using localStorage', e); }
+  }
+  const loader = document.getElementById('cloudLoader');
+  if (loader) loader.style.display = 'none';
+  loadData();
+  render();
+}
+
+if (window._firebaseReady) {
+  initApp();
+} else {
+  document.addEventListener('firebase-ready', initApp);
+  // Fallback: render after 3s even if Firebase doesn't respond
+  setTimeout(() => { if (!document.getElementById('cloudLoader') || document.getElementById('cloudLoader').style.display !== 'none') initApp(); }, 3000);
+}
+
+// ============================================================
+//  SECCIÓN 4 · CHECK-IN SENSORIAL
+// ============================================================
+const MOODS = [
+  { emoji:'😸', label:'Tranquila' },
+  { emoji:'🐱', label:'Bien' },
+  { emoji:'😐', label:'Neutral' },
+  { emoji:'😼', label:'Con energía' },
+  { emoji:'🙀', label:'Ansiosa' },
+  { emoji:'😿', label:'Abrumada' },
+  { emoji:'😾', label:'Triste' },
+  { emoji:'🤯', label:'Saturada' },
+];
+
+const NEEDS = [
+  { id:'silencio',  icon:'🔇', label:'Silencio' },
+  { id:'manta',     icon:'🛋️', label:'Manta / peso' },
+  { id:'soledad',   icon:'🚪', label:'Espacio solo' },
+  { id:'musica',    icon:'🎵', label:'Música' },
+  { id:'mover',     icon:'🚶', label:'Moverme' },
+  { id:'comer',     icon:'🍵', label:'Algo rico' },
+];
+
+const DEFAULT_CALM = ['Respirar profundo','Música con audífonos','Pedir un abrazo','Salir a caminar','Tiempo sin pantallas'];
+
+let checkinState = {};   // key: "wo|dayIdx|mood" => emoji
+let needsState   = {};   // key: "wo|dayIdx|needId" => bool
+let calmTools    = [];   // array of strings
+
+function checkinKey(dayIdx)     { return `ci_${weekOffset}_${dayIdx}`; }
+function needKey(dayIdx, needId){ return `nd_${weekOffset}_${dayIdx}_${needId}`; }
+
+function loadCheckin() {
+  checkinState = window._checkinState || JSON.parse(localStorage.getItem('ci_state')   || '{}');
+  needsState   = window._needsState   || JSON.parse(localStorage.getItem('nd_state')   || '{}');
+  calmTools    = window._calmTools    || JSON.parse(localStorage.getItem('calm_tools')  || 'null') || [...DEFAULT_CALM];
+}
+
+function saveCheckin() {
+  try { localStorage.setItem('ci_state',   JSON.stringify(checkinState)); } catch(e){}
+  try { localStorage.setItem('nd_state',   JSON.stringify(needsState));   } catch(e){}
+  try { localStorage.setItem('calm_tools', JSON.stringify(calmTools));    } catch(e){}
+  if (window.cloudSave) {
+    window.cloudSave('ci_state',   checkinState);
+    window.cloudSave('nd_state',   needsState);
+    window.cloudSave('calm_tools', calmTools);
+  }
+}
+
+function renderCheckin() {
+  const dates = getWeekDates(weekOffset);
+  const grid  = document.getElementById('checkinGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  dates.forEach((d, dayIdx) => {
+    const isToday = isTodayDate(d);
+    const cell = document.createElement('div');
+    cell.className = 'checkin-day' + (isToday ? ' today-cell' : '');
+
+    const selectedMood = checkinState[checkinKey(dayIdx)] || null;
+
+    // Day name - derivado de la fecha real, no del índice
+    const jsDay = d.getDay();
+    const realDayIdx = jsDay === 0 ? 6 : jsDay - 1;
+    cell.innerHTML = `<div class="checkin-dayname">${DAYS[realDayIdx]}</div>`;
+
+    // Mood buttons
+    const moodRow = document.createElement('div');
+    moodRow.className = 'mood-row';
+    MOODS.forEach(m => {
+      const btn = document.createElement('button');
+      btn.className = 'mood-btn' + (selectedMood === m.emoji ? ' selected-mood' : '');
+      btn.textContent = m.emoji;
+      btn.title = m.label;
+      btn.onclick = () => {
+        checkinState[checkinKey(dayIdx)] = (selectedMood === m.emoji) ? null : m.emoji;
+        saveCheckin();
+        renderCheckin();
+      };
+      moodRow.appendChild(btn);
+    });
+    cell.appendChild(moodRow);
+
+    // Selected label
+    if (selectedMood) {
+      const found = MOODS.find(m => m.emoji === selectedMood);
+      const lbl = document.createElement('div');
+      lbl.style.cssText = 'font-size:.6rem;font-weight:700;color:var(--rosa);text-align:center;margin-top:2px;';
+      lbl.textContent = found ? found.label : '';
+      cell.appendChild(lbl);
+    }
+
+    // Needs list
+    const needsDiv = document.createElement('div');
+    needsDiv.className = 'needs-list';
+    NEEDS.forEach(n => {
+      const nk = needKey(dayIdx, n.id);
+      const on = !!needsState[nk];
+      const item = document.createElement('div');
+      item.className = 'need-item' + (on ? ' need-on' : '');
+      item.innerHTML = `<div class="need-dot"></div><span>${n.icon} ${n.label}</span>`;
+      item.onclick = () => {
+        needsState[nk] = !needsState[nk];
+        saveCheckin();
+        renderCheckin();
+      };
+      needsDiv.appendChild(item);
+    });
+    cell.appendChild(needsDiv);
+    grid.appendChild(cell);
+  });
+
+  renderCalmTools();
+}
+
+function renderCalmTools() {
+  const wrap = document.getElementById('calmTools');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  calmTools.forEach((tool, i) => {
+    const el = document.createElement('div');
+    el.className = 'calm-tool';
+    el.innerHTML = `<span>🌸 ${tool}</span><span class="del-tool" title="Eliminar">✕</span>`;
+    el.querySelector('.del-tool').onclick = (e) => {
+      e.stopPropagation();
+      calmTools.splice(i,1);
+      saveCheckin();
+      renderCalmTools();
+    };
+    wrap.appendChild(el);
+  });
+}
+
+function addCalmTool() {
+  const input = document.getElementById('calmInput');
+  const val = input.value.trim();
+  if (!val) return;
+  calmTools.push(val);
+  input.value = '';
+  saveCheckin();
+  renderCalmTools();
+}
+document.getElementById('calmInput').onkeydown = e => { if(e.key==='Enter') addCalmTool(); };
+
+// ============================================================
+//  SECCIÓN 5 · ZONA DE HIPERENFOQUE
+// ============================================================
+const SPARK_ICONS = ['⭐','🔬','🎨','🎮','📚','🌸','🎵','🦋','🚀','🧩','🌿','💎'];
+let sparkIconIdx = 0;
+let ideas = [];
+
+function loadSpark() {
+  try {
+    const key = `spark_${weekOffset}`;
+    const raw = window[`_spark_${weekOffset}`] || JSON.parse(localStorage.getItem(key) || '{}');
+    document.getElementById('sparkTitle').value  = raw.title || '';
+    document.getElementById('sparkNotes').value  = raw.notes || '';
+    sparkIconIdx = raw.iconIdx || 0;
+    document.getElementById('sparkEmoji').textContent = SPARK_ICONS[sparkIconIdx];
+    ideas = raw.ideas || [];
+    renderIdeas();
+    renderSparkDots(raw.dotLevel || 0);
+
+    // Mostrar rango de fechas actual en el label
+    const dates = getWeekDates(weekOffset);
+    const fmt = d => d.toLocaleDateString('es-MX', {day:'numeric', month:'short'});
+    const lbl = document.getElementById('sparkRangeLabel');
+    if (lbl) lbl.textContent = `Mi proyecto / interés especial · ${fmt(dates[0])} - ${fmt(dates[2])}`;
+  } catch(e) {}
+}
+
+function saveSpark() {
+  const val = {
+    title:    document.getElementById('sparkTitle').value,
+    notes:    document.getElementById('sparkNotes').value,
+    iconIdx:  sparkIconIdx,
+    ideas:    ideas,
+    dotLevel: currentDotLevel,
+  };
+  try { localStorage.setItem(`spark_${weekOffset}`, JSON.stringify(val)); } catch(e){}
+  if (window.cloudSave) window.cloudSave(`spark_${weekOffset}`, val);
+}
+
+function cycleSparkIcon() {
+  sparkIconIdx = (sparkIconIdx + 1) % SPARK_ICONS.length;
+  document.getElementById('sparkEmoji').textContent = SPARK_ICONS[sparkIconIdx];
+  saveSpark();
+}
+
+document.getElementById('sparkTitle').oninput = saveSpark;
+document.getElementById('sparkNotes').oninput = saveSpark;
+
+function renderIdeas() {
+  const list = document.getElementById('ideasList');
+  if (!list) return;
+  list.innerHTML = '';
+  ideas.forEach((idea, i) => {
+    const el = document.createElement('div');
+    el.className = 'idea-item';
+    el.innerHTML = `<span>💡 ${idea}</span>
+      <button class="idea-del" onclick="removeIdea(${i})">✕</button>`;
+    list.appendChild(el);
+  });
+}
+
+function addIdea() {
+  const input = document.getElementById('ideaInput');
+  const val = input.value.trim();
+  if (!val) return;
+  ideas.push(val);
+  input.value = '';
+  renderIdeas();
+  saveSpark();
+}
+document.getElementById('ideaInput').onkeydown = e => { if(e.key==='Enter') addIdea(); };
+
+function removeIdea(i) {
+  ideas.splice(i, 1);
+  renderIdeas();
+  saveSpark();
+}
+
+const DOT_LABELS = ['','Recién empezando 🌱','Explorando 🔍','Avanzando bien ✨','¡Muy metida! 🔥','¡En la zona! 🚀'];
+let currentDotLevel = 0;
+
+function renderSparkDots(level) {
+  currentDotLevel = level;
+  const wrap = document.getElementById('sparkDots');
+  const lbl  = document.getElementById('sparkMoodLabel');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'spark-dot' + (i <= level ? ' dot-on' : '');
+    dot.title = DOT_LABELS[i];
+    dot.onclick = () => { renderSparkDots(i === level ? 0 : i); saveSpark(); };
+    wrap.appendChild(dot);
+  }
+  lbl.textContent = DOT_LABELS[level] || '';
+}
+
+// Override render to also re-render checkin/spark when week changes
+const _origRender = render;
+// patch nav buttons to also refresh extra sections
+document.getElementById('prevWeek').addEventListener('click', () => { loadCheckin(); renderCheckin(); loadSpark(); });
+document.getElementById('nextWeek').addEventListener('click', () => { loadCheckin(); renderCheckin(); loadSpark(); });
+
+loadCheckin();
+renderCheckin();
+loadSpark();
+renderSparkDots(0);
+
+// ============================================================
+//  SECCIÓN 6 · AGUA & COMIDAS
+// ============================================================
+const MEALS = [
+  { id:'desayuno', icon:'🌅', label:'Desa.' },
+  { id:'almuerzo', icon:'☀️', label:'Alm.' },
+  { id:'cena',     icon:'🌙', label:'Cena' },
+  { id:'snack',    icon:'🍎', label:'Snack' },
+];
+
+let waterGoal  = 8;
+let waterState = {}; // key: "wo|dayIdx" => count (number)
+let foodState  = {}; // key: "wo|dayIdx|mealId" => bool
+
+function wKey(dayIdx)          { return `w_${weekOffset}_${dayIdx}`; }
+function fKey(dayIdx, mealId)  { return `f_${weekOffset}_${dayIdx}_${mealId}`; }
+
+function loadTracker() {
+  waterGoal  = window._waterGoal  || parseInt(localStorage.getItem('water_goal') || '8');
+  waterState = window._waterState || JSON.parse(localStorage.getItem('water_state') || '{}');
+  foodState  = window._foodState  || JSON.parse(localStorage.getItem('food_state')  || '{}');
+}
+
+function saveTracker() {
+  try { localStorage.setItem('water_goal',  waterGoal); } catch(e){}
+  try { localStorage.setItem('water_state', JSON.stringify(waterState)); } catch(e){}
+  try { localStorage.setItem('food_state',  JSON.stringify(foodState)); } catch(e){}
+  if (window.cloudSave) {
+    window.cloudSave('water_goal',  waterGoal);
+    window.cloudSave('water_state', waterState);
+    window.cloudSave('food_state',  foodState);
+  }
+}
+
+function changeGoal(delta) {
+  waterGoal = Math.max(1, Math.min(16, waterGoal + delta));
+  saveTracker();
+  renderTracker();
+}
+
+function renderTracker() {
+  const dates = getWeekDates(weekOffset);
+  document.getElementById('goalLabel').textContent = waterGoal + ' vasos';
+
+  // -- WATER
+  const wGrid = document.getElementById('waterGrid');
+  wGrid.innerHTML = '';
+  dates.forEach((d, dayIdx) => {
+    const isToday = isTodayDate(d);
+    const count   = waterState[wKey(dayIdx)] || 0;
+    const col = document.createElement('div');
+    col.className = 'water-day-col' + (isToday ? ' today-w' : '');
+    const wJsDay = d.getDay(); const wRealIdx = wJsDay === 0 ? 6 : wJsDay - 1;
+    col.innerHTML = `<div class="water-day-label">${DAYS[wRealIdx]}</div>`;
+
+    // Drop buttons up to goal
+    for (let i = 1; i <= waterGoal; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'drop-btn' + (i <= count ? ' filled' : '');
+      btn.textContent = '💧';
+      btn.title = `${i} vaso${i>1?'s':''}`;
+      const captured = { dayIdx, i };
+      btn.onclick = () => {
+        const cur = waterState[wKey(captured.dayIdx)] || 0;
+        waterState[wKey(captured.dayIdx)] = (cur === captured.i) ? captured.i - 1 : captured.i;
+        saveTracker();
+        renderTracker();
+      };
+      col.appendChild(btn);
+    }
+
+    const countLbl = document.createElement('div');
+    countLbl.className = 'water-count';
+    countLbl.textContent = `${count}/${waterGoal}`;
+    col.appendChild(countLbl);
+    wGrid.appendChild(col);
+  });
+
+  // -- FOOD
+  const fGrid = document.getElementById('foodGrid');
+  fGrid.innerHTML = '';
+  dates.forEach((d, dayIdx) => {
+    const isToday = isTodayDate(d);
+    const col = document.createElement('div');
+    col.className = 'food-day-col' + (isToday ? ' today-f' : '');
+    const fJsDay = d.getDay(); const fRealIdx = fJsDay === 0 ? 6 : fJsDay - 1;
+    col.innerHTML = `<div class="food-day-label">${DAYS[fRealIdx]}</div>`;
+
+    MEALS.forEach(meal => {
+      const key   = fKey(dayIdx, meal.id);
+      const eaten = !!foodState[key];
+
+      const dot = document.createElement('div');
+      dot.className = 'meal-dot' + (eaten ? ' eaten' : '');
+      dot.textContent = meal.icon;
+      dot.title = meal.label + (eaten ? ' ✓' : ' - pendiente');
+      dot.onclick = () => {
+        foodState[key] = !foodState[key];
+        saveTracker();
+        renderTracker();
+      };
+
+      const lbl = document.createElement('div');
+      lbl.className = 'meal-dot-label';
+      lbl.textContent = meal.label;
+
+      col.appendChild(dot);
+      col.appendChild(lbl);
+    });
+
+    fGrid.appendChild(col);
+  });
+}
+
+// Patch nav buttons for tracker too
+document.getElementById('prevWeek').addEventListener('click', () => renderTracker());
+document.getElementById('nextWeek').addEventListener('click', () => renderTracker());
+
+loadTracker();
+renderTracker();
+</script>
+
+<!-- ══════════════════════════════════════════
+     SECCIÓN 8 · LOGROS & FORTALEZAS
+══════════════════════════════════════════ -->
+<section class="logros-section" id="sec-logros">
+  <span class="section-sub">⭐ autocompasión</span>
+  <h2 class="section-title"><em>Mis Logros</em> del Día</h2>
+  <div class="logros-week-grid" id="logrosGrid"></div>
+  <div class="fortalezas-box">
+    <div class="fortalezas-title">💪 Mis Fortalezas en Acción esta semana</div>
+    <div class="fortalezas-chips" id="fortalezasChips"></div>
+    <div class="add-fortaleza-row">
+      <input class="fortaleza-input" id="fortalezaInput" placeholder="Ej: Soy muy detallista, recuerdo cosas importantes…" />
+      <button class="fortaleza-add-btn" onclick="addFortaleza()">＋</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECCIÓN 10 · LÍNEA DE TIEMPO VISUAL
+══════════════════════════════════════════ -->
+<section class="timeline-section" id="sec-timeline">
+  <span class="section-sub">⏱️ visualización del día</span>
+  <h2 class="section-title"><em>Mi Línea</em> de Tiempo</h2>
+  <div class="timeline-wrap">
+    <div class="tl-day-selector" id="tlDaySelector"></div>
+    <div class="tl-track" id="tlTrack"></div>
+    <div class="tl-day-prog">
+      <span class="tl-prog-label">Progreso de hoy</span>
+      <div class="tl-prog-track"><div class="tl-prog-fill" id="tlProgFill"></div></div>
+      <span class="tl-prog-stars" id="tlProgStars"></span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECCIÓN · AGRADECIMIENTO + SUEÑO + MENSTRUACIÓN
+══════════════════════════════════════════ -->
+
+
+<!-- TRACKER DE SUEÑO -->
+<section class="sueno-section" id="sec-sueno">
+  <span class="section-sub">🌙 descanso</span>
+  <h2 class="section-title"><em>Mi Sueño</em></h2>
+  <div class="sueno-grid" id="suenoGrid"></div>
+</section>
+
+<!-- TRACKER DE MENSTRUACIÓN -->
+<section class="mens-section" id="sec-mens">
+  <span class="section-sub">🩸 ciclo</span>
+  <h2 class="section-title"><em>Mi Ciclo</em></h2>
+  <div class="mens-card" id="mensCard"></div>
+</section>
+
+<!-- SECCIÓN · RUTINAS DE EJERCICIO -->
+<section class="ejercicio-section" id="sec-ejercicio">
+  <span class="section-sub">💪 movimiento</span>
+  <h2 class="section-title"><em>Rutinas</em> de Ejercicio</h2>
+  <p style="font-size:.75rem;color:var(--muted);margin-bottom:1.2rem;font-weight:600">
+    Crea tus rutinas y registra cuál hiciste cada día 🏃‍♀️
+  </p>
+
+  <!-- Selector de día -->
+  <div class="ejercicio-date-row">
+    <button class="nav-btn" id="ejPrevDay">‹</button>
+    <span class="ejercicio-date-lbl" id="ejDateLbl"></span>
+    <button class="nav-btn" id="ejNextDay">›</button>
+  </div>
+
+  <!-- Rutinas del día seleccionado -->
+  <div class="ejercicio-day-wrap" id="ejDayWrap"></div>
+
+  <!-- Mis plantillas de rutina -->
+  <div class="ejercicio-plantillas-wrap">
+    <div class="ejercicio-plantillas-hdr">
+      <span class="ejercicio-plantillas-title">🏋️ Mis rutinas</span>
+      <button class="rutina-new-btn" id="ejNewBtn">＋ Nueva rutina</button>
+    </div>
+    <div id="ejPlantillasList"></div>
+  </div>
+</section>
+
+<style>
+  /* ── AGRADECIMIENTO ── */
+  .gratitud-section, .sueno-section, .mens-section {
+    max-width: 900px;
+    margin: 2.2rem auto 0;
+    animation: fadeUp .5s .35s ease both;
+    opacity: 0;
+    animation-fill-mode: both;
+  }
+
+  .gratitud-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .gratitud-day-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: .8rem .7rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+  }
+
+  .gratitud-day-card.today-cell { box-shadow: 0 0 0 2px var(--rosa-soft); }
+
+  .gratitud-day-name {
+    font-size: .62rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .1rem;
+  }
+  .gratitud-day-card.today-cell .gratitud-day-name { color: var(--rosa); }
+
+  .gratitud-item {
+    display: flex;
+    align-items: flex-start;
+    gap: .4rem;
+  }
+
+  .gratitud-num {
+    font-size: .6rem;
+    font-weight: 700;
+    color: var(--rosa);
+    min-width: 12px;
+    margin-top: 3px;
+    flex-shrink: 0;
+  }
+
+  .gratitud-input {
+    font-family: 'Nunito', sans-serif;
+    font-size: .7rem;
+    font-weight: 600;
+    border: none;
+    border-bottom: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    outline: none;
+    width: 100%;
+    padding: .1rem 0;
+    transition: border-color .2s;
+    resize: none;
+    line-height: 1.3;
+  }
+  .gratitud-input:focus { border-color: var(--rosa); }
+  .gratitud-input::placeholder { color: var(--muted2); }
+
+  /* ── SUEÑO ── */
+  .sueno-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .sueno-day-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: .8rem .7rem;
+    display: flex;
+    flex-direction: column;
+    gap: .55rem;
+  }
+  .sueno-day-card.today-cell { box-shadow: 0 0 0 2px var(--rosa-soft); }
+
+  .sueno-day-name {
+    font-size: .62rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .sueno-day-card.today-cell .sueno-day-name { color: var(--rosa); }
+
+  .sueno-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .sueno-label {
+    font-size: .58rem;
+    font-weight: 700;
+    color: var(--muted2);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+
+  .sueno-time-input {
+    font-family: 'Nunito', sans-serif;
+    font-size: .78rem;
+    font-weight: 700;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    padding: .25rem .4rem;
+    width: 100%;
+    transition: border-color .2s;
+  }
+  .sueno-time-input:focus { border-color: var(--rosa); }
+
+  .sueno-horas {
+    font-size: .68rem;
+    font-weight: 700;
+    color: var(--verde);
+    text-align: center;
+    min-height: 16px;
+  }
+
+  .sueno-calidad-row {
+    display: flex;
+    justify-content: space-around;
+    margin-top: .1rem;
+  }
+
+  .sueno-emoji-btn {
+    font-size: 1.1rem;
+    background: none;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    width: 30px; height: 30px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .sueno-emoji-btn:hover { transform: scale(1.2); }
+  .sueno-emoji-btn.selected-calidad {
+    border-color: var(--rosa);
+    background: var(--rosa-soft);
+  }
+
+  /* ── MENSTRUACIÓN ── */
+  .mens-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.2rem 1.4rem;
+    max-width: 420px;
+  }
+
+  .mens-header {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    margin-bottom: 1rem;
+  }
+
+  .mens-drop {
+    font-size: 2rem;
+    cursor: pointer;
+    transition: transform .2s;
+    user-select: none;
+  }
+  .mens-drop:hover { transform: scale(1.15); }
+  .mens-drop.active { filter: drop-shadow(0 0 6px rgba(212,100,100,.5)); }
+
+  .mens-info {
+    flex: 1;
+  }
+
+  .mens-title {
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .mens-date-label {
+    font-size: .72rem;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .mens-days-since {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #c0556a;
+    line-height: 1;
+  }
+
+  .mens-days-label {
+    font-size: .65rem;
+    color: var(--muted);
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+  .mens-hint {
+    font-size: .68rem;
+    color: var(--muted2);
+    font-weight: 600;
+    margin-top: .8rem;
+    font-style: italic;
+  }
+
+  .mens-clear-btn {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: .25rem .7rem;
+    font-family: 'Nunito', sans-serif;
+    font-size: .65rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    margin-top: .7rem;
+    transition: all .2s;
+  }
+  .mens-clear-btn:hover { border-color: var(--rosa); color: var(--rosa); }
+
+  @media (max-width: 640px) {
+    .gratitud-grid, .sueno-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script>
+// ══════════════════════════════════════════
+//  JOURNAL DE AGRADECIMIENTO
+// ══════════════════════════════════════════
+let gratitudData = {}; // { 'YYYY-MM-DD': ['cosa1','cosa2','cosa3'] }
+
+function saveGratitud() {
+  try { localStorage.setItem('gratitud_data', JSON.stringify(gratitudData)); } catch(e){}
+  if (window.cloudSave) window.cloudSave('gratitud_data', gratitudData);
+}
+function loadGratitud() {
+  gratitudData = window._gratitudData || JSON.parse(localStorage.getItem('gratitud_data') || '{}');
+}
+
+function renderGratitud() {
+  const grid = document.getElementById('gratitudGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  const dates = getWeekDates(weekOffset);
+  const DIAS_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+  dates.forEach(date => {
+    const dk = dateKey(date);
+    const isToday = isTodayDate(date);
+    if (!gratitudData[dk]) gratitudData[dk] = ['','',''];
+
+    const card = document.createElement('div');
+    card.className = 'gratitud-day-card' + (isToday ? ' today-cell' : '');
+
+    const dayName = document.createElement('div');
+    dayName.className = 'gratitud-day-name';
+    dayName.textContent = DIAS_ES[date.getDay()] + ' ' + date.getDate();
+    card.appendChild(dayName);
+
+    [0,1,2].forEach(i => {
+      const row = document.createElement('div');
+      row.className = 'gratitud-item';
+
+      const num = document.createElement('span');
+      num.className = 'gratitud-num';
+      num.textContent = (i+1) + '.';
+
+      const input = document.createElement('textarea');
+      input.className = 'gratitud-input';
+      input.rows = 1;
+      input.placeholder = i === 0 ? 'Algo lindo de hoy...' : i === 1 ? 'Una persona que me importa...' : 'Algo de mí misma...';
+      input.value = gratitudData[dk][i] || '';
+      input.oninput = () => {
+        input.style.height = 'auto';
+        input.style.height = input.scrollHeight + 'px';
+        gratitudData[dk][i] = input.value;
+        saveGratitud();
+      };
+      // Auto-resize on render
+      setTimeout(() => {
+        input.style.height = 'auto';
+        input.style.height = input.scrollHeight + 'px';
+      }, 0);
+
+      row.appendChild(num);
+      row.appendChild(input);
+      card.appendChild(row);
+    });
+
+    grid.appendChild(card);
+  });
+}
+
+// ══════════════════════════════════════════
+//  TRACKER DE SUEÑO
+// ══════════════════════════════════════════
+const SUENO_CALIDAD = ['😴','😪','😐','😊','🌟'];
+let suenoData = {}; // { 'YYYY-MM-DD': { dormirse:'23:00', despertar:'07:00', calidad:'😊' } }
+
+function savesueno() {
+  try { localStorage.setItem('sueno_data', JSON.stringify(suenoData)); } catch(e){}
+  if (window.cloudSave) window.cloudSave('sueno_data', suenoData);
+}
+function loadSueno() {
+  suenoData = window._suenoData || JSON.parse(localStorage.getItem('sueno_data') || '{}');
+}
+
+function calcHoras(dormirseStr, despertarStr) {
+  if (!dormirseStr || !despertarStr) return '';
+  const [h1,m1] = dormirseStr.split(':').map(Number);
+  const [h2,m2] = despertarStr.split(':').map(Number);
+  let mins = (h2*60+m2) - (h1*60+m1);
+  if (mins < 0) mins += 24*60;
+  const h = Math.floor(mins/60);
+  const m = mins % 60;
+  return h + 'h ' + (m > 0 ? m + 'min' : '');
+}
+
+// Convert 24h "HH:MM" string to 12h display "h:MM AM/PM"
+function to12h(timeStr) {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12  = h % 12 === 0 ? 12 : h % 12;
+  const mm   = String(m).padStart(2, '0');
+  return h12 + ':' + mm + ' ' + ampm;
+}
+
+function renderSueno() {
+  const grid = document.getElementById('suenoGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  const dates = getWeekDates(weekOffset);
+  const DIAS_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+  dates.forEach(date => {
+    const dk = dateKey(date);
+    const isToday = isTodayDate(date);
+    if (!suenoData[dk]) suenoData[dk] = { dormirse:'', despertar:'', calidad:'' };
+    const entry = suenoData[dk];
+
+    const card = document.createElement('div');
+    card.className = 'sueno-day-card' + (isToday ? ' today-cell' : '');
+
+    const dayName = document.createElement('div');
+    dayName.className = 'sueno-day-name';
+    dayName.textContent = DIAS_ES[date.getDay()] + ' ' + date.getDate();
+    card.appendChild(dayName);
+
+    // Dormir
+    const fDormir = document.createElement('div');
+    fDormir.className = 'sueno-field';
+    fDormir.innerHTML = '<span class="sueno-label">🌙 Me dormí</span>';
+    const inDormir = document.createElement('input');
+    inDormir.type = 'time'; inDormir.className = 'sueno-time-input';
+    inDormir.value = entry.dormirse || '';
+    inDormir.onchange = () => {
+      suenoData[dk].dormirse = inDormir.value;
+      savesueno();
+      const d12 = to12h(suenoData[dk].dormirse);
+      const w12 = to12h(suenoData[dk].despertar);
+      const dur = calcHoras(suenoData[dk].dormirse, suenoData[dk].despertar);
+      horasEl.textContent = dur ? (d12 + ' → ' + w12 + ' · ' + dur) : '';
+    };
+    fDormir.appendChild(inDormir);
+    card.appendChild(fDormir);
+
+    // Despertar
+    const fDespertar = document.createElement('div');
+    fDespertar.className = 'sueno-field';
+    fDespertar.innerHTML = '<span class="sueno-label">🌅 Desperté</span>';
+    const inDespertar = document.createElement('input');
+    inDespertar.type = 'time'; inDespertar.className = 'sueno-time-input';
+    inDespertar.value = entry.despertar || '';
+    inDespertar.onchange = () => {
+      suenoData[dk].despertar = inDespertar.value;
+      savesueno();
+      const d12 = to12h(suenoData[dk].dormirse);
+      const w12 = to12h(suenoData[dk].despertar);
+      const dur = calcHoras(suenoData[dk].dormirse, suenoData[dk].despertar);
+      horasEl.textContent = dur ? (d12 + ' → ' + w12 + ' · ' + dur) : '';
+    };
+    fDespertar.appendChild(inDespertar);
+    card.appendChild(fDespertar);
+
+    // Horas calculadas
+    const horasEl = document.createElement('div');
+    horasEl.className = 'sueno-horas';
+    const d12i = to12h(entry.dormirse);
+  const w12i = to12h(entry.despertar);
+  const durI = calcHoras(entry.dormirse, entry.despertar);
+  horasEl.textContent = durI ? (d12i + ' → ' + w12i + ' · ' + durI) : '';
+    card.appendChild(horasEl);
+
+    // Calidad
+    const calLabel = document.createElement('div');
+    calLabel.className = 'sueno-label';
+    calLabel.textContent = '¿Cómo dormí?';
+    card.appendChild(calLabel);
+
+    const calidadRow = document.createElement('div');
+    calidadRow.className = 'sueno-calidad-row';
+    SUENO_CALIDAD.forEach(emoji => {
+      const btn = document.createElement('button');
+      btn.className = 'sueno-emoji-btn' + (entry.calidad === emoji ? ' selected-calidad' : '');
+      btn.textContent = emoji;
+      btn.onclick = () => {
+        suenoData[dk].calidad = suenoData[dk].calidad === emoji ? '' : emoji;
+        savesueno(); renderSueno();
+      };
+      calidadRow.appendChild(btn);
+    });
+    card.appendChild(calidadRow);
+
+    grid.appendChild(card);
+  });
+}
+
+// ══════════════════════════════════════════
+//  TRACKER DE MENSTRUACIÓN
+// ══════════════════════════════════════════
+let mensData = { lastDate: null }; // { lastDate: 'YYYY-MM-DD' }
+
+function saveMens() {
+  try { localStorage.setItem('mens_data', JSON.stringify(mensData)); } catch(e){}
+  if (window.cloudSave) window.cloudSave('mens_data', mensData);
+}
+function loadMens() {
+  mensData = window._mensData || JSON.parse(localStorage.getItem('mens_data') || '{"lastDate":null}');
+}
+
+function renderMens() {
+  const card = document.getElementById('mensCard');
+  if (!card) return;
+  card.innerHTML = '';
+
+  const today = new Date();
+  const lastDate = mensData.lastDate ? new Date(mensData.lastDate + 'T12:00:00') : null;
+  const daysSince = lastDate ? Math.floor((today - lastDate) / 86400000) : null;
+
+  const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+  const header = document.createElement('div');
+  header.className = 'mens-header';
+
+  const drop = document.createElement('div');
+  drop.className = 'mens-drop' + (lastDate ? ' active' : '');
+  drop.textContent = '🩸';
+  drop.title = 'Click para marcar hoy como inicio de periodo';
+  drop.onclick = () => {
+    if (confirm('¿Marcar hoy como inicio de tu periodo?')) {
+      mensData.lastDate = dateKey(today);
+      saveMens(); renderMens();
+    }
+  };
+
+  const info = document.createElement('div');
+  info.className = 'mens-info';
+
+  const title = document.createElement('div');
+  title.className = 'mens-title';
+  title.textContent = 'Último periodo';
+
+  const dateLabel = document.createElement('div');
+  dateLabel.className = 'mens-date-label';
+  dateLabel.textContent = lastDate
+    ? `${lastDate.getDate()} de ${MESES_ES[lastDate.getMonth()]} de ${lastDate.getFullYear()}`
+    : 'Toca 🩸 para marcar la fecha';
+
+  info.appendChild(title);
+  info.appendChild(dateLabel);
+  header.appendChild(drop);
+  header.appendChild(info);
+
+  if (daysSince !== null) {
+    const daysEl = document.createElement('div');
+    daysEl.style.textAlign = 'right';
+    const num = document.createElement('div');
+    num.className = 'mens-days-since';
+    num.textContent = daysSince;
+    const lbl = document.createElement('div');
+    lbl.className = 'mens-days-label';
+    lbl.textContent = daysSince === 1 ? 'dia desde tu ultimo periodo' : 'dias desde tu ultimo periodo';
+    daysEl.appendChild(num);
+    daysEl.appendChild(lbl);
+    header.appendChild(daysEl);
+  }
+
+  card.appendChild(header);
+
+  if (lastDate) {
+    const hint = document.createElement('div');
+    hint.className = 'mens-hint';
+    hint.textContent = '🩸 Toca la gotita para actualizar la fecha';
+    card.appendChild(hint);
+
+    const clearBtn = document.createElement('button');
+    clearBtn.className = 'mens-clear-btn';
+    clearBtn.textContent = 'Borrar registro';
+    clearBtn.onclick = () => {
+      if (confirm('¿Borrar el registro del periodo?')) {
+        mensData.lastDate = null;
+        saveMens(); renderMens();
+      }
+    };
+    card.appendChild(clearBtn);
+  }
+}
+
+// Patch cloud sync
+const _origSyncS = window.syncFromCloud;
+window.syncFromCloud = function() {
+  if (window._gratitudData) gratitudData = window._gratitudData;
+  if (window._suenoData)    suenoData    = window._suenoData;
+  if (window._mensData)     mensData     = window._mensData;
+  if (_origSyncS) _origSyncS();
+  renderGratitud(); renderSueno(); renderMens();
+};
+
+loadGratitud(); renderGratitud();
+loadSueno();    renderSueno();
+loadMens();     renderMens();
+</script>
+
+<script>
+// ============================================================
+//  SECCIÓN 7 · ALERTAS DE CAMBIO / PLAN B
+// ============================================================
+const CAMBIO_CARDS = [
+  { id:'c1', icon:'⚠️', title:'Alerta de Cambio', desc:'Algo cambió en mi plan. Está bien, puedo adaptarme.', type:'alerta' },
+  { id:'c2', icon:'🗺️', title:'Plan B Activo',    desc:'Tengo un plan alternativo listo para usar.', type:'planb' },
+  { id:'c3', icon:'😮‍💨', title:'Pausa y Respira', desc:'Necesito un momento antes de continuar.', type:'alerta' },
+  { id:'c4', icon:'🔄', title:'Rutina Flexible',  desc:'Hoy el orden puede ser diferente. Está permitido.', type:'planb' },
+  { id:'c5', icon:'🆘', title:'Pedir Ayuda',      desc:'Puedo pedir ayuda. No tengo que manejarlo sola.', type:'alerta' },
+  { id:'c6', icon:'🧘', title:'Tiempo Fuera',     desc:'Me doy permiso de pausar y recargarme.', type:'planb' },
+];
+
+let cambioState   = {}; // key: "wo|dayIdx|cardId" => bool
+let cambioCustom  = []; // array of strings (global, not per day)
+let cambioDayIdx  = 0; // siempre empieza en el primer día del rango visible
+
+function cambioKey(dayIdx, cardId) { return `cb_${weekOffset}_${dayIdx}_${cardId}`; }
+
+function loadCambio() {
+  cambioState  = window._cambioState  || JSON.parse(localStorage.getItem('cambio_state')  || '{}');
+  cambioCustom = window._cambioCustom || JSON.parse(localStorage.getItem('cambio_custom') || '[]');
+}
+function saveCambio() {
+  try { localStorage.setItem('cambio_state',  JSON.stringify(cambioState));  } catch(e){}
+  try { localStorage.setItem('cambio_custom', JSON.stringify(cambioCustom)); } catch(e){}
+  if (window.cloudSave) {
+    window.cloudSave('cambio_state',  cambioState);
+    window.cloudSave('cambio_custom', cambioCustom);
+  }
+}
+
+function renderCambio() {
+  // Day selector
+  const dates = getWeekDates(weekOffset);
+  const sel = document.getElementById('cambioDaySelector');
+  sel.innerHTML = '';
+  dates.forEach((d, i) => {
+    const isToday = isTodayDate(d);
+    const btn = document.createElement('button');
+    btn.className = 'tl-day-btn' + (i === cambioDayIdx ? ' active' : '') + (isToday ? ' today-tl' : '');
+    const cJsDay = d.getDay(); const cRealIdx = cJsDay === 0 ? 6 : cJsDay - 1;
+    btn.textContent = DAYS[cRealIdx] + ' ' + d.getDate();
+    btn.onclick = () => { cambioDayIdx = i; renderCambio(); };
+    sel.appendChild(btn);
+  });
+
+  // Cards for selected day
+  const grid = document.getElementById('cambioGrid');
+  grid.innerHTML = '';
+  CAMBIO_CARDS.forEach(c => {
+    const key = cambioKey(cambioDayIdx, c.id);
+    const on = !!cambioState[key];
+    const card = document.createElement('div');
+    card.className = `cambio-card ${on ? (c.type === 'alerta' ? 'alerta-on' : 'planb-on') : ''}`;
+    card.innerHTML = `
+      <span class="cambio-badge">${on ? (c.type==='alerta' ? '⚡ activa' : '✓ plan b') : ''}</span>
+      <span class="cambio-icon">${c.icon}</span>
+      <div class="cambio-title">${c.title}</div>
+      <div class="cambio-desc">${c.desc}</div>`;
+    card.onclick = () => { cambioState[key] = !on; saveCambio(); renderCambio(); };
+    grid.appendChild(card);
+  });
+  renderCambioCustom();
+}
+
+function renderCambioCustom() {
+  const list = document.getElementById('cambioList');
+  list.innerHTML = '';
+  cambioCustom.forEach((text, i) => {
+    const pill = document.createElement('div');
+    pill.className = 'cambio-custom-pill';
+    pill.innerHTML = `<span>🗒️ ${text}</span><button onclick="removeCambio(${i})">✕</button>`;
+    list.appendChild(pill);
+  });
+}
+
+function addCambio() {
+  const input = document.getElementById('cambioInput');
+  const val = input.value.trim();
+  if (!val) return;
+  cambioCustom.push(val);
+  input.value = '';
+  saveCambio(); renderCambioCustom();
+}
+function removeCambio(i) { cambioCustom.splice(i,1); saveCambio(); renderCambioCustom(); }
+document.getElementById('cambioInput').onkeydown = e => { if(e.key==='Enter') addCambio(); };
+
+// ============================================================
+//  SECCIÓN 8 · LOGROS & FORTALEZAS
+// ============================================================
+let logrosData    = {}; // key: "wo|dayIdx" => [string]
+let fortalezas    = [];
+
+const DEFAULT_FORTALEZAS = ['Atención al detalle','Pensamiento profundo','Honestidad','Creatividad única','Memoria especial'];
+
+function loadLogros() {
+  logrosData = window._logrosData || JSON.parse(localStorage.getItem('logros_data') || '{}');
+  fortalezas = window._fortalezas || JSON.parse(localStorage.getItem('fortalezas')  || 'null') || [...DEFAULT_FORTALEZAS];
+}
+function saveLogros() {
+  try { localStorage.setItem('logros_data', JSON.stringify(logrosData)); } catch(e){}
+  try { localStorage.setItem('fortalezas',  JSON.stringify(fortalezas)); } catch(e){}
+  if (window.cloudSave) {
+    window.cloudSave('logros_data', logrosData);
+    window.cloudSave('fortalezas',  fortalezas);
+  }
+}
+function logroKey(dayIdx) { return `lg_${weekOffset}_${dayIdx}`; }
+
+function renderLogros() {
+  const dates = getWeekDates(weekOffset);
+  const grid  = document.getElementById('logrosGrid');
+  grid.innerHTML = '';
+
+  dates.forEach((d, dayIdx) => {
+    const isToday = isTodayDate(d);
+    const key     = logroKey(dayIdx);
+    const items   = logrosData[key] || [];
+
+    const col = document.createElement('div');
+    col.className = 'logro-day-col' + (isToday ? ' today-l' : '');
+    const lJsDay = d.getDay(); const lRealIdx = lJsDay === 0 ? 6 : lJsDay - 1;
+    col.innerHTML = `<div class="logro-dayname">${DAYS[lRealIdx]}</div>`;
+
+    items.forEach((text, i) => {
+      const item = document.createElement('div');
+      item.className = 'logro-item';
+      item.innerHTML = `<span class="logro-item-star">⭐</span>
+        <span class="logro-item-text">${text}</span>
+        <button class="logro-item-del" onclick="removeLogro(${dayIdx},${i})">✕</button>`;
+      col.appendChild(item);
+    });
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'logro-add-btn';
+    addBtn.innerHTML = '＋ logro';
+    addBtn.onclick = () => startLogroInput(col, addBtn, key);
+    col.appendChild(addBtn);
+    grid.appendChild(col);
+  });
+
+  renderFortalezas();
+}
+
+function startLogroInput(col, addBtn, key) {
+  addBtn.style.display = 'none';
+  const input = document.createElement('input');
+  input.className = 'logro-edit-input';
+  input.placeholder = '¿Qué hiciste bien hoy? 🌟';
+  col.appendChild(input);
+  input.focus();
+  const commit = () => {
+    const val = input.value.trim();
+    if (val) {
+      if (!logrosData[key]) logrosData[key] = [];
+      logrosData[key].push(val);
+      saveLogros();
+    }
+    renderLogros();
+  };
+  input.onkeydown = e => { if(e.key==='Enter') commit(); if(e.key==='Escape') renderLogros(); };
+  input.onblur = commit;
+}
+
+function removeLogro(dayIdx, i) {
+  const key = logroKey(dayIdx);
+  if (logrosData[key]) { logrosData[key].splice(i,1); saveLogros(); renderLogros(); }
+}
+
+function renderFortalezas() {
+  const wrap = document.getElementById('fortalezasChips');
+  wrap.innerHTML = '';
+  fortalezas.forEach((f, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'fortaleza-chip';
+    chip.innerHTML = `<span>✨ ${f}</span><button onclick="removeFortaleza(${i})">✕</button>`;
+    wrap.appendChild(chip);
+  });
+}
+
+function addFortaleza() {
+  const input = document.getElementById('fortalezaInput');
+  const val = input.value.trim();
+  if (!val) return;
+  fortalezas.push(val); input.value = '';
+  saveLogros(); renderFortalezas();
+}
+function removeFortaleza(i) { fortalezas.splice(i,1); saveLogros(); renderFortalezas(); }
+document.getElementById('fortalezaInput').onkeydown = e => { if(e.key==='Enter') addFortaleza(); };
+
+// ============================================================
+//  SECCIÓN 9 · AUTOCUIDADO & CITA
+// ============================================================
+const RECARGAS = [
+  { id:'r1', icon:'🎧', text:'Música con audífonos' },
+  { id:'r2', icon:'🛁', text:'Baño largo y tranquilo' },
+  { id:'r3', icon:'📖', text:'Leer sin interrupciones' },
+  { id:'r4', icon:'🌿', text:'Tiempo en la naturaleza' },
+  { id:'r5', icon:'🎨', text:'Crear algo con mis manos' },
+  { id:'r6', icon:'😴', text:'Siesta / descanso sin culpa' },
+];
+const REMINDERS = [
+  { id:'rm1', icon:'💧', text:'Tomar agua cada hora' },
+  { id:'rm2', icon:'🍽️', text:'Comer a mis horas' },
+  { id:'rm3', icon:'🚶', text:'Moverme un poco hoy' },
+  { id:'rm4', icon:'🌬️', text:'Respirar profundo' },
+  { id:'rm5', icon:'📵', text:'Descanso de pantallas' },
+];
+const QUOTES = [
+  { text: 'Mi cerebro funciona diferente, no defectuoso. Eso es una fortaleza.', author: '- Comunidad neurodivergente' },
+  { text: 'No tengo que ser neurotypical para ser valiosa. Soy suficiente tal como soy.', author: '- Autocompasión neurodivergente' },
+  { text: 'Cada pequeño logro del día cuenta. No hay victorias demasiado pequeñas.', author: '- Para ti, hoy' },
+  { text: 'Pedir ayuda es inteligente, no debilidad. Conocerme a mí misma es mi superpoder.', author: '- Sabiduría neurodivergente' },
+  { text: 'Mis necesidades sensoriales son válidas. Cuidarme es mi prioridad.', author: '- Autocuidado neurodivergente' },
+  { text: 'El caos de hoy no define el mañana. Puedo empezar de nuevo en cualquier momento.', author: '- Para días difíciles' },
+];
+
+let recargaState  = {};
+let reminderState = {};
+let quoteIdx      = 0;
+
+function loadCuida() {
+  recargaState  = window._recargaState  || JSON.parse(localStorage.getItem(`recarga_${weekOffset}`)  || '{}');
+  reminderState = window._reminderState || JSON.parse(localStorage.getItem(`reminder_${weekOffset}`) || '{}');
+  quoteIdx = window._quoteIdx !== undefined ? window._quoteIdx : parseInt(localStorage.getItem(`quote_${weekOffset}`) || '0') % QUOTES.length;
+}
+function saveCuida() {
+  try { localStorage.setItem(`recarga_${weekOffset}`,  JSON.stringify(recargaState));  } catch(e){}
+  try { localStorage.setItem(`reminder_${weekOffset}`, JSON.stringify(reminderState)); } catch(e){}
+  try { localStorage.setItem(`quote_${weekOffset}`, quoteIdx); } catch(e){}
+  if (window.cloudSave) {
+    window.cloudSave(`recarga_${weekOffset}`,  recargaState);
+    window.cloudSave(`reminder_${weekOffset}`, reminderState);
+    window.cloudSave(`quote_${weekOffset}`,    quoteIdx);
+  }
+}
+
+function renderCuida() {
+  // Fecha de hoy
+  const hoy = new Date();
+  const DIAS_ES = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const fechaEl = document.getElementById('cuidaFecha');
+  if (fechaEl) fechaEl.textContent = `📅 ${DIAS_ES[hoy.getDay()]}, ${hoy.getDate()} de ${MESES_ES[hoy.getMonth()]} de ${hoy.getFullYear()}`;
+
+  // Recargas
+  const rWrap = document.getElementById('recargaItems');
+  rWrap.innerHTML = '';
+  RECARGAS.forEach(r => {
+    const done = !!recargaState[r.id];
+    const el = document.createElement('div');
+    el.className = 'recarga-item' + (done ? ' done-r' : '');
+    el.innerHTML = `<span class="recarga-icon">${r.icon}</span>
+      <span class="recarga-text">${r.text}</span>
+      <div class="recarga-check">${done ? '✓' : ''}</div>`;
+    el.onclick = () => { recargaState[r.id] = !done; saveCuida(); renderCuida(); };
+    rWrap.appendChild(el);
+  });
+
+  // Reminders
+  const rmWrap = document.getElementById('reminderItems');
+  rmWrap.innerHTML = '';
+  REMINDERS.forEach(r => {
+    const done = !!reminderState[r.id];
+    const el = document.createElement('div');
+    el.className = 'reminder-item' + (done ? ' done-rm' : '');
+    el.innerHTML = `<span class="reminder-icon">${r.icon}</span>
+      <span class="reminder-text">${r.text}</span>
+      <div class="reminder-check">${done ? '✓' : ''}</div>`;
+    el.onclick = () => { reminderState[r.id] = !done; saveCuida(); renderCuida(); };
+    rmWrap.appendChild(el);
+  });
+
+  // Quote
+  const q = QUOTES[quoteIdx];
+  document.getElementById('quoteText').textContent   = q.text;
+  document.getElementById('quoteAuthor').textContent = q.author;
+  const nav = document.getElementById('quoteNav');
+  nav.innerHTML = '';
+  QUOTES.forEach((_,i) => {
+    const dot = document.createElement('div');
+    dot.className = 'quote-dot' + (i === quoteIdx ? ' active' : '');
+    dot.onclick = () => { quoteIdx = i; saveCuida(); renderCuida(); };
+    nav.appendChild(dot);
+  });
+}
+
+// ============================================================
+//  SECCIÓN 10 · LÍNEA DE TIEMPO VISUAL
+// ============================================================
+let tlDayIdx = 0; // siempre empieza en el primer día del rango visible
+
+const TL_SLOTS = [
+  { id:'m', icon:'🌅', name:'Mañana', time:'05-11h', chipCls:'tl-chip-m' },
+  { id:'t', icon:'☀️', name:'Tarde',  time:'11-18h', chipCls:'tl-chip-t' },
+  { id:'n', icon:'🌙', name:'Noche',  time:'18-22h', chipCls:'tl-chip-n' },
+];
+
+function renderTimeline() {
+  const dates = getWeekDates(weekOffset);
+
+  // Day selector
+  const sel = document.getElementById('tlDaySelector');
+  sel.innerHTML = '';
+  dates.forEach((d, i) => {
+    const isToday = isTodayDate(d);
+    const btn = document.createElement('button');
+    btn.className = 'tl-day-btn' + (i === tlDayIdx ? ' active' : '') + (isToday ? ' today-tl' : '');
+    const tJsDay = d.getDay(); const tRealIdx = tJsDay === 0 ? 6 : tJsDay - 1;
+    btn.textContent = DAYS[tRealIdx] + ' ' + d.getDate();
+    btn.onclick = () => { tlDayIdx = i; renderTimeline(); };
+    sel.appendChild(btn);
+  });
+
+  // Track
+  const track = document.getElementById('tlTrack');
+  track.innerHTML = '';
+
+  const isToday = isTodayDate(dates[tlDayIdx]);
+  const nowHour = new Date().getHours();
+
+  let totalTasks = 0, doneTasks = 0;
+
+  TL_SLOTS.forEach(slot => {
+    const date = dates[tlDayIdx];
+    const allTasks = recurringTasks.filter(t => t.slotId === slot.id && taskVisibleOnDate(t, date));
+
+    const slotHour = slot.id === 'm' ? 8 : slot.id === 't' ? 14 : 20; // day starts 5AM
+    const isCurrent = isToday && Math.abs(nowHour - slotHour) < 4;
+    const isPast    = isToday && nowHour > slotHour + 3;
+
+    const slotDone = allTasks.length > 0 && allTasks.every(t => !!completions[completionKey(t.id, date)]);
+
+    totalTasks += allTasks.length;
+
+    const el = document.createElement('div');
+    el.className = 'tl-slot' + (slotDone || isPast ? ' tl-done' : '') + (isCurrent ? ' tl-current' : '');
+
+    el.innerHTML = `<div class="tl-node">${slot.icon}</div>
+      <div class="tl-slot-header">
+        <span class="tl-slot-time">${slot.time}</span>
+        <span class="tl-slot-name">${slot.name}</span>
+      </div>`;
+
+    // Mini task chips
+    const chipsRow = document.createElement('div');
+    chipsRow.className = 'tl-tasks-mini';
+    allTasks.forEach(task => {
+      const cKey = completionKey(task.id, date);
+      const done = !!completions[cKey];
+      if (done) doneTasks++;
+      const chip = document.createElement('div');
+      chip.className = `tl-task-chip ${slot.chipCls}` + (done ? ' chip-done' : '');
+      chip.innerHTML = `${done ? '✓' : '○'} ${task.text}`;
+      chip.style.cursor = 'pointer';
+      chip.onclick = () => {
+        completions[cKey] = !done;
+        saveData(); updateProgress(); renderTimeline();
+      };
+      chipsRow.appendChild(chip);
+    });
+    el.appendChild(chipsRow);
+    track.appendChild(el);
+  });
+
+  // Day progress
+  const pct = totalTasks > 0 ? Math.round((doneTasks/totalTasks)*100) : 0;
+  document.getElementById('tlProgFill').style.width = pct + '%';
+  const stars = pct >= 80 ? '🌟🌟🌟' : pct >= 50 ? '⭐⭐' : pct > 0 ? '⭐' : '';
+  document.getElementById('tlProgStars').textContent = stars + ' ' + pct + '%';
+}
+
+// Patch nav for new sections
+document.getElementById('prevWeek').addEventListener('click', () => {
+  loadCuida(); renderCuida(); renderLogros(); renderTimeline(); renderCambio();
+});
+document.getElementById('nextWeek').addEventListener('click', () => {
+  loadCuida(); renderCuida(); renderLogros(); renderTimeline(); renderCambio();
+});
+
+loadCambio();   renderCambio();
+loadLogros();   renderLogros();
+loadCuida();    renderCuida();
+renderTimeline();
+</script>
+<!-- ══ BARRA DE NAVEGACIÓN INFERIOR ══ -->
+<nav class="bottom-nav">
+  <div class="nav-inner" id="bottomNav"></div>
+</nav>
+
+<script>
+const NAV_ITEMS = [
+  { icon:'🐱', label:'Mi Semana', target:'sec-semana'    },
+  { icon:'🌸', label:'Rutinas',   target:'sec-rutinas-nav'   },
+  { icon:'⭐', label:'Bienestar', target:'sec-bienestar' },
+  { icon:'🦄', label:'Intereses', target:'sec-intereses-nav'     },
+  { icon:'🍏', label:'Salud',     target:'sec-salud'     },
+];
+
+let activeNav = 'sec-semana';
+
+function renderNav() {
+  const wrap = document.getElementById('bottomNav');
+  wrap.innerHTML = '';
+  NAV_ITEMS.forEach(item => {
+    const btn = document.createElement('button');
+    btn.className = 'nav-pill' + (activeNav === item.target ? ' active' : '');
+    btn.innerHTML = `<span class="nav-pill-icon">${item.icon}</span><span class="nav-pill-label">${item.label}</span>`;
+    btn.onclick = () => {
+      activeNav = item.target;
+      renderNav();
+      const el = document.getElementById(item.target);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    wrap.appendChild(btn);
+  });
+}
+
+// Highlight active section on scroll
+const sectionNavMap = {
+  'sec-semana':'sec-semana','sec-rutinas':'sec-rutinas',
+  'sec-dios':'sec-bienestar','sec-checkin':'sec-bienestar','sec-cambio':'sec-bienestar','sec-cuida':'sec-bienestar','sec-gratitud':'sec-bienestar',
+  'sec-spark':'sec-intereses-nav',
+  'sec-tracker':'sec-salud','sec-logros':'sec-salud','sec-timeline':'sec-salud','sec-ejercicio':'sec-salud','sec-sueno':'sec-salud','sec-mens':'sec-salud','sec-rutinas':'sec-rutinas-nav','sec-mens':'sec-salud',
+};
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting && e.intersectionRatio > 0.3) {
+      const mapped = sectionNavMap[e.target.id];
+      if (mapped) { activeNav = mapped; renderNav(); }
+    }
+  });
+}, { threshold: 0.3 });
+
+// Observe all underlying sections for scroll highlighting
+const ALL_SECTIONS = [
+  { id:'sec-semana',    nav:'sec-semana'    },
+  { id:'sec-rutinas',   nav:'sec-rutinas'   },
+  { id:'sec-dios',      nav:'sec-bienestar' },
+  { id:'sec-checkin',   nav:'sec-bienestar' },
+  { id:'sec-cambio',    nav:'sec-bienestar' },
+  { id:'sec-cuida',     nav:'sec-bienestar' },
+  { id:'sec-gratitud',  nav:'sec-bienestar' },
+  { id:'sec-rutinas',   nav:'sec-rutinas-nav' },
+  { id:'sec-spark',     nav:'sec-intereses-nav' },
+  { id:'sec-spark',     nav:'sec-spark'     },
+  { id:'sec-tracker',   nav:'sec-salud'     },
+  { id:'sec-logros',    nav:'sec-salud'     },
+  { id:'sec-timeline',  nav:'sec-salud'     },
+  { id:'sec-gratitud',  nav:'sec-salud'     },
+  { id:'sec-sueno',     nav:'sec-salud'     },
+  { id:'sec-mens',      nav:'sec-salud'     },
+  { id:'sec-ejercicio', nav:'sec-salud'     },
+];
+ALL_SECTIONS.forEach(s => {
+  const el = document.getElementById(s.id);
+  if (el) observer.observe(el);
+});
+
+renderNav();
+</script>
+
 </div><!-- end #app-screen -->
 </body>
 </html>
