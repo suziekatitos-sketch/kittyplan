@@ -1007,8 +1007,8 @@
   }
 
   .img-col {
-    width: 120px;
-    min-width: 120px;
+    width: 150px;
+    min-width: 150px;
     flex-shrink: 0;
     position: sticky;
     top: 70px;
@@ -4956,9 +4956,7 @@ window.syncFromCloud = function() {
 loadDesglose();
 renderDesglose();
 </script>
-</div><!-- end #app-content -->
-<div class="img-col img-col-right" id="imgColRight"></div>
-</div><!-- end .app-layout -->
+<!-- app-content and app-layout continue below -->
 
 <button class="img-manage-btn" id="imgManageBtn" title="Gestionar imágenes decorativas">🖼️</button>
 <script>
@@ -9161,6 +9159,9 @@ document.addEventListener('DOMContentLoaded', function() {
   if (newExBtn)  newExBtn.onclick  = function() { openUnivExamenModal(); };
 });
 </script>
+  </div><!-- end #app-content -->
+  <div class="img-col img-col-right" id="imgColRight"></div>
+</div><!-- end .app-layout -->
 </div><!-- end #app-screen -->
 </body>
 </html>
