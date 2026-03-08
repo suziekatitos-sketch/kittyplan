@@ -2617,6 +2617,12 @@
 
   .pill-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+  /* ── móvil: wrap text, ocultar badge recurrencia ── */
+  @media (max-width: 640px) {
+    .pill-text { white-space: normal; word-break: break-word; overflow: visible; text-overflow: unset; }
+    .recur-badge { display: none; }
+  }
+
   .pill-action-btn {
     background: none; border: none; cursor: pointer;
     font-size: .65rem; padding: 0 1px;
