@@ -6414,13 +6414,22 @@ window.syncFromCloud = function() {
   if (window._recurringTasks !== undefined) recurringTasks = window._recurringTasks;
   if (window._completions    !== undefined) completions    = window._completions;
   render();
-  if (typeof renderCheckin === 'function') { loadCheckin(); renderCheckin(); }
-  if (typeof loadSpark     === 'function') { loadSpark(); }
-  if (typeof renderTracker === 'function') { loadTracker(); renderTracker(); }
-  if (typeof renderLogros  === 'function') { loadLogros(); renderLogros(); }
-  if (typeof renderCambio  === 'function') { loadCambio(); renderCambio(); }
-  if (typeof renderCuida   === 'function') { loadCuida(); renderCuida(); }
-  if (typeof renderTimeline=== 'function') { renderTimeline(); }
+  if (typeof renderCheckin    === 'function') { loadCheckin();    renderCheckin();    }
+  if (typeof loadSpark        === 'function') { loadSpark();                          }
+  if (typeof renderTracker    === 'function') { loadTracker();    renderTracker();    }
+  if (typeof renderLogros     === 'function') { loadLogros();     renderLogros();     }
+  if (typeof renderCambio     === 'function') { loadCambio();     renderCambio();     }
+  if (typeof renderCuida      === 'function') { loadCuida();      renderCuida();      }
+  if (typeof renderTimeline   === 'function') { renderTimeline();                     }
+  if (typeof loadGratitud     === 'function') { loadGratitud();   renderGratitud();   }
+  if (typeof loadSueno        === 'function') { loadSueno();      renderSueno();      }
+  if (typeof loadMens         === 'function') { loadMens();       renderMens();       }
+  if (typeof loadDios         === 'function') { loadDios();       renderDios();       }
+  if (typeof loadEjercicio    === 'function') { loadEjercicio();  renderEjercicio();  }
+  if (typeof loadBelleza      === 'function') { loadBelleza();    renderBelleza();    }
+  if (typeof loadRutinas      === 'function') { loadRutinas();    renderRutinas();    }
+  if (typeof loadDesglose     === 'function') { loadDesglose();   renderDesglose();   }
+  if (typeof loadUniv         === 'function') { loadUniv();       renderUniv();       }
 };
 
 // --- INIT --------------------------------------------------
@@ -6435,18 +6444,34 @@ async function initApp() {
   if (window.cloudLoad) {
     try {
       const raw = await window.cloudLoad();
-      if (raw.sem_data)    window._data        = JSON.parse(raw.sem_data);
-      if (raw.sem_custom)  window._customTasks = JSON.parse(raw.sem_custom);
-      if (raw.ci_state)    window._checkinState= JSON.parse(raw.ci_state);
-      if (raw.nd_state)    window._needsState  = JSON.parse(raw.nd_state);
-      if (raw.calm_tools)  window._calmTools   = JSON.parse(raw.calm_tools);
-      if (raw.water_goal)  window._waterGoal   = parseInt(raw.water_goal);
-      if (raw.water_state) window._waterState  = JSON.parse(raw.water_state);
-      if (raw.food_state)  window._foodState   = JSON.parse(raw.food_state);
-      if (raw.logros_data) window._logrosData  = JSON.parse(raw.logros_data);
-      if (raw.fortalezas)  window._fortalezas  = JSON.parse(raw.fortalezas);
-      if (raw.cambio_state)window._cambioState = JSON.parse(raw.cambio_state);
-      if (raw.cambio_custom)window._cambioCustom=JSON.parse(raw.cambio_custom);
+      if (raw.sem_data)            window._data             = JSON.parse(raw.sem_data);
+      if (raw.sem_custom)          window._customTasks      = JSON.parse(raw.sem_custom);
+      if (raw.recurring_tasks)     window._recurringTasks   = JSON.parse(raw.recurring_tasks);
+      if (raw.completions)         window._completions      = JSON.parse(raw.completions);
+      if (raw.ci_state)            window._checkinState     = JSON.parse(raw.ci_state);
+      if (raw.nd_state)            window._needsState       = JSON.parse(raw.nd_state);
+      if (raw.calm_tools)          window._calmTools        = JSON.parse(raw.calm_tools);
+      if (raw.water_goal)          window._waterGoal        = parseInt(raw.water_goal);
+      if (raw.water_state)         window._waterState       = JSON.parse(raw.water_state);
+      if (raw.food_state)          window._foodState        = JSON.parse(raw.food_state);
+      if (raw.logros_data)         window._logrosData       = JSON.parse(raw.logros_data);
+      if (raw.fortalezas)          window._fortalezas       = JSON.parse(raw.fortalezas);
+      if (raw.cambio_state)        window._cambioState      = JSON.parse(raw.cambio_state);
+      if (raw.cambio_custom)       window._cambioCustom     = JSON.parse(raw.cambio_custom);
+      if (raw.gratitud_data)       window._gratitudData     = JSON.parse(raw.gratitud_data);
+      if (raw.sueno_data)          window._suenoData        = JSON.parse(raw.sueno_data);
+      if (raw.mens_data)           window._mensData         = JSON.parse(raw.mens_data);
+      if (raw.dios_data)           window._diosData         = JSON.parse(raw.dios_data);
+      if (raw.versiculos)          window._versiculos       = JSON.parse(raw.versiculos);
+      if (raw.ej_templates)        window._ejTemplates      = JSON.parse(raw.ej_templates);
+      if (raw.ej_registros)        window._ejRegistros      = JSON.parse(raw.ej_registros);
+      if (raw.belleza_templates)   window._bellezaTemplates = JSON.parse(raw.belleza_templates);
+      if (raw.belleza_registros)   window._bellezaRegistros = JSON.parse(raw.belleza_registros);
+      if (raw.rutina_templates)    window._rutinaTemplates  = JSON.parse(raw.rutina_templates);
+      if (raw.rutina_asignaciones) window._rutinaAsignaciones = JSON.parse(raw.rutina_asignaciones);
+      if (raw.rutina_completions)  window._rutinaCompletions  = JSON.parse(raw.rutina_completions);
+      if (raw.desglose_items)      window._desgloseItems    = JSON.parse(raw.desglose_items);
+      if (raw.univ_data)           window._univData         = JSON.parse(raw.univ_data);
     } catch(e) { console.warn('Cloud load failed, using localStorage', e); }
   }
   const loader = document.getElementById('cloudLoader');
