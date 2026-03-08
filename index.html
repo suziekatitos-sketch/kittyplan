@@ -5186,9 +5186,11 @@ window.syncFromCloud = function() {
 
 // Init
 loadImgs();
-buildColumns();
-renderImgSlots();
-startImgTimer();
+document.addEventListener('DOMContentLoaded', function() {
+  buildColumns();
+  renderImgSlots();
+  startImgTimer();
+});
 </script>
 
 <script>
