@@ -3501,69 +3501,111 @@
   ══════════════════════════════════════════ */
   body { padding-bottom: 90px; }
 
-  .bottom-nav {
+  /* ── HAMBURGER BUTTON ── */
+  .hamburger-btn {
     position: fixed;
-    bottom: 0; left: 0; right: 0;
-    z-index: 100;
-    display: flex;
-    justify-content: center;
-    padding: .5rem .6rem .7rem;
-    background: rgba(250,246,241,0.88);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border-top: 1.5px solid var(--border);
-    box-shadow: 0 -4px 24px rgba(180,120,100,.08);
-  }
-
-  .nav-inner {
-    display: flex;
-    gap: .3rem;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    padding: 0 .2rem;
-    max-width: 900px;
-    width: 100%;
-    justify-content: center;
-  }
-  .nav-inner::-webkit-scrollbar { display: none; }
-
-  .nav-pill {
+    top: 12px;
+    left: 14px;
+    z-index: 300;
+    background: rgba(250,246,241,0.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    width: 42px;
+    height: 42px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
-    padding: .35rem .55rem;
-    border-radius: 14px;
-    border: 1.5px solid transparent;
-    background: none;
+    justify-content: center;
+    gap: 5px;
     cursor: pointer;
+    box-shadow: 0 2px 12px rgba(180,120,100,.1);
     transition: all .2s;
-    flex-shrink: 0;
-    font-family: 'Nunito', sans-serif;
-    color: var(--muted);
-    min-width: 52px;
   }
-
-  .nav-pill:hover {
-    background: var(--surface);
-    color: var(--text);
+  .hamburger-btn:hover { border-color: var(--rosa); }
+  .hamburger-btn span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: var(--rosa);
+    border-radius: 2px;
+    transition: all .25s;
   }
+  .hamburger-btn.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger-btn.open span:nth-child(2) { opacity: 0; }
+  .hamburger-btn.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-  .nav-pill.active {
-    background: var(--rosa-soft);
-    border-color: var(--rosa);
+  /* ── DRAWER ── */
+  .drawer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(0,0,0,.18);
+    backdrop-filter: blur(2px);
+  }
+  .drawer-overlay.open { display: block; }
+
+  .drawer {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 220px;
+    z-index: 250;
+    background: rgba(252,248,244,0.97);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1.5px solid var(--border);
+    box-shadow: 4px 0 32px rgba(180,120,100,.12);
+    transform: translateX(-100%);
+    transition: transform .28s cubic-bezier(.4,0,.2,1);
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 0 1.5rem;
+  }
+  .drawer.open { transform: translateX(0); }
+
+  .drawer-header {
+    padding: .6rem 1.2rem 1rem;
+    font-family: 'Playfair Display', serif;
+    font-size: .95rem;
     color: var(--rosa);
+    font-weight: 700;
+    border-bottom: 1.5px solid var(--border);
+    margin-bottom: .5rem;
+    letter-spacing: .02em;
   }
 
-  .nav-pill-icon { font-size: 1.15rem; line-height: 1; }
-  .nav-pill-label {
-    font-size: .52rem;
+  .drawer-item {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .7rem 1.3rem;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-size: .82rem;
     font-weight: 700;
-    letter-spacing: .04em;
-    text-align: center;
-    line-height: 1.2;
+    color: var(--muted);
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    border-radius: 0;
+    transition: all .15s;
+    border-left: 3px solid transparent;
   }
+  .drawer-item:hover { background: var(--surface); color: var(--text); }
+  .drawer-item.active {
+    color: var(--rosa);
+    background: var(--rosa-soft);
+    border-left-color: var(--rosa);
+  }
+  .drawer-item-icon { font-size: 1.2rem; line-height: 1; }
+  .drawer-item-label { letter-spacing: .02em; }
+
+  /* ── PAGE SWITCHING ── */
+  .page-section { display: none; }
+  .page-section.active { display: block; }
 </style>
 </head>
 <body>
@@ -3614,6 +3656,7 @@ function todayKey() { return dateKey(new Date()); }
   <div style="font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:700;color:var(--muted)">Sincronizando con la nube…</div>
 </div>
 
+<div id="page-semana" class="page-section active">
 <header class="header" id="sec-semana">
   <span class="week-label">🌿 organizador semanal</span>
   <h1><em>Mi Semana</em></h1>
@@ -3648,6 +3691,8 @@ function todayKey() { return dateKey(new Date()); }
 <!-- ══════════════════════════════════════════
      SECCIÓN 4 · CHECK-IN SENSORIAL DIARIO
 ══════════════════════════════════════════ -->
+</div><!-- end page-semana -->
+<div id="page-rutinas" class="page-section">
 <div id="sec-rutinas-nav" style="scroll-margin-top:60px"></div>
 <!-- ══════════════════════════════════════════
      SECCIÓN · RUTINAS
@@ -6104,6 +6149,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 </script>
+</div><!-- end page-rutinas -->
+<div id="page-bienestar" class="page-section">
 <div id="sec-bienestar" style="scroll-margin-top:60px"></div>
 
 <!-- SECCIÓN · RELACIÓN CON DIOS -->
@@ -6206,6 +6253,8 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </section>
 
+</div><!-- end page-bienestar -->
+<div id="page-intereses" class="page-section">
 <div id="sec-intereses-nav" style="scroll-margin-top:60px"></div>
 <!-- ══════════════════════════════════════════
      SECCIÓN 5 · ZONA DE HIPERENFOQUE
@@ -6252,6 +6301,8 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- ══════════════════════════════════════════
      SECCIÓN 6 · AGUA & COMIDAS
 ══════════════════════════════════════════ -->
+</div><!-- end page-intereses -->
+<div id="page-salud" class="page-section">
 <div id="sec-salud" style="scroll-margin-top:60px"></div>
 <section class="tracker-section" id="sec-tracker">
   <span class="section-sub">💧 cuidado personal</span>
@@ -7249,6 +7300,8 @@ renderTracker();
 </section>
 
 <!-- SECCIÓN · UNIVERSIDAD -->
+</div><!-- end page-salud -->
+<div id="page-univ" class="page-section">
 <section class="univ-section" id="sec-univ">
   <span class="section-sub">💙 mi camino</span>
   <h2 class="section-title"><em>Medicina</em> &amp; Universidad</h2>
@@ -8259,84 +8312,84 @@ loadLogros();   renderLogros();
 loadCuida();    renderCuida();
 renderTimeline();
 </script>
-<!-- ══ BARRA DE NAVEGACIÓN INFERIOR ══ -->
-<nav class="bottom-nav">
-  <div class="nav-inner" id="bottomNav"></div>
-</nav>
+<!-- ══ HAMBURGER + DRAWER ══ -->
+<button class="hamburger-btn" id="hamburgerBtn" aria-label="Menú">
+  <span></span><span></span><span></span>
+</button>
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">🌸 kittyplan</div>
+  <div id="drawerNav"></div>
+</div>
 
 <script>
-const NAV_ITEMS = [
-  { icon:'🐱', label:'Mi Semana', target:'sec-semana'    },
-  { icon:'🌸', label:'Rutinas',   target:'sec-rutinas-nav'   },
-  { icon:'⭐', label:'Selfcare', target:'sec-bienestar' },
-  { icon:'🦄', label:'Intereses', target:'sec-intereses-nav'     },
-  { icon:'🍏', label:'Salud',     target:'sec-salud'     },
-  { icon:'💙', label:'Medicina',  target:'sec-univ'      },
+const NAV_PAGES = [
+  { icon:'🐱', label:'Mi Semana',  page:'page-semana'    },
+  { icon:'🌸', label:'Rutinas',    page:'page-rutinas'   },
+  { icon:'⭐', label:'Selfcare',   page:'page-bienestar' },
+  { icon:'🦄', label:'Intereses',  page:'page-intereses' },
+  { icon:'🍏', label:'Salud',      page:'page-salud'     },
+  { icon:'💙', label:'Medicina',   page:'page-univ'      },
 ];
 
-let activeNav = 'sec-semana';
+let activePage = 'page-semana';
 
-function renderNav() {
-  const wrap = document.getElementById('bottomNav');
+function showPage(pageId) {
+  activePage = pageId;
+  // Show/hide pages
+  NAV_PAGES.forEach(function(item) {
+    var el = document.getElementById(item.page);
+    if (el) {
+      el.classList.toggle('active', item.page === pageId);
+    }
+  });
+  // Update drawer items
+  document.querySelectorAll('.drawer-item').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.page === pageId);
+  });
+  // Close drawer
+  closeDrawer();
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderDrawerNav() {
+  var wrap = document.getElementById('drawerNav');
+  if (!wrap) return;
   wrap.innerHTML = '';
-  NAV_ITEMS.forEach(item => {
-    const btn = document.createElement('button');
-    btn.className = 'nav-pill' + (activeNav === item.target ? ' active' : '');
-    btn.innerHTML = `<span class="nav-pill-icon">${item.icon}</span><span class="nav-pill-label">${item.label}</span>`;
-    btn.onclick = () => {
-      activeNav = item.target;
-      renderNav();
-      const el = document.getElementById(item.target);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    };
+  NAV_PAGES.forEach(function(item) {
+    var btn = document.createElement('button');
+    btn.className = 'drawer-item' + (activePage === item.page ? ' active' : '');
+    btn.dataset.page = item.page;
+    btn.innerHTML = '<span class="drawer-item-icon">' + item.icon + '</span>' +
+                    '<span class="drawer-item-label">' + item.label + '</span>';
+    btn.onclick = function() { showPage(item.page); };
     wrap.appendChild(btn);
   });
 }
 
-// Highlight active section on scroll
-const sectionNavMap = {
-  'sec-semana':'sec-semana','sec-rutinas':'sec-rutinas',
-  'sec-dios':'sec-bienestar','sec-checkin':'sec-bienestar','sec-cambio':'sec-bienestar','sec-cuida':'sec-bienestar','sec-gratitud':'sec-bienestar','sec-belleza-main':'sec-bienestar','sec-belleza':'sec-bienestar',
-  'sec-spark':'sec-intereses-nav',
-  'sec-univ':'sec-univ','sec-tracker':'sec-salud','sec-logros':'sec-salud','sec-timeline':'sec-salud','sec-ejercicio':'sec-salud','sec-sueno':'sec-salud','sec-mens':'sec-salud','sec-rutinas':'sec-rutinas-nav','sec-mens':'sec-salud',
-};
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting && e.intersectionRatio > 0.3) {
-      const mapped = sectionNavMap[e.target.id];
-      if (mapped) { activeNav = mapped; renderNav(); }
-    }
-  });
-}, { threshold: 0.3 });
+function openDrawer() {
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.getElementById('hamburgerBtn').classList.add('open');
+}
 
-// Observe all underlying sections for scroll highlighting
-const ALL_SECTIONS = [
-  { id:'sec-semana',    nav:'sec-semana'    },
-  { id:'sec-rutinas',   nav:'sec-rutinas'   },
-  { id:'sec-dios',      nav:'sec-bienestar' },
-  { id:'sec-checkin',   nav:'sec-bienestar' },
-  { id:'sec-cambio',    nav:'sec-bienestar' },
-  { id:'sec-cuida',     nav:'sec-bienestar' },
-  { id:'sec-gratitud',  nav:'sec-bienestar' },
-  { id:'sec-belleza-main', nav:'sec-bienestar' },
-  { id:'sec-rutinas',   nav:'sec-rutinas-nav' },
-  { id:'sec-spark',     nav:'sec-intereses-nav' },
-  { id:'sec-spark',     nav:'sec-spark'     },
-  { id:'sec-tracker',   nav:'sec-salud'     },
-  { id:'sec-logros',    nav:'sec-salud'     },
-  { id:'sec-timeline',  nav:'sec-salud'     },
-  { id:'sec-gratitud',  nav:'sec-salud'     },
-  { id:'sec-sueno',     nav:'sec-salud'     },
-  { id:'sec-mens',      nav:'sec-salud'     },
-  { id:'sec-ejercicio', nav:'sec-salud'     },
-  { id:'sec-univ',      nav:'sec-univ'      },
-];
-ALL_SECTIONS.forEach(s => {
-  const el = document.getElementById(s.id);
-  if (el) observer.observe(el);
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.getElementById('hamburgerBtn').classList.remove('open');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var hbBtn = document.getElementById('hamburgerBtn');
+  if (hbBtn) hbBtn.onclick = function() {
+    document.getElementById('drawer').classList.contains('open') ? closeDrawer() : openDrawer();
+  };
+  var overlay = document.getElementById('drawerOverlay');
+  if (overlay) overlay.onclick = closeDrawer;
+  renderDrawerNav();
+  showPage('page-semana');
 });
-
-renderNav();
 </script>
 
 <script>
@@ -9148,6 +9201,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (newExBtn)  newExBtn.onclick  = function() { openUnivExamenModal(); };
 });
 </script>
+  </div><!-- end page-univ -->
   </div><!-- end #app-content -->
   <div class="img-col img-col-right" id="imgColRight"></div>
 </div><!-- end .app-layout -->
