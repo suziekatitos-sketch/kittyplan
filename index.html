@@ -3646,6 +3646,15 @@ function todayKey() { return dateKey(new Date()); }
 
 <!-- APP SCREEN (hidden until login) -->
 <div id="app-screen" style="display:none">
+<!-- ══ HAMBURGER + DRAWER ══ -->
+<button class="hamburger-btn" id="hamburgerBtn" aria-label="Menú">
+  <span></span><span></span><span></span>
+</button>
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">🌸 kittyplan</div>
+  <div id="drawerNav"></div>
+</div>
 
 <!-- Image columns layout -->
 <div class="app-layout">
@@ -8314,15 +8323,7 @@ loadLogros();   renderLogros();
 loadCuida();    renderCuida();
 renderTimeline();
 </script>
-<!-- ══ HAMBURGER + DRAWER ══ -->
-<button class="hamburger-btn" id="hamburgerBtn" aria-label="Menú">
-  <span></span><span></span><span></span>
-</button>
-<div class="drawer-overlay" id="drawerOverlay"></div>
-<div class="drawer" id="drawer">
-  <div class="drawer-header">🌸 kittyplan</div>
-  <div id="drawerNav"></div>
-</div>
+
 
 <script>
 const NAV_PAGES = [
