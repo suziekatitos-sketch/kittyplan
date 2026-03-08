@@ -2317,6 +2317,76 @@
     flex-shrink: 0;
   }
 
+
+  /* ── RECUERDOS ── */
+  .rec-section {
+    margin-bottom: .9rem;
+  }
+  .rec-section-title {
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: #5b7bd5;
+    margin-bottom: .5rem;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+  }
+  .rec-empty-day {
+    font-size: .75rem;
+    color: var(--muted2);
+    font-weight: 600;
+    text-align: center;
+    padding: 1.5rem 0;
+  }
+  .rec-item {
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: .6rem .8rem;
+    margin-bottom: .4rem;
+    font-size: .76rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .rec-item.done { opacity: .6; text-decoration: line-through; }
+  .rec-item-meta {
+    font-size: .6rem;
+    color: var(--muted);
+    font-weight: 600;
+    margin-top: 2px;
+  }
+  .rec-horas-big {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #5b7bd5;
+    line-height: 1;
+  }
+  .rec-date-title {
+    font-size: .82rem;
+    font-weight: 700;
+    color: var(--text);
+    text-align: center;
+    margin-bottom: 1rem;
+    padding: .6rem;
+    background: linear-gradient(135deg, #e8f0fe, #fce4ec);
+    border-radius: 10px;
+  }
+  /* Make calendar cells clickable */
+  .univ-cal-cell {
+    cursor: pointer;
+  }
+  .univ-cal-cell:hover {
+    border-color: #5b7bd5 !important;
+    opacity: .85;
+  }
+  .univ-cal-cell.selected {
+    border: 2px solid #c0395a !important;
+    background: linear-gradient(135deg, #fce4ec, #ffd6e7) !important;
+  }
+
   /* ── RESPONSIVE ── */
   @media (max-width: 640px) {
     .block-row {
@@ -6916,6 +6986,17 @@ renderTracker();
     </div>
     <div id="univCalendario"></div>
   </div>
+
+  <!-- Recuerdos -->
+  <div class="univ-block" id="univRecuerdosBlock">
+    <div class="univ-block-hdr">
+      <span class="univ-block-title">🌸 Recuerdos</span>
+    </div>
+    <p style="font-size:.7rem;color:var(--muted);font-weight:600;margin-bottom:.8rem">
+      Selecciona un día en el calendario de arriba para ver todo lo que registraste ese día 💙
+    </p>
+    <div id="univRecuerdosContent"></div>
+  </div>
 </section>
 
 <style>
@@ -8348,7 +8429,7 @@ function renderUnivCalendario() {
 
     var cell = document.createElement('div');
     cell.className = 'univ-cal-cell' + (isToday ? ' today' : '') + (horas > 0 ? ' has-horas' : '');
-    cell.title = horas > 0 ? horas + 'h de estudio' : '';
+    cell.title = horas > 0 ? horas + 'h de estudio · toca para ver recuerdos' : 'Toca para ver recuerdos';
 
     var dayNum = document.createElement('div');
     dayNum.className = 'univ-cal-day-num';
@@ -8362,6 +8443,14 @@ function renderUnivCalendario() {
       cell.appendChild(horasEl);
     }
 
+    // Mark selected
+    if (dk2 === univSelectedDay) cell.classList.add('selected');
+
+    // Click to view recuerdos
+    (function(key) {
+      cell.onclick = function() { renderRecuerdos(key); };
+    })(dk2);
+
     grid.appendChild(cell);
   }
 
@@ -8370,8 +8459,183 @@ function renderUnivCalendario() {
   // Legend
   var legend = document.createElement('div');
   legend.className = 'univ-cal-legend';
-  legend.innerHTML = '<span class="univ-cal-legend-dot"></span> Horas de estudio registradas';
+  legend.innerHTML = '<span class="univ-cal-legend-dot"></span> Horas de estudio registradas · toca un día para ver tus recuerdos';
   wrap.appendChild(legend);
+}
+
+var univSelectedDay = null;
+
+function renderRecuerdos(dk) {
+  univSelectedDay = dk;
+  var wrap = document.getElementById('univRecuerdosContent');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+
+  var d = new Date(dk + 'T12:00:00');
+  var DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  var MESES_L = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+  // Date title
+  var title = document.createElement('div');
+  title.className = 'rec-date-title';
+  title.textContent = DIAS[d.getDay()] + ' ' + d.getDate() + ' de ' + MESES_L[d.getMonth()] + ' ' + d.getFullYear();
+  wrap.appendChild(title);
+
+  var hasAnything = false;
+
+  // ── Horas de estudio
+  var horas = (univData.horas && univData.horas[dk]) || 0;
+  if (horas > 0) {
+    hasAnything = true;
+    var sec = document.createElement('div');
+    sec.className = 'rec-section';
+    sec.innerHTML = '<div class="rec-section-title">⏱️ Horas de estudio</div>';
+    var item = document.createElement('div');
+    item.className = 'rec-item';
+    item.innerHTML = '<span class="rec-horas-big">' + horas + 'h</span> estudiadas ese día';
+    sec.appendChild(item);
+    wrap.appendChild(sec);
+  }
+
+  // ── Reflexión / Relación con Dios
+  if (typeof diosData !== 'undefined' && diosData[dk]) {
+    var dd = diosData[dk];
+    if (dd.oracion || dd.intencion || dd.ore > 0) {
+      hasAnything = true;
+      var sec2 = document.createElement('div');
+      sec2.className = 'rec-section';
+      sec2.innerHTML = '<div class="rec-section-title">🌟 Relación con Dios</div>';
+      if (dd.ore > 0) {
+        var i1 = document.createElement('div');
+        i1.className = 'rec-item';
+        i1.textContent = '🙏 Oré ' + dd.ore + ' vez' + (dd.ore > 1 ? 'es' : '') + ' ese día';
+        sec2.appendChild(i1);
+      }
+      if (dd.oracion) {
+        var i2 = document.createElement('div');
+        i2.className = 'rec-item';
+        i2.innerHTML = '<div class="rec-item-meta">Oración / reflexión</div>' + dd.oracion;
+        sec2.appendChild(i2);
+      }
+      if (dd.intencion) {
+        var i3 = document.createElement('div');
+        i3.className = 'rec-item';
+        i3.innerHTML = '<div class="rec-item-meta">Intención / petición</div>' + dd.intencion;
+        sec2.appendChild(i3);
+      }
+      wrap.appendChild(sec2);
+    }
+  }
+
+  // ── Agradecimiento
+  if (typeof gratitudData !== 'undefined' && gratitudData[dk]) {
+    var gr = gratitudData[dk].filter(function(g){return g && g.trim();});
+    if (gr.length > 0) {
+      hasAnything = true;
+      var sec3 = document.createElement('div');
+      sec3.className = 'rec-section';
+      sec3.innerHTML = '<div class="rec-section-title">🌸 Agradecimiento</div>';
+      gr.forEach(function(g) {
+        var item = document.createElement('div');
+        item.className = 'rec-item';
+        item.textContent = '✨ ' + g;
+        sec3.appendChild(item);
+      });
+      wrap.appendChild(sec3);
+    }
+  }
+
+  // ── Sueño
+  if (typeof suenoData !== 'undefined' && suenoData[dk]) {
+    var sd = suenoData[dk];
+    if (sd.dormirse || sd.despertar) {
+      hasAnything = true;
+      var sec4 = document.createElement('div');
+      sec4.className = 'rec-section';
+      sec4.innerHTML = '<div class="rec-section-title">🌙 Sueño</div>';
+      var item4 = document.createElement('div');
+      item4.className = 'rec-item';
+      var txt4 = '';
+      if (sd.dormirse) txt4 += 'Me dormí a las ' + (typeof to12h === 'function' ? to12h(sd.dormirse) : sd.dormirse);
+      if (sd.despertar) txt4 += (txt4 ? ' · ' : '') + 'Desperté a las ' + (typeof to12h === 'function' ? to12h(sd.despertar) : sd.despertar);
+      if (sd.calidad) txt4 += ' · ' + sd.calidad;
+      item4.textContent = txt4;
+      sec4.appendChild(item4);
+      wrap.appendChild(sec4);
+    }
+  }
+
+  // ── Tareas completadas ese día (recurring tasks con completion en esa fecha)
+  if (typeof completions !== 'undefined' && typeof recurringTasks !== 'undefined') {
+    var doneTasks = recurringTasks.filter(function(t) {
+      return completions[t.id + '|' + dk];
+    });
+    if (doneTasks.length > 0) {
+      hasAnything = true;
+      var sec5 = document.createElement('div');
+      sec5.className = 'rec-section';
+      sec5.innerHTML = '<div class="rec-section-title">✅ Tareas completadas</div>';
+      doneTasks.forEach(function(t) {
+        var item = document.createElement('div');
+        item.className = 'rec-item done';
+        item.textContent = t.text;
+        sec5.appendChild(item);
+      });
+      wrap.appendChild(sec5);
+    }
+  }
+
+  // ── Ejercicio ese día
+  if (typeof ejRegistros !== 'undefined' && ejRegistros[dk] && ejRegistros[dk].length > 0) {
+    hasAnything = true;
+    var sec6 = document.createElement('div');
+    sec6.className = 'rec-section';
+    sec6.innerHTML = '<div class="rec-section-title">🏃 Ejercicio</div>';
+    ejRegistros[dk].forEach(function(reg) {
+      var tpl = (typeof ejTemplates !== 'undefined') && ejTemplates.find(function(t){return t.id===reg.templateId;});
+      if (!tpl) return;
+      var item = document.createElement('div');
+      item.className = 'rec-item';
+      var done = reg.completedSteps.length;
+      var total = tpl.pasos.length;
+      item.textContent = tpl.emoji + ' ' + tpl.name + ' · ' + done + '/' + total + ' ejercicios';
+      sec6.appendChild(item);
+    });
+    wrap.appendChild(sec6);
+  }
+
+  // ── Belleza ese día
+  if (typeof bellezaRegistros !== 'undefined' && bellezaRegistros[dk] && bellezaRegistros[dk].length > 0) {
+    hasAnything = true;
+    var sec7 = document.createElement('div');
+    sec7.className = 'rec-section';
+    sec7.innerHTML = '<div class="rec-section-title">✨ Belleza</div>';
+    bellezaRegistros[dk].forEach(function(reg) {
+      var tpl = (typeof bellezaTemplates !== 'undefined') && bellezaTemplates.find(function(t){return t.id===reg.templateId;});
+      if (!tpl) return;
+      var item = document.createElement('div');
+      item.className = 'rec-item';
+      var done = reg.completedSteps.length;
+      var total = tpl.pasos.length;
+      item.textContent = tpl.emoji + ' ' + tpl.name + ' · ' + done + '/' + total + ' pasos';
+      sec7.appendChild(item);
+    });
+    wrap.appendChild(sec7);
+  }
+
+  if (!hasAnything) {
+    var empty = document.createElement('div');
+    empty.className = 'rec-empty-day';
+    empty.textContent = 'Sin registros para este día 🌙';
+    wrap.appendChild(empty);
+  }
+
+  // Scroll to recuerdos block
+  var block = document.getElementById('univRecuerdosBlock');
+  if (block) block.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Re-render calendar to show selected day
+  renderUnivCalendario();
 }
 
 // ── Helpers
