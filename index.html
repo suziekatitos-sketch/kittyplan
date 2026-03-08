@@ -2627,6 +2627,22 @@
   /* ocultar badge recurrencia en móvil */
   @media (max-width: 640px) {
     .recur-badge { display: none; }
+    .pill-action-btn { display: none; }
+    .task-pill {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      padding: .2rem .35rem;
+    }
+    .task-pill > .pill-check {
+      position: absolute;
+      top: .25rem;
+      right: .25rem;
+    }
+    .pill-text {
+      width: 100%;
+      padding-right: 14px;
+    }
   }
 
   .pill-action-btn {
