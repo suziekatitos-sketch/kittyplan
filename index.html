@@ -55,6 +55,8 @@
         if (raw.ej_registros)        { window._ejRegistros        = JSON.parse(raw.ej_registros);        }
         if (raw.dios_data)           { window._diosData           = JSON.parse(raw.dios_data);           }
         if (raw.versiculos)          { window._versiculos         = JSON.parse(raw.versiculos);           }
+        if (raw.univ_data)           { window._univData           = JSON.parse(raw.univ_data);           }
+        if (raw.belleza_templates)   { window._bellezaTemplates   = JSON.parse(raw.belleza_templates);   }
         if (raw.ci_state)     { window._checkinState = JSON.parse(raw.ci_state);     }
         if (raw.nd_state)     { window._needsState   = JSON.parse(raw.nd_state);     }
         if (raw.calm_tools)   { window._calmTools    = JSON.parse(raw.calm_tools);   }
@@ -381,6 +383,9 @@
     cursor: default;
     transition: border-color .2s, box-shadow .2s;
     position: relative;
+    overflow: hidden;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .cell:hover { border-color: var(--muted2); }
@@ -408,8 +413,12 @@
     font-weight: 600;
     line-height: 1.3;
     word-break: break-word;
+    overflow-wrap: break-word;
     white-space: normal;
     min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .task-pill:active { transform: scale(.97); }
@@ -1654,8 +1663,531 @@
   }
   .dios-add-btn:hover { border-color: var(--rosa); color: var(--rosa); }
 
+
+  /* ── UNIVERSIDAD ── */
+  .univ-section {
+    max-width: 900px;
+    margin: 2.2rem auto 0;
+    animation: fadeUp .5s .35s ease both;
+    opacity: 0;
+    animation-fill-mode: both;
+  }
+
+  .univ-motiv-card {
+    background: linear-gradient(135deg, #e8f0fe 0%, #fce4ec 100%);
+    border: 1.5px solid #c5d8fb;
+    border-radius: var(--radius);
+    padding: 1.2rem 1.4rem;
+    margin-bottom: 1rem;
+    position: relative;
+  }
+
+  .univ-motiv-label {
+    font-size: .62rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #5b7bd5;
+    display: block;
+    margin-bottom: .5rem;
+  }
+
+  .univ-motiv-text {
+    font-size: .82rem;
+    font-weight: 600;
+    color: #2c2c2c;
+    line-height: 1.6;
+    font-style: italic;
+  }
+
+  .univ-motiv-edit {
+    position: absolute;
+    top: .8rem; right: .8rem;
+    background: none;
+    border: none;
+    font-size: .9rem;
+    cursor: pointer;
+    opacity: .5;
+  }
+  .univ-motiv-edit:hover { opacity: 1; }
+
+  .univ-block {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+    margin-bottom: .9rem;
+  }
+
+  .univ-block-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: .8rem;
+    flex-wrap: wrap;
+    gap: .4rem;
+  }
+
+  .univ-block-title {
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* Materias */
+  .univ-materia-row {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .5rem .7rem;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: .4rem;
+  }
+
+  .univ-materia-color {
+    width: 10px; height: 10px;
+    min-width: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .univ-materia-name {
+    flex: 1;
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .univ-materia-cal {
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--rosa);
+    min-width: 30px;
+    text-align: right;
+  }
+
+  .univ-materia-del {
+    background: none;
+    border: none;
+    color: var(--muted2);
+    cursor: pointer;
+    font-size: .75rem;
+  }
+
+  /* Tareas */
+  .univ-tarea-row {
+    display: flex;
+    align-items: flex-start;
+    gap: .6rem;
+    padding: .55rem .7rem;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: .4rem;
+    cursor: pointer;
+    transition: opacity .2s;
+  }
+
+  .univ-tarea-row.done { opacity: .4; }
+
+  .univ-tarea-check {
+    width: 16px; height: 16px;
+    min-width: 16px;
+    border-radius: 4px;
+    border: 2px solid #5b7bd5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .6rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: all .15s;
+  }
+
+  .univ-tarea-row.done .univ-tarea-check {
+    background: #5b7bd5;
+    border-color: #5b7bd5;
+    color: white;
+  }
+
+  .univ-tarea-info { flex: 1; min-width: 0; }
+
+  .univ-tarea-name {
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--text);
+    word-break: break-word;
+  }
+
+  .univ-tarea-row.done .univ-tarea-name { text-decoration: line-through; }
+
+  .univ-tarea-meta {
+    font-size: .62rem;
+    color: var(--muted);
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+  .univ-tarea-urgente {
+    font-size: .58rem;
+    font-weight: 700;
+    background: #fce4ec;
+    color: #c0395a;
+    border-radius: 20px;
+    padding: .1rem .5rem;
+    flex-shrink: 0;
+  }
+
+  /* Exámenes */
+  .univ-examen-row {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    padding: .55rem .7rem;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-left: 3px solid #5b7bd5;
+    border-radius: 10px;
+    margin-bottom: .4rem;
+  }
+
+  .univ-examen-fecha {
+    background: #e8f0fe;
+    border-radius: 8px;
+    padding: .3rem .5rem;
+    text-align: center;
+    min-width: 42px;
+    flex-shrink: 0;
+  }
+
+  .univ-examen-dia {
+    font-size: .85rem;
+    font-weight: 700;
+    color: #3c5abd;
+    display: block;
+    line-height: 1;
+  }
+
+  .univ-examen-mes {
+    font-size: .52rem;
+    font-weight: 700;
+    color: #5b7bd5;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+
+  .univ-examen-info { flex: 1; min-width: 0; }
+
+  .univ-examen-name {
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .univ-examen-materia {
+    font-size: .62rem;
+    color: var(--muted);
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+  .univ-examen-dias {
+    font-size: .65rem;
+    font-weight: 700;
+    color: #5b7bd5;
+    flex-shrink: 0;
+  }
+
+  .univ-examen-del {
+    background: none;
+    border: none;
+    color: var(--muted2);
+    cursor: pointer;
+    font-size: .75rem;
+  }
+
+  /* Horas estudio */
+  .univ-horas-tracker {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .univ-horas-info { flex: 1; }
+
+  .univ-horas-num {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #5b7bd5;
+    line-height: 1;
+  }
+
+  .univ-horas-label {
+    font-size: .65rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .univ-horas-dots {
+    display: flex;
+    gap: 5px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  .univ-horas-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background .2s;
+  }
+
+  .univ-horas-dot.filled { background: #5b7bd5; }
+
+  .univ-horas-btns {
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+    align-items: center;
+  }
+
+  .univ-horas-plus {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: #5b7bd5;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .2s;
+  }
+  .univ-horas-plus:hover { opacity: .85; transform: scale(1.08); }
+
+  .univ-horas-minus {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--muted2);
+    font-size: .9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .2s;
+    font-family: 'Nunito', sans-serif;
+  }
+
+  .univ-horas-meta-row {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-top: .6rem;
+    font-size: .65rem;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .univ-empty {
+    font-size: .72rem;
+    color: var(--muted2);
+    font-weight: 600;
+    padding: .3rem 0;
+    text-align: center;
+  }
+
+
+  /* ── RUTINAS DE BELLEZA ── */
+  .belleza-section {
+    max-width: 900px;
+    margin: 2.2rem auto 0;
+    animation: fadeUp .5s .35s ease both;
+    opacity: 0;
+    animation-fill-mode: both;
+  }
+
+  .belleza-header-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: .8rem;
+  }
+
+  .belleza-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: .8rem;
+    overflow: hidden;
+    transition: box-shadow .2s;
+  }
+
+  .belleza-card-header {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    padding: .9rem 1rem;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .belleza-card-emoji {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+
+  .belleza-card-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .belleza-card-name {
+    font-size: .82rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .belleza-card-progress {
+    font-size: .62rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .belleza-card-bar-wrap {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 5px;
+    overflow: hidden;
+  }
+
+  .belleza-card-bar {
+    height: 4px;
+    background: linear-gradient(90deg, #f8a4c8, #e88fb8);
+    border-radius: 2px;
+    transition: width .3s ease;
+  }
+
+  .belleza-card-done-badge {
+    font-size: .6rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #fce4ec, #f8bbd9);
+    color: #c0395a;
+    border-radius: 20px;
+    padding: .15rem .6rem;
+    flex-shrink: 0;
+  }
+
+  .belleza-card-edit {
+    background: none;
+    border: none;
+    color: var(--muted2);
+    cursor: pointer;
+    font-size: .75rem;
+    flex-shrink: 0;
+  }
+
+  .belleza-card-del {
+    background: none;
+    border: none;
+    color: var(--muted2);
+    cursor: pointer;
+    font-size: .75rem;
+    flex-shrink: 0;
+  }
+
+  .belleza-pasos {
+    padding: 0 1rem .9rem 1rem;
+    display: none;
+    flex-direction: column;
+    gap: .4rem;
+  }
+
+  .belleza-pasos.open { display: flex; }
+
+  .belleza-paso-row {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .45rem .6rem;
+    background: var(--bg);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity .15s;
+  }
+
+  .belleza-paso-row.done { opacity: .45; }
+
+  .belleza-paso-check {
+    width: 16px; height: 16px;
+    min-width: 16px;
+    border-radius: 50%;
+    border: 2px solid #e88fb8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .55rem;
+    flex-shrink: 0;
+    transition: all .15s;
+  }
+
+  .belleza-paso-row.done .belleza-paso-check {
+    background: #e88fb8;
+    border-color: #e88fb8;
+    color: white;
+  }
+
+  .belleza-paso-texto {
+    font-size: .76rem;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+    word-break: break-word;
+  }
+
+  .belleza-paso-row.done .belleza-paso-texto {
+    text-decoration: line-through;
+    color: var(--muted);
+  }
+
+  .belleza-reset-btn {
+    font-size: .65rem;
+    font-weight: 700;
+    background: none;
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+    border-radius: 20px;
+    padding: .25rem .8rem;
+    cursor: pointer;
+    margin-top: .3rem;
+    align-self: flex-start;
+  }
+  .belleza-reset-btn:hover { color: var(--rosa); border-color: var(--rosa); }
+
+  .belleza-empty {
+    font-size: .75rem;
+    color: var(--muted2);
+    font-weight: 600;
+    text-align: center;
+    padding: 1rem 0;
+  }
+
   /* ── RESPONSIVE ── */
   @media (max-width: 640px) {
+    .block-row {
+      grid-template-columns: 60px repeat(3, 1fr);
+    }
+    .task-pill {
+      font-size: .62rem;
+    }
     .days-header, .block-row {
       grid-template-columns: 60px repeat(3, 1fr);
       font-size: .65rem;
@@ -5096,7 +5628,7 @@ document.addEventListener('DOMContentLoaded', function() {
      SECCIÓN 9 · AUTOCUIDADO & CITA SEMANAL
 ══════════════════════════════════════════ -->
 <section class="cuida-section" id="sec-cuida">
-  <span class="section-sub">🌸 bienestar</span>
+  <span class="section-sub">🌸 selfcare</span>
   <h2 class="section-title"><em>Mi Tiempo de</em> Recarga</h2>
   <div class="section-sub" id="cuidaFecha" style="margin-top:-.3rem;margin-bottom:.2rem;font-size:.65rem;color:var(--muted);letter-spacing:.08em;"></div>
   <div class="cuida-grid">
@@ -5118,10 +5650,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- JOURNAL DE AGRADECIMIENTO -->
 <section class="gratitud-section" id="sec-gratitud">
-  <span class="section-sub">🌸 bienestar emocional</span>
+  <span class="section-sub">🌸 selfcare emocional</span>
   <h2 class="section-title"><em>Agradecimiento</em> del Día</h2>
   <div class="gratitud-grid" id="gratitudGrid"></div>
 </section>
+
+<div id="sec-belleza" style="scroll-margin-top:60px"></div>
+<section class="belleza-section" id="sec-belleza-main">
+  <span class="section-sub">✨ selfcare</span>
+  <h2 class="section-title"><em>Rutinas de</em> Belleza</h2>
+  <div class="belleza-header-row">
+    <button class="rutina-new-btn" id="bellezaNewBtn">＋ Nueva rutina</button>
+  </div>
+  <div id="bellezaList"></div>
+</section>
+
 <div id="sec-intereses-nav" style="scroll-margin-top:60px"></div>
 <!-- ══════════════════════════════════════════
      SECCIÓN 5 · ZONA DE HIPERENFOQUE
@@ -6123,6 +6666,50 @@ renderTracker();
   </div>
 </section>
 
+<!-- SECCIÓN · UNIVERSIDAD -->
+<section class="univ-section" id="sec-univ">
+  <span class="section-sub">💙 mi camino</span>
+  <h2 class="section-title"><em>Medicina</em> &amp; Universidad</h2>
+
+  <!-- Motivación -->
+  <div class="univ-motiv-card" id="univMotivCard"></div>
+
+  <!-- Materias -->
+  <div class="univ-block">
+    <div class="univ-block-hdr">
+      <span class="univ-block-title">📚 Mis materias</span>
+      <button class="rutina-new-btn" id="univNewMateriaBtn">＋ Materia</button>
+    </div>
+    <div id="univMateriasList"></div>
+  </div>
+
+  <!-- Tareas y entregas -->
+  <div class="univ-block">
+    <div class="univ-block-hdr">
+      <span class="univ-block-title">📝 Tareas y entregas</span>
+      <button class="rutina-new-btn" id="univNewTareaBtn">＋ Tarea</button>
+    </div>
+    <div id="univTareasList"></div>
+  </div>
+
+  <!-- Exámenes -->
+  <div class="univ-block">
+    <div class="univ-block-hdr">
+      <span class="univ-block-title">📅 Próximos exámenes</span>
+      <button class="rutina-new-btn" id="univNewExamenBtn">＋ Examen</button>
+    </div>
+    <div id="univExamenesList"></div>
+  </div>
+
+  <!-- Horas de estudio -->
+  <div class="univ-block">
+    <div class="univ-block-hdr">
+      <span class="univ-block-title">⏱️ Horas de estudio hoy</span>
+    </div>
+    <div class="univ-horas-wrap" id="univHorasWrap"></div>
+  </div>
+</section>
+
 <style>
   /* ── AGRADECIMIENTO ── */
   .gratitud-section, .sueno-section, .mens-section {
@@ -7058,9 +7645,10 @@ renderTimeline();
 const NAV_ITEMS = [
   { icon:'🐱', label:'Mi Semana', target:'sec-semana'    },
   { icon:'🌸', label:'Rutinas',   target:'sec-rutinas-nav'   },
-  { icon:'⭐', label:'Bienestar', target:'sec-bienestar' },
+  { icon:'⭐', label:'Selfcare', target:'sec-bienestar' },
   { icon:'🦄', label:'Intereses', target:'sec-intereses-nav'     },
   { icon:'🍏', label:'Salud',     target:'sec-salud'     },
+  { icon:'💙', label:'Medicina',  target:'sec-univ'      },
 ];
 
 let activeNav = 'sec-semana';
@@ -7085,9 +7673,9 @@ function renderNav() {
 // Highlight active section on scroll
 const sectionNavMap = {
   'sec-semana':'sec-semana','sec-rutinas':'sec-rutinas',
-  'sec-dios':'sec-bienestar','sec-checkin':'sec-bienestar','sec-cambio':'sec-bienestar','sec-cuida':'sec-bienestar','sec-gratitud':'sec-bienestar',
+  'sec-dios':'sec-bienestar','sec-checkin':'sec-bienestar','sec-cambio':'sec-bienestar','sec-cuida':'sec-bienestar','sec-gratitud':'sec-bienestar','sec-belleza-main':'sec-bienestar','sec-belleza':'sec-bienestar',
   'sec-spark':'sec-intereses-nav',
-  'sec-tracker':'sec-salud','sec-logros':'sec-salud','sec-timeline':'sec-salud','sec-ejercicio':'sec-salud','sec-sueno':'sec-salud','sec-mens':'sec-salud','sec-rutinas':'sec-rutinas-nav','sec-mens':'sec-salud',
+  'sec-univ':'sec-univ','sec-tracker':'sec-salud','sec-logros':'sec-salud','sec-timeline':'sec-salud','sec-ejercicio':'sec-salud','sec-sueno':'sec-salud','sec-mens':'sec-salud','sec-rutinas':'sec-rutinas-nav','sec-mens':'sec-salud',
 };
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(e => {
@@ -7107,6 +7695,7 @@ const ALL_SECTIONS = [
   { id:'sec-cambio',    nav:'sec-bienestar' },
   { id:'sec-cuida',     nav:'sec-bienestar' },
   { id:'sec-gratitud',  nav:'sec-bienestar' },
+  { id:'sec-belleza-main', nav:'sec-bienestar' },
   { id:'sec-rutinas',   nav:'sec-rutinas-nav' },
   { id:'sec-spark',     nav:'sec-intereses-nav' },
   { id:'sec-spark',     nav:'sec-spark'     },
@@ -7117,6 +7706,7 @@ const ALL_SECTIONS = [
   { id:'sec-sueno',     nav:'sec-salud'     },
   { id:'sec-mens',      nav:'sec-salud'     },
   { id:'sec-ejercicio', nav:'sec-salud'     },
+  { id:'sec-univ',      nav:'sec-univ'      },
 ];
 ALL_SECTIONS.forEach(s => {
   const el = document.getElementById(s.id);
@@ -7126,6 +7716,777 @@ ALL_SECTIONS.forEach(s => {
 renderNav();
 </script>
 
+<script>
+
+// ============================================================
+//  UNIVERSIDAD / MEDICINA
+// ============================================================
+
+var univData = {
+  motivacion: '',
+  materias: [],   // [{ id, name, color, calificacion }]
+  tareas: [],     // [{ id, name, materia, fecha, urgente, done }]
+  examenes: [],   // [{ id, name, materia, fecha }]
+  horas: {}       // { 'YYYY-MM-DD': number }
+};
+
+function saveUniv() {
+  try { localStorage.setItem('univ_data', JSON.stringify(univData)); } catch(e){}
+  if (window.cloudSave) window.cloudSave('univ_data', univData);
+}
+
+function loadUniv() {
+  var saved = window._univData || JSON.parse(localStorage.getItem('univ_data') || 'null');
+  if (saved) {
+    univData.motivacion = saved.motivacion || '';
+    univData.materias   = saved.materias   || [];
+    univData.tareas     = saved.tareas     || [];
+    univData.examenes   = saved.examenes   || [];
+    univData.horas      = saved.horas      || {};
+  }
+}
+
+var MESES_CORTO = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+var COLORES_MAT = ['#5b7bd5','#e57373','#81c784','#ffb74d','#ba68c8','#4db6ac','#f06292','#90a4ae'];
+
+function renderUniv() {
+  renderUnivMotiv();
+  renderUnivMaterias();
+  renderUnivTareas();
+  renderUnivExamenes();
+  renderUnivHoras();
+}
+
+// ── Motivación
+function renderUnivMotiv() {
+  var card = document.getElementById('univMotivCard');
+  if (!card) return;
+  card.innerHTML = '';
+
+  var label = document.createElement('span');
+  label.className = 'univ-motiv-label';
+  label.textContent = '💙 ¿Por qué quiero ser médico?';
+
+  var text = document.createElement('div');
+  text.className = 'univ-motiv-text';
+  text.textContent = univData.motivacion || 'Toca el ✏️ para escribir tu motivación...';
+  if (!univData.motivacion) text.style.opacity = '.5';
+
+  var editBtn = document.createElement('button');
+  editBtn.className = 'univ-motiv-edit';
+  editBtn.textContent = '✏️';
+  editBtn.onclick = function() {
+    var val = prompt('¿Por qué quieres ser médico?', univData.motivacion || '');
+    if (val !== null) {
+      univData.motivacion = val;
+      saveUniv();
+      renderUnivMotiv();
+    }
+  };
+
+  card.appendChild(label);
+  card.appendChild(text);
+  card.appendChild(editBtn);
+}
+
+// ── Materias
+function renderUnivMaterias() {
+  var list = document.getElementById('univMateriasList');
+  if (!list) return;
+  list.innerHTML = '';
+
+  if (univData.materias.length === 0) {
+    list.innerHTML = '<div class="univ-empty">Sin materias aún 📚</div>';
+    return;
+  }
+
+  univData.materias.forEach(function(mat, idx) {
+    var row = document.createElement('div');
+    row.className = 'univ-materia-row';
+
+    var dot = document.createElement('div');
+    dot.className = 'univ-materia-color';
+    dot.style.background = mat.color;
+
+    var name = document.createElement('div');
+    name.className = 'univ-materia-name';
+    name.textContent = mat.name;
+
+    var cal = document.createElement('div');
+    cal.className = 'univ-materia-cal';
+    cal.textContent = mat.calificacion ? mat.calificacion : '—';
+    cal.title = 'Toca para editar calificación';
+    cal.style.cursor = 'pointer';
+    cal.onclick = function() {
+      var v = prompt('Calificación de ' + mat.name + ':', mat.calificacion || '');
+      if (v !== null) {
+        univData.materias[idx].calificacion = v.trim();
+        saveUniv(); renderUnivMaterias();
+      }
+    };
+
+    var del = document.createElement('button');
+    del.className = 'univ-materia-del';
+    del.textContent = '✕';
+    del.onclick = function() {
+      if (confirm('Eliminar ' + mat.name + '?')) {
+        univData.materias.splice(idx, 1);
+        saveUniv(); renderUniv();
+      }
+    };
+
+    row.appendChild(dot);
+    row.appendChild(name);
+    row.appendChild(cal);
+    row.appendChild(del);
+    list.appendChild(row);
+  });
+}
+
+// ── Tareas
+function renderUnivTareas() {
+  var list = document.getElementById('univTareasList');
+  if (!list) return;
+  list.innerHTML = '';
+
+  var pending = univData.tareas.filter(function(t) { return !t.done; });
+  var done    = univData.tareas.filter(function(t) { return t.done; });
+  var sorted  = pending.concat(done);
+
+  if (sorted.length === 0) {
+    list.innerHTML = '<div class="univ-empty">Sin tareas pendientes 🎉</div>';
+    return;
+  }
+
+  sorted.forEach(function(tarea) {
+    var realIdx = univData.tareas.findIndex(function(t) { return t.id === tarea.id; });
+    var row = document.createElement('div');
+    row.className = 'univ-tarea-row' + (tarea.done ? ' done' : '');
+
+    var chk = document.createElement('div');
+    chk.className = 'univ-tarea-check';
+    chk.textContent = tarea.done ? '✓' : '';
+
+    var info = document.createElement('div');
+    info.className = 'univ-tarea-info';
+
+    var nm = document.createElement('div');
+    nm.className = 'univ-tarea-name';
+    nm.textContent = tarea.name;
+
+    var meta = document.createElement('div');
+    meta.className = 'univ-tarea-meta';
+    var metaParts = [];
+    if (tarea.materia) metaParts.push(tarea.materia);
+    if (tarea.fecha) metaParts.push('Entrega: ' + formatFecha(tarea.fecha));
+    meta.textContent = metaParts.join(' · ');
+
+    info.appendChild(nm);
+    if (metaParts.length) info.appendChild(meta);
+
+    row.appendChild(chk);
+    row.appendChild(info);
+
+    if (tarea.urgente && !tarea.done) {
+      var urg = document.createElement('span');
+      urg.className = 'univ-tarea-urgente';
+      urg.textContent = '¡Urgente!';
+      row.appendChild(urg);
+    }
+
+    var del = document.createElement('button');
+    del.className = 'univ-materia-del';
+    del.textContent = '✕';
+    del.onclick = function(e) {
+      e.stopPropagation();
+      univData.tareas.splice(realIdx, 1);
+      saveUniv(); renderUnivTareas();
+    };
+    row.appendChild(del);
+
+    row.onclick = function() {
+      univData.tareas[realIdx].done = !univData.tareas[realIdx].done;
+      saveUniv(); renderUnivTareas();
+    };
+
+    list.appendChild(row);
+  });
+}
+
+// ── Exámenes
+function renderUnivExamenes() {
+  var list = document.getElementById('univExamenesList');
+  if (!list) return;
+  list.innerHTML = '';
+
+  var today = new Date();
+  today.setHours(0,0,0,0);
+
+  var upcoming = univData.examenes.filter(function(e) {
+    return !e.fecha || new Date(e.fecha + 'T12:00:00') >= today;
+  });
+  upcoming.sort(function(a, b) {
+    return new Date(a.fecha + 'T12:00:00') - new Date(b.fecha + 'T12:00:00');
+  });
+
+  if (upcoming.length === 0) {
+    list.innerHTML = '<div class="univ-empty">Sin exámenes próximos 🎓</div>';
+    return;
+  }
+
+  upcoming.forEach(function(ex, idx) {
+    var realIdx = univData.examenes.findIndex(function(e) { return e.id === ex.id; });
+    var row = document.createElement('div');
+    row.className = 'univ-examen-row';
+
+    var fechaEl = document.createElement('div');
+    fechaEl.className = 'univ-examen-fecha';
+    if (ex.fecha) {
+      var d = new Date(ex.fecha + 'T12:00:00');
+      var dia = document.createElement('span');
+      dia.className = 'univ-examen-dia';
+      dia.textContent = d.getDate();
+      var mes = document.createElement('span');
+      mes.className = 'univ-examen-mes';
+      mes.textContent = MESES_CORTO[d.getMonth()];
+      fechaEl.appendChild(dia);
+      fechaEl.appendChild(mes);
+    } else {
+      fechaEl.innerHTML = '<span class="univ-examen-dia">?</span>';
+    }
+
+    var info = document.createElement('div');
+    info.className = 'univ-examen-info';
+    var nm = document.createElement('div');
+    nm.className = 'univ-examen-name';
+    nm.textContent = ex.name;
+    var mat = document.createElement('div');
+    mat.className = 'univ-examen-materia';
+    mat.textContent = ex.materia || '';
+    info.appendChild(nm);
+    if (ex.materia) info.appendChild(mat);
+
+    var diasEl = document.createElement('div');
+    diasEl.className = 'univ-examen-dias';
+    if (ex.fecha) {
+      var d2 = new Date(ex.fecha + 'T12:00:00');
+      var diff = Math.ceil((d2 - today) / 86400000);
+      diasEl.textContent = diff === 0 ? '¡Hoy!' : diff === 1 ? 'Mañana' : 'en ' + diff + 'd';
+    }
+
+    var del = document.createElement('button');
+    del.className = 'univ-examen-del';
+    del.textContent = '✕';
+    del.onclick = function() {
+      univData.examenes.splice(realIdx, 1);
+      saveUniv(); renderUnivExamenes();
+    };
+
+    row.appendChild(fechaEl);
+    row.appendChild(info);
+    row.appendChild(diasEl);
+    row.appendChild(del);
+    list.appendChild(row);
+  });
+}
+
+// ── Horas de estudio
+function renderUnivHoras() {
+  var wrap = document.getElementById('univHorasWrap');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+
+  var tdk = dateKey(new Date());
+  var hoy = univData.horas[tdk] || 0;
+  var meta = 4;
+
+  var tracker = document.createElement('div');
+  tracker.className = 'univ-horas-tracker';
+
+  var info = document.createElement('div');
+  info.className = 'univ-horas-info';
+
+  var num = document.createElement('div');
+  num.className = 'univ-horas-num';
+  num.textContent = hoy + 'h';
+
+  var lbl = document.createElement('div');
+  lbl.className = 'univ-horas-label';
+  lbl.textContent = 'de estudio hoy';
+
+  var dots = document.createElement('div');
+  dots.className = 'univ-horas-dots';
+  for (var i = 0; i < meta; i++) {
+    var dot = document.createElement('div');
+    dot.className = 'univ-horas-dot' + (i < hoy ? ' filled' : '');
+    dots.appendChild(dot);
+  }
+
+  info.appendChild(num);
+  info.appendChild(lbl);
+  info.appendChild(dots);
+
+  var btns = document.createElement('div');
+  btns.className = 'univ-horas-btns';
+
+  var plus = document.createElement('button');
+  plus.className = 'univ-horas-plus';
+  plus.textContent = '+';
+  plus.onclick = function() {
+    univData.horas[tdk] = (univData.horas[tdk] || 0) + 1;
+    saveUniv(); renderUnivHoras();
+  };
+
+  var minus = document.createElement('button');
+  minus.className = 'univ-horas-minus';
+  minus.textContent = '−';
+  minus.onclick = function() {
+    if (univData.horas[tdk] > 0) { univData.horas[tdk]--; saveUniv(); renderUnivHoras(); }
+  };
+
+  btns.appendChild(plus);
+  btns.appendChild(minus);
+  tracker.appendChild(info);
+  tracker.appendChild(btns);
+  wrap.appendChild(tracker);
+
+  // Total semanal
+  var totalWrap = document.createElement('div');
+  totalWrap.className = 'univ-horas-meta-row';
+  var total = 0;
+  for (var dk in univData.horas) { total += univData.horas[dk]; }
+  totalWrap.textContent = '📊 Total acumulado: ' + total + ' horas de estudio';
+  wrap.appendChild(totalWrap);
+}
+
+// ── Helpers
+function formatFecha(str) {
+  if (!str) return '';
+  var d = new Date(str + 'T12:00:00');
+  return d.getDate() + ' ' + MESES_CORTO[d.getMonth()];
+}
+
+// ── Modales
+document.addEventListener('DOMContentLoaded', function() {
+  var newMatBtn = document.getElementById('univNewMateriaBtn');
+  if (newMatBtn) newMatBtn.onclick = function() { openUnivMateriaModal(); };
+  var newTarBtn = document.getElementById('univNewTareaBtn');
+  if (newTarBtn) newTarBtn.onclick = function() { openUnivTareaModal(); };
+  var newExBtn  = document.getElementById('univNewExamenBtn');
+  if (newExBtn)  newExBtn.onclick  = function() { openUnivExamenModal(); };
+});
+
+function openUnivMateriaModal() {
+  var back = document.createElement('div');
+  back.className = 'rutina-modal-backdrop';
+  back.onclick = function(e) { if (e.target === back) back.remove(); };
+
+  var colOpts = COLORES_MAT.map(function(c) {
+    return '<span class="univ-color-opt" data-color="' + c + '" style="background:' + c + ';width:20px;height:20px;border-radius:50%;display:inline-block;cursor:pointer;border:2px solid transparent;margin:2px"></span>';
+  }).join('');
+
+  var box = document.createElement('div');
+  box.className = 'rutina-modal-box';
+  box.innerHTML = '<div class="rutina-modal-title">📚 <em>Nueva materia</em></div>' +
+    '<div class="modal-field"><label class="modal-label">Nombre</label>' +
+    '<input class="modal-input" id="univMatNombre" placeholder="ej: Biología, Química..." style="width:100%"></div>' +
+    '<div class="modal-field" style="margin-top:.8rem"><label class="modal-label">Color</label>' +
+    '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px" id="univColorPicker">' + colOpts + '</div></div>' +
+    '<div class="modal-btns" style="margin-top:1.2rem">' +
+    '<button class="modal-btn-cancel" id="univMatCancel">Cancelar</button>' +
+    '<button class="modal-btn-save" id="univMatSave">Guardar 💙</button></div>';
+
+  back.appendChild(box);
+  document.body.appendChild(back);
+
+  var selColor = COLORES_MAT[0];
+  box.querySelectorAll('.univ-color-opt').forEach(function(el) {
+    if (el.dataset.color === selColor) el.style.border = '2px solid #333';
+    el.onclick = function() {
+      box.querySelectorAll('.univ-color-opt').forEach(function(o) { o.style.border = '2px solid transparent'; });
+      el.style.border = '2px solid #333';
+      selColor = el.dataset.color;
+    };
+  });
+
+  document.getElementById('univMatCancel').onclick = function() { back.remove(); };
+  document.getElementById('univMatSave').onclick = function() {
+    var n = document.getElementById('univMatNombre').value.trim();
+    if (!n) return;
+    univData.materias.push({ id: 'mat_' + Date.now(), name: n, color: selColor, calificacion: '' });
+    saveUniv(); renderUniv();
+    back.remove();
+  };
+  document.getElementById('univMatNombre').focus();
+}
+
+function openUnivTareaModal() {
+  var back = document.createElement('div');
+  back.className = 'rutina-modal-backdrop';
+  back.onclick = function(e) { if (e.target === back) back.remove(); };
+
+  var materiaOpts = '<option value="">Sin materia</option>' +
+    univData.materias.map(function(m) { return '<option value="' + m.name + '">' + m.name + '</option>'; }).join('');
+
+  var box = document.createElement('div');
+  box.className = 'rutina-modal-box';
+  box.innerHTML = '<div class="rutina-modal-title">📝 <em>Nueva tarea</em></div>' +
+    '<div class="modal-field"><label class="modal-label">Tarea</label>' +
+    '<input class="modal-input" id="univTareaNombre" placeholder="ej: Resumen capítulo 3..." style="width:100%"></div>' +
+    '<div class="modal-field" style="margin-top:.8rem"><label class="modal-label">Materia</label>' +
+    '<select class="modal-input" id="univTareaMateria" style="width:100%">' + materiaOpts + '</select></div>' +
+    '<div class="modal-field" style="margin-top:.8rem"><label class="modal-label">Fecha de entrega (opcional)</label>' +
+    '<input type="date" class="modal-input" id="univTareaFecha" style="width:100%"></div>' +
+    '<div class="modal-field" style="margin-top:.8rem;display:flex;align-items:center;gap:.6rem">' +
+    '<input type="checkbox" id="univTareaUrgente" style="width:16px;height:16px">' +
+    '<label for="univTareaUrgente" class="modal-label" style="margin:0">¡Urgente!</label></div>' +
+    '<div class="modal-btns" style="margin-top:1.2rem">' +
+    '<button class="modal-btn-cancel" id="univTareaCancel">Cancelar</button>' +
+    '<button class="modal-btn-save" id="univTareaSave">Guardar 📝</button></div>';
+
+  back.appendChild(box);
+  document.body.appendChild(back);
+
+  document.getElementById('univTareaCancel').onclick = function() { back.remove(); };
+  document.getElementById('univTareaSave').onclick = function() {
+    var n = document.getElementById('univTareaNombre').value.trim();
+    if (!n) return;
+    univData.tareas.push({
+      id: 'tar_' + Date.now(),
+      name: n,
+      materia: document.getElementById('univTareaMateria').value,
+      fecha: document.getElementById('univTareaFecha').value,
+      urgente: document.getElementById('univTareaUrgente').checked,
+      done: false
+    });
+    saveUniv(); renderUniv();
+    back.remove();
+  };
+  document.getElementById('univTareaNombre').focus();
+}
+
+function openUnivExamenModal() {
+  var back = document.createElement('div');
+  back.className = 'rutina-modal-backdrop';
+  back.onclick = function(e) { if (e.target === back) back.remove(); };
+
+  var materiaOpts = '<option value="">Sin materia</option>' +
+    univData.materias.map(function(m) { return '<option value="' + m.name + '">' + m.name + '</option>'; }).join('');
+
+  var box = document.createElement('div');
+  box.className = 'rutina-modal-box';
+  box.innerHTML = '<div class="rutina-modal-title">📅 <em>Nuevo examen</em></div>' +
+    '<div class="modal-field"><label class="modal-label">Nombre del examen</label>' +
+    '<input class="modal-input" id="univExNombre" placeholder="ej: Parcial 1, Examen final..." style="width:100%"></div>' +
+    '<div class="modal-field" style="margin-top:.8rem"><label class="modal-label">Materia</label>' +
+    '<select class="modal-input" id="univExMateria" style="width:100%">' + materiaOpts + '</select></div>' +
+    '<div class="modal-field" style="margin-top:.8rem"><label class="modal-label">Fecha</label>' +
+    '<input type="date" class="modal-input" id="univExFecha" style="width:100%"></div>' +
+    '<div class="modal-btns" style="margin-top:1.2rem">' +
+    '<button class="modal-btn-cancel" id="univExCancel">Cancelar</button>' +
+    '<button class="modal-btn-save" id="univExSave">Guardar 📅</button></div>';
+
+  back.appendChild(box);
+  document.body.appendChild(back);
+
+  document.getElementById('univExCancel').onclick = function() { back.remove(); };
+  document.getElementById('univExSave').onclick = function() {
+    var n = document.getElementById('univExNombre').value.trim();
+    if (!n) return;
+    univData.examenes.push({
+      id: 'ex_' + Date.now(),
+      name: n,
+      materia: document.getElementById('univExMateria').value,
+      fecha: document.getElementById('univExFecha').value
+    });
+    saveUniv(); renderUniv();
+    back.remove();
+  };
+  document.getElementById('univExNombre').focus();
+}
+
+// Cloud sync patch
+var _origSyncUniv = window.syncFromCloud;
+window.syncFromCloud = function() {
+  if (window._univData) {
+    univData.motivacion = window._univData.motivacion || '';
+    univData.materias   = window._univData.materias   || [];
+    univData.tareas     = window._univData.tareas     || [];
+    univData.examenes   = window._univData.examenes   || [];
+    univData.horas      = window._univData.horas      || {};
+  }
+  if (_origSyncUniv) _origSyncUniv();
+  renderUniv();
+};
+
+loadUniv();
+document.addEventListener('DOMContentLoaded', function() {
+  renderUniv();
+});
+
+</script>
+<script>
+
+// ============================================================
+//  RUTINAS DE BELLEZA
+// ============================================================
+
+var bellezaTemplates = [];
+// [{ id, name, emoji, pasos:[string], completedSteps:[] }]
+
+function saveBelleza() {
+  try { localStorage.setItem('belleza_templates', JSON.stringify(bellezaTemplates)); } catch(e){}
+  if (window.cloudSave) window.cloudSave('belleza_templates', bellezaTemplates);
+}
+
+function loadBelleza() {
+  var saved = window._bellezaTemplates || JSON.parse(localStorage.getItem('belleza_templates') || 'null');
+  if (saved) bellezaTemplates = saved;
+}
+
+var bellezaOpenCards = {};
+
+function renderBelleza() {
+  var list = document.getElementById('bellezaList');
+  if (!list) return;
+  list.innerHTML = '';
+
+  if (bellezaTemplates.length === 0) {
+    list.innerHTML = '<div class="belleza-empty">Sin rutinas aún ✨<br><small>Agrega tu rutina de piel, pelo, cuerpo...</small></div>';
+    return;
+  }
+
+  bellezaTemplates.forEach(function(tpl, tplIdx) {
+    var completedCount = (tpl.completedSteps || []).length;
+    var totalCount = tpl.pasos.length;
+    var isAllDone = totalCount > 0 && completedCount === totalCount;
+    var pct = totalCount > 0 ? Math.round(completedCount / totalCount * 100) : 0;
+
+    var card = document.createElement('div');
+    card.className = 'belleza-card';
+
+    // Header
+    var hdr = document.createElement('div');
+    hdr.className = 'belleza-card-header';
+
+    var emojiEl = document.createElement('div');
+    emojiEl.className = 'belleza-card-emoji';
+    emojiEl.textContent = tpl.emoji || '✨';
+
+    var info = document.createElement('div');
+    info.className = 'belleza-card-info';
+
+    var nm = document.createElement('div');
+    nm.className = 'belleza-card-name';
+    nm.textContent = tpl.name;
+
+    var prog = document.createElement('div');
+    prog.className = 'belleza-card-progress';
+    prog.textContent = completedCount + ' / ' + totalCount + ' pasos';
+
+    var barWrap = document.createElement('div');
+    barWrap.className = 'belleza-card-bar-wrap';
+    var bar = document.createElement('div');
+    bar.className = 'belleza-card-bar';
+    bar.style.width = pct + '%';
+    barWrap.appendChild(bar);
+
+    info.appendChild(nm);
+    info.appendChild(prog);
+    info.appendChild(barWrap);
+
+    hdr.appendChild(emojiEl);
+    hdr.appendChild(info);
+
+    if (isAllDone) {
+      var badge = document.createElement('span');
+      badge.className = 'belleza-card-done-badge';
+      badge.textContent = '¡Lista! 💗';
+      hdr.appendChild(badge);
+    }
+
+    var editBtn = document.createElement('button');
+    editBtn.className = 'belleza-card-edit';
+    editBtn.textContent = '✏️';
+    editBtn.title = 'Editar';
+    editBtn.onclick = function(e) { e.stopPropagation(); openBellezaModal(tplIdx); };
+
+    var delBtn = document.createElement('button');
+    delBtn.className = 'belleza-card-del';
+    delBtn.textContent = '✕';
+    delBtn.title = 'Eliminar';
+    delBtn.onclick = function(e) {
+      e.stopPropagation();
+      if (confirm('Eliminar "' + tpl.name + '"?')) {
+        bellezaTemplates.splice(tplIdx, 1);
+        saveBelleza(); renderBelleza();
+      }
+    };
+
+    hdr.appendChild(editBtn);
+    hdr.appendChild(delBtn);
+    card.appendChild(hdr);
+
+    // Pasos
+    var pasosEl = document.createElement('div');
+    pasosEl.className = 'belleza-pasos' + (bellezaOpenCards[tpl.id] ? ' open' : '');
+
+    tpl.pasos.forEach(function(paso, pIdx) {
+      var isDone = (tpl.completedSteps || []).includes(pIdx);
+      var row = document.createElement('div');
+      row.className = 'belleza-paso-row' + (isDone ? ' done' : '');
+
+      var chk = document.createElement('div');
+      chk.className = 'belleza-paso-check';
+      chk.textContent = isDone ? '✓' : '';
+
+      var txt = document.createElement('div');
+      txt.className = 'belleza-paso-texto';
+      txt.textContent = paso;
+
+      row.appendChild(chk);
+      row.appendChild(txt);
+      row.onclick = function() {
+        if (!bellezaTemplates[tplIdx].completedSteps) bellezaTemplates[tplIdx].completedSteps = [];
+        var arr = bellezaTemplates[tplIdx].completedSteps;
+        var i = arr.indexOf(pIdx);
+        if (i === -1) arr.push(pIdx); else arr.splice(i, 1);
+        saveBelleza(); renderBelleza();
+        bellezaOpenCards[tpl.id] = true;
+      };
+      pasosEl.appendChild(row);
+    });
+
+    // Reset button
+    if (completedCount > 0) {
+      var resetBtn = document.createElement('button');
+      resetBtn.className = 'belleza-reset-btn';
+      resetBtn.textContent = '↺ Reiniciar';
+      resetBtn.onclick = function() {
+        bellezaTemplates[tplIdx].completedSteps = [];
+        saveBelleza(); renderBelleza();
+        bellezaOpenCards[tpl.id] = true;
+      };
+      pasosEl.appendChild(resetBtn);
+    }
+
+    card.appendChild(pasosEl);
+
+    // Toggle open on header click
+    hdr.onclick = function() {
+      bellezaOpenCards[tpl.id] = !bellezaOpenCards[tpl.id];
+      renderBelleza();
+    };
+
+    list.appendChild(card);
+  });
+}
+
+function openBellezaModal(editIdx) {
+  var editing = editIdx !== null && editIdx !== undefined;
+  var tpl = editing ? bellezaTemplates[editIdx] : { id: 'bel_' + Date.now(), name: '', emoji: '✨', pasos: [], completedSteps: [] };
+
+  var back = document.createElement('div');
+  back.className = 'rutina-modal-backdrop';
+  back.onclick = function(e) { if (e.target === back) back.remove(); };
+
+  var box = document.createElement('div');
+  box.className = 'rutina-modal-box';
+
+  var pasosHtml = (tpl.pasos || []).map(function(p, i) {
+    return '<div class="desglose-step-row" style="display:flex;gap:.4rem;align-items:center;margin-bottom:.3rem">' +
+      '<input class="modal-input bel-paso-input" value="' + p.replace(/"/g,"&quot;") + '" style="flex:1" placeholder="Paso ' + (i+1) + '">' +
+      '<button class="univ-materia-del bel-paso-del" style="color:#c77">✕</button></div>';
+  }).join('');
+
+  box.innerHTML = '<div class="rutina-modal-title">' + (editing ? '✏️' : '✨') + ' <em>' + (editing ? 'Editar' : 'Nueva') + ' rutina de belleza</em></div>' +
+    '<div class="modal-field"><label class="modal-label">Emoji</label>' +
+    '<input class="modal-input" id="belEmoji" value="' + (tpl.emoji || '✨') + '" style="width:80px;text-align:center;font-size:1.2rem"></div>' +
+    '<div class="modal-field" style="margin-top:.7rem"><label class="modal-label">Nombre</label>' +
+    '<input class="modal-input" id="belNombre" value="' + (tpl.name || '') + '" placeholder="ej: Rutina de piel AM, Mascarilla de pelo..." style="width:100%"></div>' +
+    '<div class="modal-field" style="margin-top:.9rem"><label class="modal-label">Pasos</label>' +
+    '<div id="belPasosList">' + pasosHtml + '</div>' +
+    '<button class="belleza-reset-btn" id="belAddPasoBtn" style="margin-top:.4rem">＋ Agregar paso</button></div>' +
+    '<div class="modal-btns" style="margin-top:1.2rem">' +
+    '<button class="modal-btn-cancel" id="belCancel">Cancelar</button>' +
+    '<button class="modal-btn-save" id="belSave">Guardar ✨</button></div>';
+
+  back.appendChild(box);
+  document.body.appendChild(back);
+
+  // Delete paso buttons
+  function bindDelBtns() {
+    box.querySelectorAll('.bel-paso-del').forEach(function(btn, i) {
+      btn.onclick = function() {
+        btn.closest('.desglose-step-row').remove();
+      };
+    });
+  }
+  bindDelBtns();
+
+  document.getElementById('belAddPasoBtn').onclick = function() {
+    var row = document.createElement('div');
+    row.className = 'desglose-step-row';
+    row.style.cssText = 'display:flex;gap:.4rem;align-items:center;margin-bottom:.3rem';
+    var inp = document.createElement('input');
+    inp.className = 'modal-input bel-paso-input';
+    inp.style.flex = '1';
+    inp.placeholder = 'Nuevo paso...';
+    var del = document.createElement('button');
+    del.className = 'univ-materia-del bel-paso-del';
+    del.style.color = '#c77';
+    del.textContent = '✕';
+    del.onclick = function() { row.remove(); };
+    row.appendChild(inp);
+    row.appendChild(del);
+    document.getElementById('belPasosList').appendChild(row);
+    inp.focus();
+  };
+
+  document.getElementById('belCancel').onclick = function() { back.remove(); };
+
+  document.getElementById('belSave').onclick = function() {
+    var nombre = document.getElementById('belNombre').value.trim();
+    if (!nombre) return;
+    var emoji  = document.getElementById('belEmoji').value.trim() || '✨';
+    var pasos  = [];
+    box.querySelectorAll('.bel-paso-input').forEach(function(inp) {
+      var v = inp.value.trim();
+      if (v) pasos.push(v);
+    });
+    if (editing) {
+      bellezaTemplates[editIdx].name  = nombre;
+      bellezaTemplates[editIdx].emoji = emoji;
+      bellezaTemplates[editIdx].pasos = pasos;
+    } else {
+      tpl.name  = nombre;
+      tpl.emoji = emoji;
+      tpl.pasos = pasos;
+      bellezaTemplates.push(tpl);
+    }
+    saveBelleza(); renderBelleza();
+    back.remove();
+  };
+
+  document.getElementById('belNombre').focus();
+}
+
+// Cloud sync patch
+var _origSyncBelleza = window.syncFromCloud;
+window.syncFromCloud = function() {
+  if (window._bellezaTemplates) bellezaTemplates = window._bellezaTemplates;
+  if (_origSyncBelleza) _origSyncBelleza();
+  renderBelleza();
+};
+
+loadBelleza();
+document.addEventListener('DOMContentLoaded', function() {
+  var newBtn = document.getElementById('bellezaNewBtn');
+  if (newBtn) newBtn.onclick = function() { openBellezaModal(null); };
+  renderBelleza();
+});
+
+</script>
 </div><!-- end #app-screen -->
 </body>
 </html>
