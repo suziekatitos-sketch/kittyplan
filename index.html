@@ -5825,17 +5825,8 @@ window.syncFromCloud = function() {
 };
 
 loadBelleza();
-</script>
 
 document.addEventListener('DOMContentLoaded', function() {
-  var ejPrev = document.getElementById('ejPrevDay');
-  var ejNext = document.getElementById('ejNextDay');
-  var ejNew  = document.getElementById('ejNewBtn');
-  if (ejPrev) ejPrev.onclick = function() { ejDateOffset--; renderEjercicio(); };
-  if (ejNext) ejNext.onclick = function() { ejDateOffset++; renderEjercicio(); };
-  if (ejNew)  ejNew.onclick  = function() { openEjModal(null); };
-  renderEjercicio();
-  // Belleza buttons
   var belNew  = document.getElementById('bellezaNewBtn');
   var belPrev = document.getElementById('belPrevDay');
   var belNext = document.getElementById('belNextDay');
@@ -5844,10 +5835,21 @@ document.addEventListener('DOMContentLoaded', function() {
   if (belNext) belNext.onclick = function() { belDateOffset++; renderBelleza(); };
   renderBelleza();
 });
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var ejPrev = document.getElementById('ejPrevDay');
+  var ejNext = document.getElementById('ejNextDay');
+  var ejNew  = document.getElementById('ejNewBtn');
+  if (ejPrev) ejPrev.onclick = function() { ejDateOffset--; renderEjercicio(); };
+  if (ejNext) ejNext.onclick = function() { ejDateOffset++; renderEjercicio(); };
+  if (ejNew)  ejNew.onclick  = function() { openEjModal(null); };
+  renderEjercicio();
+});
 
 </script>
 <script>
-
 // ============================================================
 //  RELACIÓN CON DIOS
 // ============================================================
