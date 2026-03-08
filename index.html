@@ -1004,6 +1004,11 @@
     gap: 0;
     align-items: flex-start;
     position: relative;
+    min-height: 100vh;
+  }
+  /* img columns stretch to match active page */
+  .img-col {
+    align-self: stretch;
   }
 
   .img-col {
@@ -1013,8 +1018,7 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    padding: 6px 6px 6px 6px;
-    align-self: stretch;
+    padding: 6px;
   }
 
   .img-col-left  { left: 0; }
@@ -3801,46 +3805,11 @@ function todayKey() { return dateKey(new Date()); }
 ══════════════════════════════════════════ -->
 
 <!-- Frases neurodivergentes -->
-<div id="sec-intereses-nav" style="scroll-margin-top:60px"></div>
-<!-- ══════════════════════════════════════════
-     SECCIÓN 5 · ZONA DE HIPERENFOQUE
-══════════════════════════════════════════ -->
-<section class="spark-section" id="sec-spark">
-  <span class="section-sub">✦ interés especial</span>
-  <h2 class="section-title"><em>Mi Zona de</em> Hiperenfoque</h2>
-  <div class="spark-card">
-    <div class="spark-header">
-      <div class="spark-icon-wrap" id="sparkEmoji" title="Haz clic para cambiar" style="cursor:pointer" onclick="cycleSparkIcon()">⭐</div>
-      <div class="spark-titles">
-        <span class="spark-label" id="sparkRangeLabel">Mi proyecto / interés especial de estos 3 días</span>
-        <input class="spark-title-input" id="sparkTitle" placeholder="¿En qué estoy enfocada estos días?" />
-      </div>
-    </div>
-
-    <div class="spark-body">
-      <!-- Panel notas libres -->
-      <div class="spark-panel">
-        <div class="spark-panel-title">📝 Notas e ideas libres</div>
-        <textarea class="spark-note" id="sparkNotes" placeholder="Escribe lo que quieras… ideas, pensamientos, cosas que descubriste…"></textarea>
-      </div>
-
-      <!-- Panel lista de ideas -->
-      <div class="spark-panel">
-        <div class="spark-panel-title">💡 Lista de ideas / cosas a explorar</div>
-        <div class="ideas-list" id="ideasList"></div>
-        <div class="add-idea-row">
-          <input class="idea-input" id="ideaInput" placeholder="Nueva idea…" />
-          <button class="idea-add-btn" onclick="addIdea()">＋</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Barra de ánimo del proyecto -->
-    <div class="spark-progress">
-      <span class="spark-prog-label">¿Cómo me siento con este proyecto estos días?</span>
-      <div class="spark-dots" id="sparkDots"></div>
-      <span id="sparkMoodLabel" style="font-size:.65rem;color:var(--beige);font-weight:700;min-width:70px;text-align:right"></span>
-    </div>
+<section class="cuida-section" id="sec-semana-frases" style="margin-top:1.5rem">
+  <div class="quote-card" id="quoteCardSemana">
+    <div class="quote-text" id="quoteTextSemana"></div>
+    <div class="quote-author" id="quoteAuthorSemana"></div>
+    <div class="quote-nav" id="quoteNavSemana"></div>
   </div>
 </section>
 
@@ -4453,10 +4422,10 @@ function todayKey() { return dateKey(new Date()); }
 
 <script>
 // dateKey helper (needed early)
-if (typeof dateKey === 'undefined') { window.dateKey = function dateKey(d) {
+function dateKey(d) {
   if (typeof d === 'string') return d;
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-}; }
+}
 // ══════════════════════════════════════════
 //  SECCIÓN · RUTINAS
 // ══════════════════════════════════════════
@@ -4509,7 +4478,7 @@ function renderRutinas() {
   let label = `${DIAS_ES[date.getDay()]} ${date.getDate()} de ${MESES_ES[date.getMonth()]}`;
   if (isToday)    label = '📅 Hoy - ' + label;
   if (isTomorrow) label = '📅 Mañana - ' + label;
-  (function(){var _s=document.getElementById('rutDateLabel');if(_s)_s.textContent=label;})();
+  const _rdl = document.getElementById('rutDateLabel'); if (_rdl) _rdl.textContent = label;
 
   // Assigned template for this day
   const assignedId = rutinaAsignaciones[dk];
@@ -5348,10 +5317,10 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 
 // --- dateKey helper (early definition) ---
-if (typeof dateKey === 'undefined') { window.dateKey = function dateKey(d) {
+function dateKey(d) {
   if (typeof d === 'string') return d;
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-}; }
+}
 
 // ============================================================
 //  RUTINAS DE EJERCICIO
@@ -5392,7 +5361,7 @@ function renderEjercicio() {
   if (ejDateOffset === 0) label = 'Hoy - ' + label;
   if (ejDateOffset === 1) label = 'Manana - ' + label;
   if (ejDateOffset === -1) label = 'Ayer - ' + label;
-  (function(){var _s=document.getElementById('ejDateLbl');if(_s)_s.textContent=label;})();
+  const _edl = document.getElementById('ejDateLbl'); if (_edl) _edl.textContent = label;
 
   var dayWrap = document.getElementById('ejDayWrap');
   if (!dayWrap) return;
@@ -5537,8 +5506,8 @@ function renderEjPasos(card, tpl, reg, regIdx, dk) {
       var done = reg.completedSteps.length;
       var pct = total > 0 ? Math.round(done/total*100) : 0;
       var allDone = total > 0 && done === total;
-      var _cm=card.querySelector('.ejercicio-card-meta'); if(_cm) _cm.textContent = done + '/' + total + ' ejercicios';
-      var _pf=card.querySelector('.ejercicio-prog-mini-fill'); if(_pf) _pf.style.width = pct + '%';
+      card.querySelector('.ejercicio-card-meta').textContent = done + '/' + total + ' ejercicios';
+      card.querySelector('.ejercicio-prog-mini-fill').style.width = pct + '%';
     };
 
     wrap.appendChild(row);
@@ -5683,7 +5652,7 @@ function openEjModal(templateId) {
     };
   });
 
-  function renderPasos_duplicate_ignored__() {
+  function renderPasos() {
     var list = box.querySelector('#ejPasosList');
     list.innerHTML = '';
     pasos.forEach(function(paso, pi) {
@@ -5787,7 +5756,6 @@ function renderBelleza() {
 
 function renderBelDayWrap(dk) {
   var dayWrap = document.getElementById('belDayWrap');
-  if (!dayWrap) return;
   if (!dayWrap) return;
   dayWrap.innerHTML = '';
   var registros = bellezaRegistros[dk] || [];
@@ -6536,12 +6504,12 @@ function render() {
   const dates = getWeekDates(weekOffset);
 
   const fmt = d => d.toLocaleDateString('es-MX', {weekday:'short', day:'numeric', month:'short'});
-  (function(){var _s=document.getElementById('weekLabel');if(_s)_s.textContent=fmt(dates[0]) + ' - ' + fmt(dates[2]);})();
+  const _wl = document.getElementById('weekLabel'); if (_wl) _wl.textContent =
+    fmt(dates[0]) + ' - ' + fmt(dates[2]);
 
   const container = document.getElementById('gridOuter');
   if (!container) return;
   container.innerHTML = '';
-  if (!container) return;
 
   // Days header
   const daysRow = document.createElement('div');
@@ -6669,8 +6637,8 @@ function updateProgress() {
     });
   });
   const pct = total > 0 ? Math.round((done/total)*100) : 0;
-  document.getElementById('progFill').style.width = pct + '%';
-  (function(){var _s=document.getElementById('progPct');if(_s)_s.textContent=pct + '%';})();
+  const _pf = document.getElementById('progFill'); if (_pf) _pf.style.width = pct + '%';
+  const _pp = document.getElementById('progPct'); if (_pp) _pp.textContent = pct + '%';
 }
 
 // --- PERSIST -----------------------------------------------
@@ -7199,7 +7167,6 @@ let currentDotLevel = 0;
 function renderSparkDots(level) {
   currentDotLevel = level;
   const wrap = document.getElementById('sparkDots');
-  if (!wrap) return;
   const lbl  = document.getElementById('sparkMoodLabel');
   if (!wrap) return;
   wrap.innerHTML = '';
@@ -7272,10 +7239,11 @@ function changeGoal(delta) {
 
 function renderTracker() {
   const dates = getWeekDates(weekOffset);
-  (function(){var _s=document.getElementById('goalLabel');if(_s)_s.textContent=waterGoal + ' vasos';})();
+  const _gl = document.getElementById('goalLabel'); if (_gl) _gl.textContent = waterGoal + ' vasos';
 
   // -- WATER
   const wGrid = document.getElementById('waterGrid');
+  if (!wGrid) return;
   wGrid.innerHTML = '';
   dates.forEach((d, dayIdx) => {
     const isToday = isTodayDate(d);
@@ -7310,6 +7278,7 @@ function renderTracker() {
 
   // -- FOOD
   const fGrid = document.getElementById('foodGrid');
+  if (!fGrid) return;
   fGrid.innerHTML = '';
   dates.forEach((d, dayIdx) => {
     const isToday = isTodayDate(d);
@@ -7448,9 +7417,12 @@ renderTracker();
 // ============================================================
 //  LIMPIEZA
 // ============================================================
+// Frecuencia por tarea: { tipo: 'diaria'|'semanal'|'mensual'|'dias'|'personalizada',
+//   dias: [0-6] (si tipo=dias), cadaN: number, unidad: 'dias'|'semanas'|'meses' (si personalizada) }
 
 var limpiezaData = [];
-// [{ id, nombre, emoji, tareas: [{ id, nombre, done, lastDone }] }]
+
+var DIAS_SEMANA_LIMP = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 
 function saveLimpieza() {
   try { localStorage.setItem('limpieza_data', JSON.stringify(limpiezaData)); } catch(e){}
@@ -7460,23 +7432,53 @@ function saveLimpieza() {
 function loadLimpieza() {
   limpiezaData = window._limpiezaData || JSON.parse(localStorage.getItem('limpieza_data') || '[]');
   if (limpiezaData.length === 0) {
-    // Default areas
     limpiezaData = [
       { id:'l1', nombre:'Cuarto', emoji:'🛏️', tareas:[
-        { id:'t1', nombre:'Tender cama', done:false, lastDone:null },
-        { id:'t2', nombre:'Ordenar escritorio', done:false, lastDone:null },
-        { id:'t3', nombre:'Barrer/aspirar', done:false, lastDone:null },
+        { id:'t1', nombre:'Tender cama', done:false, lastDone:null, freq:{tipo:'diaria'} },
+        { id:'t2', nombre:'Ordenar escritorio', done:false, lastDone:null, freq:{tipo:'semanal'} },
+        { id:'t3', nombre:'Barrer/aspirar', done:false, lastDone:null, freq:{tipo:'semanal'} },
       ]},
       { id:'l2', nombre:'Baño', emoji:'🚿', tareas:[
-        { id:'t4', nombre:'Limpiar lavabo', done:false, lastDone:null },
-        { id:'t5', nombre:'Limpiar espejo', done:false, lastDone:null },
+        { id:'t4', nombre:'Limpiar lavabo', done:false, lastDone:null, freq:{tipo:'semanal'} },
+        { id:'t5', nombre:'Limpiar espejo', done:false, lastDone:null, freq:{tipo:'mensual'} },
       ]},
       { id:'l3', nombre:'Cocina', emoji:'🍳', tareas:[
-        { id:'t6', nombre:'Lavar trastes', done:false, lastDone:null },
-        { id:'t7', nombre:'Limpiar estufa', done:false, lastDone:null },
+        { id:'t6', nombre:'Lavar trastes', done:false, lastDone:null, freq:{tipo:'diaria'} },
+        { id:'t7', nombre:'Limpiar estufa', done:false, lastDone:null, freq:{tipo:'semanal'} },
       ]},
     ];
   }
+}
+
+function freqLabel(freq) {
+  if (!freq) return '';
+  if (freq.tipo === 'diaria') return '🌅 Diaria';
+  if (freq.tipo === 'semanal') return '📅 Semanal';
+  if (freq.tipo === 'mensual') return '🗓️ Mensual';
+  if (freq.tipo === 'dias' && freq.dias && freq.dias.length) {
+    return freq.dias.map(function(d){ return DIAS_SEMANA_LIMP[d]; }).join(', ');
+  }
+  if (freq.tipo === 'personalizada') return 'Cada ' + freq.cadaN + ' ' + (freq.unidad || 'días');
+  return '';
+}
+
+function freqColor(freq) {
+  if (!freq) return 'var(--muted2)';
+  if (freq.tipo === 'diaria') return 'var(--rosa)';
+  if (freq.tipo === 'semanal') return '#7c8cf8';
+  if (freq.tipo === 'mensual') return 'var(--verde)';
+  return 'var(--beige)';
+}
+
+function isTareaHoy(tarea) {
+  var freq = tarea.freq;
+  if (!freq) return true;
+  var hoy = new Date();
+  var dow = hoy.getDay(); // 0=dom
+  if (freq.tipo === 'diaria') return true;
+  if (freq.tipo === 'dias') return freq.dias && freq.dias.indexOf(dow) !== -1;
+  if (freq.tipo === 'semanal' || freq.tipo === 'mensual' || freq.tipo === 'personalizada') return true; // always show, badge shows freq
+  return true;
 }
 
 function renderLimpieza() {
@@ -7489,9 +7491,9 @@ function renderLimpieza() {
     var card = document.createElement('div');
     card.className = 'limpieza-area-card';
 
+    var doneTasks = area.tareas.filter(function(t){ return t.done; }).length;
     var hdr = document.createElement('div');
     hdr.className = 'limpieza-area-hdr';
-    var doneTasks = area.tareas.filter(function(t){ return t.done; }).length;
     hdr.innerHTML =
       '<div class="limpieza-area-name">' +
         '<span class="limpieza-area-emoji">' + area.emoji + '</span>' +
@@ -7503,21 +7505,43 @@ function renderLimpieza() {
       '</div>';
     card.appendChild(hdr);
 
-    area.tareas.forEach(function(tarea, tIdx) {
+    area.tareas.forEach(function(tarea) {
       var row = document.createElement('div');
       row.className = 'limpieza-task-row';
+
       var chk = document.createElement('div');
       chk.className = 'limpieza-check' + (tarea.done ? ' done' : '');
       chk.textContent = tarea.done ? '✓' : '';
+
+      var mid = document.createElement('div');
+      mid.style.flex = '1';
       var name = document.createElement('div');
       name.className = 'limpieza-task-name' + (tarea.done ? ' done' : '');
       name.textContent = tarea.nombre;
-      var last = document.createElement('div');
-      last.className = 'limpieza-last-done';
-      last.textContent = tarea.lastDone ? 'Última vez: ' + tarea.lastDone : '';
+      var meta = document.createElement('div');
+      meta.style.cssText = 'display:flex;gap:.4rem;align-items:center;margin-top:.15rem;flex-wrap:wrap';
+      // freq badge
+      if (tarea.freq) {
+        var fb = document.createElement('span');
+        fb.className = 'limpieza-freq-badge';
+        fb.style.background = 'transparent';
+        fb.style.color = freqColor(tarea.freq);
+        fb.style.border = '1px solid ' + freqColor(tarea.freq);
+        fb.textContent = freqLabel(tarea.freq);
+        meta.appendChild(fb);
+      }
+      // last done
+      if (tarea.lastDone) {
+        var ld = document.createElement('span');
+        ld.className = 'limpieza-last-done';
+        ld.textContent = 'Última: ' + tarea.lastDone;
+        meta.appendChild(ld);
+      }
+      mid.appendChild(name);
+      mid.appendChild(meta);
+
       row.appendChild(chk);
-      row.appendChild(name);
-      row.appendChild(last);
+      row.appendChild(mid);
       row.onclick = function() {
         tarea.done = !tarea.done;
         if (tarea.done) tarea.lastDone = today;
@@ -7527,12 +7551,115 @@ function renderLimpieza() {
     });
     wrap.appendChild(card);
 
-    // Wire edit button
     hdr.querySelector('[data-edit]').onclick = function(e) {
       e.stopPropagation();
       openLimpiezaAreaModal(aIdx);
     };
   });
+}
+
+function makeTareaRow(t) {
+  // t = { nombre, freq } or null for new
+  var freq = (t && t.freq) || { tipo: 'diaria' };
+  var nombre = (t && t.nombre) || '';
+  var wrap = document.createElement('div');
+  wrap.className = 'limp-tarea-block';
+  wrap.style.cssText = 'border:1px solid var(--border);border-radius:12px;padding:.7rem;margin-bottom:.6rem;background:var(--bg)';
+
+  var topRow = document.createElement('div');
+  topRow.style.cssText = 'display:flex;gap:.4rem;align-items:center;margin-bottom:.5rem';
+  var inp = document.createElement('input');
+  inp.className = 'modal-input limp-tarea-inp';
+  inp.value = nombre;
+  inp.placeholder = 'Nombre de la tarea...';
+  inp.style.flex = '1';
+  var del = document.createElement('button');
+  del.className = 'univ-materia-del';
+  del.style.color = '#c77';
+  del.textContent = '✕';
+  del.onclick = function() { wrap.remove(); };
+  topRow.appendChild(inp); topRow.appendChild(del);
+
+  // Frequency row
+  var freqRow = document.createElement('div');
+  freqRow.style.cssText = 'display:flex;flex-wrap:wrap;gap:.3rem;align-items:center';
+
+  var freqOpts = [
+    { val: 'diaria', label: '🌅 Diaria' },
+    { val: 'semanal', label: '📅 Semanal' },
+    { val: 'mensual', label: '🗓️ Mensual' },
+    { val: 'dias', label: '📆 Días específicos' },
+    { val: 'personalizada', label: '✏️ Personalizada' },
+  ];
+
+  var sel = document.createElement('select');
+  sel.className = 'modal-input limp-freq-sel';
+  sel.style.cssText = 'font-size:.7rem;padding:.2rem .4rem;flex:1;min-width:120px';
+  freqOpts.forEach(function(o) {
+    var opt = document.createElement('option');
+    opt.value = o.val; opt.textContent = o.label;
+    if (freq.tipo === o.val) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  freqRow.appendChild(sel);
+
+  // Days checkboxes (visible when dias)
+  var diasWrap = document.createElement('div');
+  diasWrap.className = 'limp-dias-wrap';
+  diasWrap.style.cssText = 'display:' + (freq.tipo === 'dias' ? 'flex' : 'none') + ';flex-wrap:wrap;gap:.25rem;margin-top:.3rem;width:100%';
+  ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'].forEach(function(d, i) {
+    var lbl = document.createElement('label');
+    lbl.style.cssText = 'display:flex;align-items:center;gap:.2rem;font-size:.65rem;font-weight:700;cursor:pointer;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.2rem .4rem';
+    var cb = document.createElement('input');
+    cb.type = 'checkbox'; cb.value = i; cb.className = 'limp-dia-cb';
+    if (freq.dias && freq.dias.indexOf(i) !== -1) cb.checked = true;
+    lbl.appendChild(cb);
+    lbl.appendChild(document.createTextNode(d));
+    diasWrap.appendChild(lbl);
+  });
+
+  // Custom fields (visible when personalizada)
+  var customWrap = document.createElement('div');
+  customWrap.className = 'limp-custom-wrap';
+  customWrap.style.cssText = 'display:' + (freq.tipo === 'personalizada' ? 'flex' : 'none') + ';gap:.3rem;align-items:center;margin-top:.3rem;width:100%';
+  customWrap.innerHTML = '<span style="font-size:.7rem;font-weight:700;color:var(--muted)">Cada</span>';
+  var nInp = document.createElement('input');
+  nInp.type = 'number'; nInp.min = '1'; nInp.value = (freq.cadaN || 1);
+  nInp.className = 'modal-input limp-cadan-inp';
+  nInp.style.cssText = 'width:50px;font-size:.75rem;padding:.2rem .4rem';
+  var unidadSel = document.createElement('select');
+  unidadSel.className = 'modal-input limp-unidad-sel';
+  unidadSel.style.cssText = 'font-size:.7rem;padding:.2rem .4rem';
+  ['días','semanas','meses'].forEach(function(u) {
+    var o = document.createElement('option'); o.value = u; o.textContent = u;
+    if ((freq.unidad || 'días') === u) o.selected = true;
+    unidadSel.appendChild(o);
+  });
+  customWrap.appendChild(nInp); customWrap.appendChild(unidadSel);
+
+  sel.onchange = function() {
+    diasWrap.style.display = sel.value === 'dias' ? 'flex' : 'none';
+    customWrap.style.display = sel.value === 'personalizada' ? 'flex' : 'none';
+  };
+
+  wrap.appendChild(topRow);
+  wrap.appendChild(freqRow);
+  wrap.appendChild(diasWrap);
+  wrap.appendChild(customWrap);
+  wrap._getFreq = function() {
+    var tipo = sel.value;
+    if (tipo === 'dias') {
+      var checked = [];
+      wrap.querySelectorAll('.limp-dia-cb:checked').forEach(function(cb){ checked.push(parseInt(cb.value)); });
+      return { tipo: 'dias', dias: checked };
+    }
+    if (tipo === 'personalizada') {
+      return { tipo: 'personalizada', cadaN: parseInt(nInp.value)||1, unidad: unidadSel.value };
+    }
+    return { tipo: tipo };
+  };
+  wrap._getNombre = function() { return inp.value.trim(); };
+  return wrap;
 }
 
 function openLimpiezaAreaModal(editIdx) {
@@ -7543,65 +7670,92 @@ function openLimpiezaAreaModal(editIdx) {
   back.onclick = function(e) { if (e.target === back) back.remove(); };
   var box = document.createElement('div');
   box.className = 'rutina-modal-box';
-  var tareasHtml = area.tareas.map(function(t) {
-    return '<div style="display:flex;gap:.4rem;align-items:center;margin-bottom:.3rem">' +
-      '<input class="modal-input limp-tarea-inp" value="' + t.nombre.replace(/"/g,'&quot;') + '" style="flex:1" placeholder="Tarea...">' +
-      '<button class="univ-materia-del limp-tarea-del" style="color:#c77">✕</button></div>';
-  }).join('');
-  box.innerHTML =
-    '<div class="rutina-modal-title">' + (editing ? '✏️' : '🧹') + ' <em>' + (editing ? 'Editar' : 'Nueva') + ' área</em></div>' +
-    '<div class="modal-field"><label class="modal-label">Emoji</label>' +
-    '<input class="modal-input" id="limpEmoji" value="' + area.emoji + '" style="width:70px;text-align:center;font-size:1.2rem"></div>' +
-    '<div class="modal-field" style="margin-top:.7rem"><label class="modal-label">Nombre del área</label>' +
-    '<input class="modal-input" id="limpNombre" value="' + area.nombre + '" placeholder="ej: Cuarto, Baño..." style="width:100%"></div>' +
-    '<div class="modal-field" style="margin-top:.9rem"><label class="modal-label">Tareas</label>' +
-    '<div id="limpTareasList">' + tareasHtml + '</div>' +
-    '<button class="belleza-reset-btn" id="limpAddTareaBtn" style="margin-top:.4rem">＋ Agregar tarea</button></div>' +
-    '<div class="modal-btns" style="margin-top:1.2rem">' +
-    (editing ? '<button class="modal-btn-delete" id="limpDelBtn">⋯ Eliminar</button>' : '') +
-    '<button class="modal-btn-cancel" id="limpCancel">Cancelar</button>' +
-    '<button class="modal-btn-save" id="limpSave">Guardar 🧹</button></div>';
+  box.style.maxHeight = '90vh';
+  box.style.overflowY = 'auto';
 
-  back.appendChild(box);
-  document.body.appendChild(back);
+  // Header
+  var title = document.createElement('div');
+  title.className = 'rutina-modal-title';
+  title.innerHTML = (editing ? '✏️' : '🧹') + ' <em>' + (editing ? 'Editar' : 'Nueva') + ' área</em>';
+  box.appendChild(title);
 
-  box.querySelectorAll('.limp-tarea-del').forEach(function(btn) {
-    btn.onclick = function() { btn.closest('div').remove(); };
-  });
-  document.getElementById('limpAddTareaBtn').onclick = function() {
-    var row = document.createElement('div');
-    row.style.cssText = 'display:flex;gap:.4rem;align-items:center;margin-bottom:.3rem';
-    var inp = document.createElement('input');
-    inp.className = 'modal-input limp-tarea-inp';
-    inp.style.flex = '1';
-    inp.placeholder = 'Nueva tarea...';
-    var del = document.createElement('button');
-    del.className = 'univ-materia-del limp-tarea-del';
-    del.style.color = '#c77';
-    del.textContent = '✕';
-    del.onclick = function() { row.remove(); };
-    row.appendChild(inp); row.appendChild(del);
-    document.getElementById('limpTareasList').appendChild(row);
-    inp.focus();
+  // Emoji + nombre
+  var emojiField = document.createElement('div');
+  emojiField.className = 'modal-field';
+  emojiField.innerHTML = '<label class="modal-label">Emoji</label><input class="modal-input" id="limpEmoji" value="' + area.emoji + '" style="width:70px;text-align:center;font-size:1.2rem">';
+  box.appendChild(emojiField);
+
+  var nombreField = document.createElement('div');
+  nombreField.className = 'modal-field';
+  nombreField.style.marginTop = '.7rem';
+  nombreField.innerHTML = '<label class="modal-label">Nombre del área</label><input class="modal-input" id="limpNombre" value="' + area.nombre + '" placeholder="ej: Cuarto, Baño..." style="width:100%">';
+  box.appendChild(nombreField);
+
+  // Tareas
+  var tareasField = document.createElement('div');
+  tareasField.className = 'modal-field';
+  tareasField.style.marginTop = '.9rem';
+  var tareasLbl = document.createElement('label');
+  tareasLbl.className = 'modal-label';
+  tareasLbl.textContent = 'Tareas y frecuencia';
+  tareasField.appendChild(tareasLbl);
+
+  var tareasList = document.createElement('div');
+  tareasList.id = 'limpTareasList';
+  tareasField.appendChild(tareasList);
+  area.tareas.forEach(function(t) { tareasList.appendChild(makeTareaRow(t)); });
+
+  var addBtn = document.createElement('button');
+  addBtn.className = 'belleza-reset-btn';
+  addBtn.style.marginTop = '.4rem';
+  addBtn.textContent = '＋ Agregar tarea';
+  addBtn.onclick = function() {
+    var row = makeTareaRow(null);
+    tareasList.appendChild(row);
+    row.querySelector('.limp-tarea-inp').focus();
   };
-  document.getElementById('limpCancel').onclick = function() { back.remove(); };
-  var delBtn = document.getElementById('limpDelBtn');
-  if (delBtn) delBtn.onclick = function() {
-    if (confirm('¿Eliminar "' + area.nombre + '"?')) {
-      limpiezaData.splice(editIdx, 1);
-      saveLimpieza(); renderLimpieza(); back.remove();
-    }
-  };
-  document.getElementById('limpSave').onclick = function() {
+  tareasField.appendChild(addBtn);
+  box.appendChild(tareasField);
+
+  // Buttons
+  var btns = document.createElement('div');
+  btns.className = 'modal-btns';
+  btns.style.marginTop = '1.2rem';
+  if (editing) {
+    var delBtn = document.createElement('button');
+    delBtn.className = 'modal-btn-delete';
+    delBtn.textContent = '⋯ Eliminar';
+    delBtn.onclick = function() {
+      if (confirm('¿Eliminar "' + area.nombre + '"?')) {
+        limpiezaData.splice(editIdx, 1);
+        saveLimpieza(); renderLimpieza(); back.remove();
+      }
+    };
+    btns.appendChild(delBtn);
+  }
+  var cancelBtn = document.createElement('button');
+  cancelBtn.className = 'modal-btn-cancel';
+  cancelBtn.textContent = 'Cancelar';
+  cancelBtn.onclick = function() { back.remove(); };
+  var saveBtn = document.createElement('button');
+  saveBtn.className = 'modal-btn-save';
+  saveBtn.textContent = 'Guardar 🧹';
+  saveBtn.onclick = function() {
     var nombre = document.getElementById('limpNombre').value.trim();
     if (!nombre) return;
     var emoji = document.getElementById('limpEmoji').value.trim() || '🧹';
     var tareas = [];
-    box.querySelectorAll('.limp-tarea-inp').forEach(function(inp) {
-      var v = inp.value.trim();
-      if (v) {
-        var existing = area.tareas.find(function(t){ return t.nombre === v; });
-        tareas.push(existing || { id: 't_' + Date.now() + Math.random(), nombre: v, done: false, lastDone: null });
+    box.querySelectorAll('.limp-tarea-block').forEach(function(block) {
+      var n = block._getNombre ? block._getNombre() : '';
+      if (n) {
+        var existing = area.tareas.find(function(t){ return t.nombre === n; });
+        tareas.push({
+          id: (existing && existing.id) || ('t_' + Date.now() + Math.random()),
+          nombre: n,
+          done: (existing && existing.done) || false,
+          lastDone: (existing && existing.lastDone) || null,
+          freq: block._getFreq ? block._getFreq() : { tipo: 'diaria' }
+        });
       }
     });
     if (editing) {
@@ -7614,6 +7768,12 @@ function openLimpiezaAreaModal(editIdx) {
     }
     saveLimpieza(); renderLimpieza(); back.remove();
   };
+  btns.appendChild(cancelBtn);
+  btns.appendChild(saveBtn);
+  box.appendChild(btns);
+
+  back.appendChild(box);
+  document.body.appendChild(back);
   document.getElementById('limpNombre').focus();
 }
 
@@ -8297,6 +8457,7 @@ function renderCambio() {
   // Day selector
   const dates = getWeekDates(weekOffset);
   const sel = document.getElementById('cambioDaySelector');
+  if (!sel) return;
   sel.innerHTML = '';
   dates.forEach((d, i) => {
     const isToday = isTodayDate(d);
@@ -8513,6 +8674,7 @@ function renderCuida() {
 
   // Recargas
   const rWrap = document.getElementById('recargaItems');
+  if (!rWrap) return;
   rWrap.innerHTML = '';
   RECARGAS.forEach(r => {
     const done = !!recargaState[r.id];
@@ -8527,6 +8689,7 @@ function renderCuida() {
 
   // Reminders
   const rmWrap = document.getElementById('reminderItems');
+  if (!rmWrap) return;
   rmWrap.innerHTML = '';
   REMINDERS.forEach(r => {
     const done = !!reminderState[r.id];
@@ -8539,17 +8702,20 @@ function renderCuida() {
     rmWrap.appendChild(el);
   });
 
-  // Quote
+  // Quote (render en Calma Y en Mi Semana)
   const q = QUOTES[quoteIdx];
-  (function(){var _s=document.getElementById('quoteText');if(_s)_s.textContent=q.text;})();
-  (function(){var _s=document.getElementById('quoteAuthor');if(_s)_s.textContent=q.author;})();
-  const nav = document.getElementById('quoteNav');
-  nav.innerHTML = '';
-  QUOTES.forEach((_,i) => {
-    const dot = document.createElement('div');
-    dot.className = 'quote-dot' + (i === quoteIdx ? ' active' : '');
-    dot.onclick = () => { quoteIdx = i; saveCuida(); renderCuida(); };
-    nav.appendChild(dot);
+  ['quoteText','quoteTextSemana'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = q.text; });
+  ['quoteAuthor','quoteAuthorSemana'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = q.author; });
+  ['quoteNav','quoteNavSemana'].forEach(navId => {
+    const nav = document.getElementById(navId);
+    if (!nav) return;
+    nav.innerHTML = '';
+    QUOTES.forEach((_,i) => {
+      const dot = document.createElement('div');
+      dot.className = 'quote-dot' + (i === quoteIdx ? ' active' : '');
+      dot.onclick = () => { quoteIdx = i; saveCuida(); renderCuida(); };
+      nav.appendChild(dot);
+    });
   });
 }
 
@@ -8569,6 +8735,7 @@ function renderTimeline() {
 
   // Day selector
   const sel = document.getElementById('tlDaySelector');
+  if (!sel) return;
   sel.innerHTML = '';
   dates.forEach((d, i) => {
     const isToday = isTodayDate(d);
@@ -8582,6 +8749,7 @@ function renderTimeline() {
 
   // Track
   const track = document.getElementById('tlTrack');
+  if (!track) return;
   track.innerHTML = '';
 
   const isToday = isTodayDate(dates[tlDayIdx]);
@@ -8633,9 +8801,9 @@ function renderTimeline() {
 
   // Day progress
   const pct = totalTasks > 0 ? Math.round((doneTasks/totalTasks)*100) : 0;
-  document.getElementById('tlProgFill').style.width = pct + '%';
+  const _tpf = document.getElementById('tlProgFill'); if (_tpf) _tpf.style.width = pct + '%';
   const stars = pct >= 80 ? '🌟🌟🌟' : pct >= 50 ? '⭐⭐' : pct > 0 ? '⭐' : '';
-  (function(){var _s=document.getElementById('tlProgStars');if(_s)_s.textContent=stars + ' ' + pct + '%';})();
+  const _tps = document.getElementById('tlProgStars'); if (_tps) _tps.textContent = stars + ' ' + pct + '%';
 }
 
 // Patch nav for new sections
@@ -8687,6 +8855,24 @@ function showPage(pageId) {
   closeDrawer();
   // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Sync img column height to active page so images scroll alongside content
+  syncImgColHeight();
+}
+
+function syncImgColHeight() {
+  var activePg = document.querySelector('.page-section.active');
+  var layout = document.querySelector('.app-layout');
+  if (!activePg || !layout) return;
+  // Use a small delay to let page render first
+  setTimeout(function() {
+    var h = Math.max(activePg.scrollHeight, window.innerHeight);
+    layout.style.minHeight = h + 'px';
+    // Also set column height so images fill it
+    ['imgColLeft','imgColRight'].forEach(function(id) {
+      var col = document.getElementById(id);
+      if (col) col.style.minHeight = h + 'px';
+    });
+  }, 50);
 }
 
 function renderDrawerNav() {
@@ -8725,6 +8911,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (overlay) overlay.onclick = closeDrawer;
   renderDrawerNav();
   showPage('page-semana');
+  syncImgColHeight();
 });
 </script>
 
