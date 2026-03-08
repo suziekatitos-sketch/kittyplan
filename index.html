@@ -3505,8 +3505,8 @@
   .hamburger-btn {
     position: fixed;
     top: 12px;
-    left: 14px;
-    z-index: 300;
+    right: 14px;
+    z-index: 400;
     background: rgba(250,246,241,0.92);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -3549,15 +3549,15 @@
 
   .drawer {
     position: fixed;
-    top: 0; left: 0; bottom: 0;
+    top: 0; right: 0; bottom: 0;
     width: 220px;
-    z-index: 250;
+    z-index: 350;
     background: rgba(252,248,244,0.97);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-right: 1.5px solid var(--border);
-    box-shadow: 4px 0 32px rgba(180,120,100,.12);
-    transform: translateX(-100%);
+    border-left: 1.5px solid var(--border);
+    box-shadow: -4px 0 32px rgba(180,120,100,.12);
+    transform: translateX(100%);
     transition: transform .28s cubic-bezier(.4,0,.2,1);
     display: flex;
     flex-direction: column;
