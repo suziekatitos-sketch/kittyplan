@@ -2181,6 +2181,142 @@
     padding: 1rem 0;
   }
 
+
+  /* ── SEMESTRES ── */
+  .univ-sem-chip {
+    padding: .35rem .9rem;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .2s;
+    background: var(--bg);
+  }
+  .univ-sem-chip:hover { border-color: #5b7bd5; color: #5b7bd5; }
+  .univ-sem-chip.active {
+    background: #5b7bd5;
+    color: white;
+    border-color: #5b7bd5;
+  }
+
+  /* ── HISTORIAL ── */
+  .univ-hist-card {
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: .8rem 1rem;
+    margin-bottom: .6rem;
+  }
+  .univ-hist-card.active {
+    border-color: #5b7bd5;
+    background: #f0f4ff;
+  }
+  .univ-hist-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: .3rem;
+  }
+  .univ-hist-title {
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .univ-hist-stats {
+    font-size: .62rem;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: .5rem;
+  }
+  .univ-hist-mats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .3rem;
+  }
+  .univ-hist-mat-chip {
+    font-size: .62rem;
+    font-weight: 700;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: .15rem .5rem;
+    color: var(--text);
+  }
+
+  /* ── CALENDARIO ── */
+  .univ-cal-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: .8rem;
+  }
+  .univ-cal-lbl {
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .univ-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    margin-bottom: .6rem;
+  }
+  .univ-cal-dayname {
+    text-align: center;
+    font-size: .6rem;
+    font-weight: 700;
+    color: var(--muted);
+    padding: .2rem 0;
+  }
+  .univ-cal-cell {
+    border-radius: 6px;
+    padding: .25rem .1rem;
+    text-align: center;
+    min-height: 36px;
+    background: var(--bg);
+    border: 1px solid transparent;
+    transition: all .15s;
+  }
+  .univ-cal-cell.today {
+    border-color: #5b7bd5;
+    background: #e8f0fe;
+  }
+  .univ-cal-cell.has-horas {
+    background: linear-gradient(135deg, #e8f0fe, #d4e4fd);
+  }
+  .univ-cal-cell.today.has-horas {
+    background: linear-gradient(135deg, #c5d8fb, #a8c4f8);
+  }
+  .univ-cal-day-num {
+    font-size: .65rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+  }
+  .univ-cal-horas {
+    font-size: .55rem;
+    font-weight: 700;
+    color: #3c5abd;
+    margin-top: 2px;
+  }
+  .univ-cal-legend {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    font-size: .62rem;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .univ-cal-legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 3px;
+    background: linear-gradient(135deg, #e8f0fe, #d4e4fd);
+    border: 1px solid #5b7bd5;
+    flex-shrink: 0;
+  }
+
   /* ── RESPONSIVE ── */
   @media (max-width: 640px) {
     .block-row {
@@ -6721,10 +6857,19 @@ renderTracker();
   <!-- Motivación -->
   <div class="univ-motiv-card" id="univMotivCard"></div>
 
+  <!-- Selector de semestre -->
+  <div class="univ-block univ-sem-block">
+    <div class="univ-block-hdr">
+      <span class="univ-block-title">🎓 Semestre activo</span>
+      <button class="rutina-new-btn" id="univNewSemBtn">＋ Nuevo semestre</button>
+    </div>
+    <div id="univSemSelector"></div>
+  </div>
+
   <!-- Materias -->
   <div class="univ-block">
     <div class="univ-block-hdr">
-      <span class="univ-block-title">📚 Mis materias</span>
+      <span class="univ-block-title">📚 Materias del semestre</span>
       <button class="rutina-new-btn" id="univNewMateriaBtn">＋ Materia</button>
     </div>
     <div id="univMateriasList"></div>
@@ -6754,6 +6899,22 @@ renderTracker();
       <span class="univ-block-title">⏱️ Horas de estudio hoy</span>
     </div>
     <div class="univ-horas-wrap" id="univHorasWrap"></div>
+  </div>
+
+  <!-- Historial de semestres -->
+  <div class="univ-block" id="univHistorialBlock">
+    <div class="univ-block-hdr">
+      <span class="univ-block-title">📖 Mis semestres</span>
+    </div>
+    <div id="univHistorialList"></div>
+  </div>
+
+  <!-- Calendario de registros -->
+  <div class="univ-block">
+    <div class="univ-block-hdr">
+      <span class="univ-block-title">🗓️ Calendario de estudio</span>
+    </div>
+    <div id="univCalendario"></div>
   </div>
 </section>
 
@@ -7771,11 +7932,15 @@ renderNav();
 
 var univData = {
   motivacion: '',
-  materias: [],   // [{ id, name, color, calificacion }]
-  tareas: [],     // [{ id, name, materia, fecha, urgente, done }]
-  examenes: [],   // [{ id, name, materia, fecha }]
-  horas: {}       // { 'YYYY-MM-DD': number }
+  semestres: [],     // [{ id, nombre, activo, materias:[], tareas:[], examenes:[] }]
+  horas: {}          // { 'YYYY-MM-DD': number }
 };
+
+var univCalOffset = 0; // month offset for calendar
+
+function getActiveSem() {
+  return univData.semestres.find(function(s) { return s.activo; }) || null;
+}
 
 function saveUniv() {
   try { localStorage.setItem('univ_data', JSON.stringify(univData)); } catch(e){}
@@ -7786,22 +7951,37 @@ function loadUniv() {
   var saved = window._univData || JSON.parse(localStorage.getItem('univ_data') || 'null');
   if (saved) {
     univData.motivacion = saved.motivacion || '';
-    univData.materias   = saved.materias   || [];
-    univData.tareas     = saved.tareas     || [];
-    univData.examenes   = saved.examenes   || [];
     univData.horas      = saved.horas      || {};
+    // Migrate old format
+    if (saved.semestres) {
+      univData.semestres = saved.semestres;
+    } else if (saved.materias || saved.tareas || saved.examenes) {
+      // Old data: wrap in a default semester
+      univData.semestres = [{
+        id: 'sem_legacy',
+        nombre: 'Mi primer semestre',
+        activo: true,
+        materias: saved.materias || [],
+        tareas:   saved.tareas   || [],
+        examenes: saved.examenes || []
+      }];
+    }
   }
 }
 
 var MESES_CORTO = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+var MESES_LARGO = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 var COLORES_MAT = ['#5b7bd5','#e57373','#81c784','#ffb74d','#ba68c8','#4db6ac','#f06292','#90a4ae'];
 
 function renderUniv() {
   renderUnivMotiv();
+  renderUnivSemSelector();
   renderUnivMaterias();
   renderUnivTareas();
   renderUnivExamenes();
   renderUnivHoras();
+  renderUnivHistorial();
+  renderUnivCalendario();
 }
 
 // ── Motivación
@@ -7809,31 +7989,60 @@ function renderUnivMotiv() {
   var card = document.getElementById('univMotivCard');
   if (!card) return;
   card.innerHTML = '';
-
   var label = document.createElement('span');
   label.className = 'univ-motiv-label';
   label.textContent = '💙 ¿Por qué quiero ser médico?';
-
   var text = document.createElement('div');
   text.className = 'univ-motiv-text';
   text.textContent = univData.motivacion || 'Toca el ✏️ para escribir tu motivación...';
   if (!univData.motivacion) text.style.opacity = '.5';
-
   var editBtn = document.createElement('button');
   editBtn.className = 'univ-motiv-edit';
   editBtn.textContent = '✏️';
   editBtn.onclick = function() {
     var val = prompt('¿Por qué quieres ser médico?', univData.motivacion || '');
-    if (val !== null) {
-      univData.motivacion = val;
-      saveUniv();
-      renderUnivMotiv();
-    }
+    if (val !== null) { univData.motivacion = val; saveUniv(); renderUnivMotiv(); }
   };
-
   card.appendChild(label);
   card.appendChild(text);
   card.appendChild(editBtn);
+}
+
+// ── Semestre selector
+function renderUnivSemSelector() {
+  var el = document.getElementById('univSemSelector');
+  if (!el) return;
+  el.innerHTML = '';
+
+  if (univData.semestres.length === 0) {
+    el.innerHTML = '<div class="univ-empty">Sin semestres todavía — crea el primero 💙</div>';
+    return;
+  }
+
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;gap:.5rem;flex-wrap:wrap;';
+
+  univData.semestres.forEach(function(sem, idx) {
+    var chip = document.createElement('div');
+    chip.className = 'univ-sem-chip' + (sem.activo ? ' active' : '');
+    chip.textContent = sem.nombre;
+    chip.onclick = function() {
+      univData.semestres.forEach(function(s) { s.activo = false; });
+      univData.semestres[idx].activo = true;
+      saveUniv(); renderUniv();
+    };
+    wrap.appendChild(chip);
+  });
+
+  el.appendChild(wrap);
+
+  var active = getActiveSem();
+  if (active) {
+    var lbl = document.createElement('div');
+    lbl.style.cssText = 'font-size:.65rem;color:var(--muted);font-weight:600;margin-top:.5rem;';
+    lbl.textContent = 'Semestre activo: ' + active.nombre;
+    el.appendChild(lbl);
+  }
 }
 
 // ── Materias
@@ -7841,51 +8050,34 @@ function renderUnivMaterias() {
   var list = document.getElementById('univMateriasList');
   if (!list) return;
   list.innerHTML = '';
+  var sem = getActiveSem();
+  if (!sem) { list.innerHTML = '<div class="univ-empty">Crea un semestre primero 🎓</div>'; return; }
+  if (sem.materias.length === 0) { list.innerHTML = '<div class="univ-empty">Sin materias aún 📚</div>'; return; }
 
-  if (univData.materias.length === 0) {
-    list.innerHTML = '<div class="univ-empty">Sin materias aún 📚</div>';
-    return;
-  }
-
-  univData.materias.forEach(function(mat, idx) {
+  sem.materias.forEach(function(mat, idx) {
     var row = document.createElement('div');
     row.className = 'univ-materia-row';
-
     var dot = document.createElement('div');
     dot.className = 'univ-materia-color';
     dot.style.background = mat.color;
-
     var name = document.createElement('div');
     name.className = 'univ-materia-name';
     name.textContent = mat.name;
-
     var cal = document.createElement('div');
     cal.className = 'univ-materia-cal';
-    cal.textContent = mat.calificacion ? mat.calificacion : '—';
-    cal.title = 'Toca para editar calificación';
+    cal.textContent = mat.calificacion || '—';
     cal.style.cursor = 'pointer';
     cal.onclick = function() {
       var v = prompt('Calificación de ' + mat.name + ':', mat.calificacion || '');
-      if (v !== null) {
-        univData.materias[idx].calificacion = v.trim();
-        saveUniv(); renderUnivMaterias();
-      }
+      if (v !== null) { sem.materias[idx].calificacion = v.trim(); saveUniv(); renderUnivMaterias(); }
     };
-
     var del = document.createElement('button');
     del.className = 'univ-materia-del';
     del.textContent = '✕';
     del.onclick = function() {
-      if (confirm('Eliminar ' + mat.name + '?')) {
-        univData.materias.splice(idx, 1);
-        saveUniv(); renderUniv();
-      }
+      if (confirm('Eliminar ' + mat.name + '?')) { sem.materias.splice(idx,1); saveUniv(); renderUniv(); }
     };
-
-    row.appendChild(dot);
-    row.appendChild(name);
-    row.appendChild(cal);
-    row.appendChild(del);
+    row.appendChild(dot); row.appendChild(name); row.appendChild(cal); row.appendChild(del);
     list.appendChild(row);
   });
 }
@@ -7895,67 +8087,48 @@ function renderUnivTareas() {
   var list = document.getElementById('univTareasList');
   if (!list) return;
   list.innerHTML = '';
+  var sem = getActiveSem();
+  if (!sem) { list.innerHTML = '<div class="univ-empty">Crea un semestre primero 🎓</div>'; return; }
 
-  var pending = univData.tareas.filter(function(t) { return !t.done; });
-  var done    = univData.tareas.filter(function(t) { return t.done; });
+  var pending = sem.tareas.filter(function(t) { return !t.done; });
+  var done    = sem.tareas.filter(function(t) { return t.done; });
   var sorted  = pending.concat(done);
 
-  if (sorted.length === 0) {
-    list.innerHTML = '<div class="univ-empty">Sin tareas pendientes 🎉</div>';
-    return;
-  }
+  if (sorted.length === 0) { list.innerHTML = '<div class="univ-empty">Sin tareas pendientes 🎉</div>'; return; }
 
   sorted.forEach(function(tarea) {
-    var realIdx = univData.tareas.findIndex(function(t) { return t.id === tarea.id; });
+    var realIdx = sem.tareas.findIndex(function(t) { return t.id === tarea.id; });
     var row = document.createElement('div');
     row.className = 'univ-tarea-row' + (tarea.done ? ' done' : '');
-
     var chk = document.createElement('div');
     chk.className = 'univ-tarea-check';
     chk.textContent = tarea.done ? '✓' : '';
-
     var info = document.createElement('div');
     info.className = 'univ-tarea-info';
-
     var nm = document.createElement('div');
     nm.className = 'univ-tarea-name';
     nm.textContent = tarea.name;
-
     var meta = document.createElement('div');
     meta.className = 'univ-tarea-meta';
-    var metaParts = [];
-    if (tarea.materia) metaParts.push(tarea.materia);
-    if (tarea.fecha) metaParts.push('Entrega: ' + formatFecha(tarea.fecha));
-    meta.textContent = metaParts.join(' · ');
-
+    var parts = [];
+    if (tarea.materia) parts.push(tarea.materia);
+    if (tarea.fecha) parts.push('Entrega: ' + formatFecha(tarea.fecha));
+    meta.textContent = parts.join(' · ');
     info.appendChild(nm);
-    if (metaParts.length) info.appendChild(meta);
-
-    row.appendChild(chk);
-    row.appendChild(info);
-
+    if (parts.length) info.appendChild(meta);
+    row.appendChild(chk); row.appendChild(info);
     if (tarea.urgente && !tarea.done) {
       var urg = document.createElement('span');
       urg.className = 'univ-tarea-urgente';
       urg.textContent = '¡Urgente!';
       row.appendChild(urg);
     }
-
     var del = document.createElement('button');
     del.className = 'univ-materia-del';
     del.textContent = '✕';
-    del.onclick = function(e) {
-      e.stopPropagation();
-      univData.tareas.splice(realIdx, 1);
-      saveUniv(); renderUnivTareas();
-    };
+    del.onclick = function(e) { e.stopPropagation(); sem.tareas.splice(realIdx,1); saveUniv(); renderUnivTareas(); };
     row.appendChild(del);
-
-    row.onclick = function() {
-      univData.tareas[realIdx].done = !univData.tareas[realIdx].done;
-      saveUniv(); renderUnivTareas();
-    };
-
+    row.onclick = function() { sem.tareas[realIdx].done = !sem.tareas[realIdx].done; saveUniv(); renderUnivTareas(); };
     list.appendChild(row);
   });
 }
@@ -7965,74 +8138,42 @@ function renderUnivExamenes() {
   var list = document.getElementById('univExamenesList');
   if (!list) return;
   list.innerHTML = '';
+  var sem = getActiveSem();
+  if (!sem) { list.innerHTML = '<div class="univ-empty">Crea un semestre primero 🎓</div>'; return; }
 
-  var today = new Date();
-  today.setHours(0,0,0,0);
-
-  var upcoming = univData.examenes.filter(function(e) {
+  var today = new Date(); today.setHours(0,0,0,0);
+  var upcoming = sem.examenes.filter(function(e) {
     return !e.fecha || new Date(e.fecha + 'T12:00:00') >= today;
   });
-  upcoming.sort(function(a, b) {
-    return new Date(a.fecha + 'T12:00:00') - new Date(b.fecha + 'T12:00:00');
-  });
+  upcoming.sort(function(a,b) { return new Date(a.fecha+'T12:00:00') - new Date(b.fecha+'T12:00:00'); });
 
-  if (upcoming.length === 0) {
-    list.innerHTML = '<div class="univ-empty">Sin exámenes próximos 🎓</div>';
-    return;
-  }
+  if (upcoming.length === 0) { list.innerHTML = '<div class="univ-empty">Sin exámenes próximos 🎓</div>'; return; }
 
-  upcoming.forEach(function(ex, idx) {
-    var realIdx = univData.examenes.findIndex(function(e) { return e.id === ex.id; });
+  upcoming.forEach(function(ex) {
+    var realIdx = sem.examenes.findIndex(function(e) { return e.id === ex.id; });
     var row = document.createElement('div');
     row.className = 'univ-examen-row';
-
     var fechaEl = document.createElement('div');
     fechaEl.className = 'univ-examen-fecha';
     if (ex.fecha) {
-      var d = new Date(ex.fecha + 'T12:00:00');
-      var dia = document.createElement('span');
-      dia.className = 'univ-examen-dia';
-      dia.textContent = d.getDate();
-      var mes = document.createElement('span');
-      mes.className = 'univ-examen-mes';
-      mes.textContent = MESES_CORTO[d.getMonth()];
-      fechaEl.appendChild(dia);
-      fechaEl.appendChild(mes);
-    } else {
-      fechaEl.innerHTML = '<span class="univ-examen-dia">?</span>';
-    }
-
+      var d = new Date(ex.fecha+'T12:00:00');
+      fechaEl.innerHTML = '<span class="univ-examen-dia">'+d.getDate()+'</span><span class="univ-examen-mes">'+MESES_CORTO[d.getMonth()]+'</span>';
+    } else { fechaEl.innerHTML = '<span class="univ-examen-dia">?</span>'; }
     var info = document.createElement('div');
     info.className = 'univ-examen-info';
-    var nm = document.createElement('div');
-    nm.className = 'univ-examen-name';
-    nm.textContent = ex.name;
-    var mat = document.createElement('div');
-    mat.className = 'univ-examen-materia';
-    mat.textContent = ex.materia || '';
-    info.appendChild(nm);
-    if (ex.materia) info.appendChild(mat);
-
+    info.innerHTML = '<div class="univ-examen-name">'+ex.name+'</div>' + (ex.materia ? '<div class="univ-examen-materia">'+ex.materia+'</div>' : '');
     var diasEl = document.createElement('div');
     diasEl.className = 'univ-examen-dias';
     if (ex.fecha) {
-      var d2 = new Date(ex.fecha + 'T12:00:00');
-      var diff = Math.ceil((d2 - today) / 86400000);
-      diasEl.textContent = diff === 0 ? '¡Hoy!' : diff === 1 ? 'Mañana' : 'en ' + diff + 'd';
+      var d2 = new Date(ex.fecha+'T12:00:00');
+      var diff = Math.ceil((d2-today)/86400000);
+      diasEl.textContent = diff===0?'¡Hoy!':diff===1?'Mañana':'en '+diff+'d';
     }
-
     var del = document.createElement('button');
     del.className = 'univ-examen-del';
     del.textContent = '✕';
-    del.onclick = function() {
-      univData.examenes.splice(realIdx, 1);
-      saveUniv(); renderUnivExamenes();
-    };
-
-    row.appendChild(fechaEl);
-    row.appendChild(info);
-    row.appendChild(diasEl);
-    row.appendChild(del);
+    del.onclick = function() { sem.examenes.splice(realIdx,1); saveUniv(); renderUnivExamenes(); };
+    row.appendChild(fechaEl); row.appendChild(info); row.appendChild(diasEl); row.appendChild(del);
     list.appendChild(row);
   });
 }
@@ -8042,68 +8183,195 @@ function renderUnivHoras() {
   var wrap = document.getElementById('univHorasWrap');
   if (!wrap) return;
   wrap.innerHTML = '';
-
   var tdk = dateKey(new Date());
   var hoy = univData.horas[tdk] || 0;
   var meta = 4;
-
   var tracker = document.createElement('div');
   tracker.className = 'univ-horas-tracker';
-
   var info = document.createElement('div');
   info.className = 'univ-horas-info';
-
   var num = document.createElement('div');
   num.className = 'univ-horas-num';
   num.textContent = hoy + 'h';
-
   var lbl = document.createElement('div');
   lbl.className = 'univ-horas-label';
   lbl.textContent = 'de estudio hoy';
-
   var dots = document.createElement('div');
   dots.className = 'univ-horas-dots';
-  for (var i = 0; i < meta; i++) {
+  for (var i=0; i<meta; i++) {
     var dot = document.createElement('div');
     dot.className = 'univ-horas-dot' + (i < hoy ? ' filled' : '');
     dots.appendChild(dot);
   }
-
-  info.appendChild(num);
-  info.appendChild(lbl);
-  info.appendChild(dots);
-
+  info.appendChild(num); info.appendChild(lbl); info.appendChild(dots);
   var btns = document.createElement('div');
   btns.className = 'univ-horas-btns';
-
   var plus = document.createElement('button');
   plus.className = 'univ-horas-plus';
   plus.textContent = '+';
-  plus.onclick = function() {
-    univData.horas[tdk] = (univData.horas[tdk] || 0) + 1;
-    saveUniv(); renderUnivHoras();
-  };
-
+  plus.onclick = function() { univData.horas[tdk] = (univData.horas[tdk]||0)+1; saveUniv(); renderUnivHoras(); renderUnivCalendario(); };
   var minus = document.createElement('button');
   minus.className = 'univ-horas-minus';
   minus.textContent = '−';
-  minus.onclick = function() {
-    if (univData.horas[tdk] > 0) { univData.horas[tdk]--; saveUniv(); renderUnivHoras(); }
-  };
-
-  btns.appendChild(plus);
-  btns.appendChild(minus);
-  tracker.appendChild(info);
-  tracker.appendChild(btns);
+  minus.onclick = function() { if(univData.horas[tdk]>0){univData.horas[tdk]--; saveUniv(); renderUnivHoras(); renderUnivCalendario();} };
+  btns.appendChild(plus); btns.appendChild(minus);
+  tracker.appendChild(info); tracker.appendChild(btns);
   wrap.appendChild(tracker);
-
-  // Total semanal
   var totalWrap = document.createElement('div');
   totalWrap.className = 'univ-horas-meta-row';
   var total = 0;
   for (var dk in univData.horas) { total += univData.horas[dk]; }
   totalWrap.textContent = '📊 Total acumulado: ' + total + ' horas de estudio';
   wrap.appendChild(totalWrap);
+}
+
+// ── Historial de semestres
+function renderUnivHistorial() {
+  var list = document.getElementById('univHistorialList');
+  if (!list) return;
+  list.innerHTML = '';
+
+  if (univData.semestres.length === 0) {
+    list.innerHTML = '<div class="univ-empty">Aquí aparecerán tus semestres como recuerdos 💙</div>';
+    return;
+  }
+
+  univData.semestres.forEach(function(sem, idx) {
+    var card = document.createElement('div');
+    card.className = 'univ-hist-card' + (sem.activo ? ' active' : '');
+
+    var hdr = document.createElement('div');
+    hdr.className = 'univ-hist-hdr';
+
+    var title = document.createElement('div');
+    title.className = 'univ-hist-title';
+    title.textContent = (sem.activo ? '⭐ ' : '📖 ') + sem.nombre;
+
+    var stats = document.createElement('div');
+    stats.className = 'univ-hist-stats';
+    var tareasDone = sem.tareas.filter(function(t){return t.done;}).length;
+    stats.textContent = sem.materias.length + ' materias · ' + tareasDone + '/' + sem.tareas.length + ' tareas · ' + sem.examenes.length + ' exámenes';
+
+    var del = document.createElement('button');
+    del.className = 'univ-materia-del';
+    del.textContent = '✕';
+    del.title = 'Archivar semestre';
+    del.onclick = function() {
+      if (confirm('¿Archivar "' + sem.nombre + '"? Los datos se conservan.')) {
+        // Just deactivate, never delete
+        univData.semestres[idx].activo = false;
+        // if was active, activate first one
+        var hasActive = univData.semestres.some(function(s){return s.activo;});
+        if (!hasActive && univData.semestres.length > 0) univData.semestres[0].activo = true;
+        saveUniv(); renderUniv();
+      }
+    };
+
+    hdr.appendChild(title);
+    hdr.appendChild(del);
+    card.appendChild(hdr);
+    card.appendChild(stats);
+
+    // Show materias with calificaciones
+    if (sem.materias.length > 0) {
+      var mats = document.createElement('div');
+      mats.className = 'univ-hist-mats';
+      sem.materias.forEach(function(m) {
+        var chip = document.createElement('span');
+        chip.className = 'univ-hist-mat-chip';
+        chip.style.borderLeft = '3px solid ' + m.color;
+        chip.textContent = m.name + (m.calificacion ? ' · ' + m.calificacion : '');
+        mats.appendChild(chip);
+      });
+      card.appendChild(mats);
+    }
+
+    list.appendChild(card);
+  });
+}
+
+// ── Calendario de horas de estudio
+function renderUnivCalendario() {
+  var wrap = document.getElementById('univCalendario');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+
+  var today = new Date();
+  var viewDate = new Date(today.getFullYear(), today.getMonth() + univCalOffset, 1);
+  var year  = viewDate.getFullYear();
+  var month = viewDate.getMonth();
+
+  // Header
+  var hdr = document.createElement('div');
+  hdr.className = 'univ-cal-hdr';
+  var prev = document.createElement('button');
+  prev.className = 'nav-btn';
+  prev.textContent = '‹';
+  prev.onclick = function() { univCalOffset--; renderUnivCalendario(); };
+  var next = document.createElement('button');
+  next.className = 'nav-btn';
+  next.textContent = '›';
+  next.onclick = function() { univCalOffset++; renderUnivCalendario(); };
+  var lbl = document.createElement('span');
+  lbl.className = 'univ-cal-lbl';
+  lbl.textContent = MESES_LARGO[month] + ' ' + year;
+  hdr.appendChild(prev); hdr.appendChild(lbl); hdr.appendChild(next);
+  wrap.appendChild(hdr);
+
+  // Day names
+  var dayNames = ['L','M','X','J','V','S','D'];
+  var grid = document.createElement('div');
+  grid.className = 'univ-cal-grid';
+  dayNames.forEach(function(d) {
+    var dn = document.createElement('div');
+    dn.className = 'univ-cal-dayname';
+    dn.textContent = d;
+    grid.appendChild(dn);
+  });
+
+  // First day offset (Mon=0)
+  var firstDay = new Date(year, month, 1).getDay();
+  var offset = firstDay === 0 ? 6 : firstDay - 1;
+  for (var i=0; i<offset; i++) {
+    var empty = document.createElement('div');
+    grid.appendChild(empty);
+  }
+
+  var daysInMonth = new Date(year, month+1, 0).getDate();
+  var todayKey2 = dateKey(today);
+
+  for (var d2=1; d2<=daysInMonth; d2++) {
+    var cellDate = new Date(year, month, d2);
+    var dk2 = dateKey(cellDate);
+    var horas = univData.horas[dk2] || 0;
+    var isToday = dk2 === todayKey2;
+
+    var cell = document.createElement('div');
+    cell.className = 'univ-cal-cell' + (isToday ? ' today' : '') + (horas > 0 ? ' has-horas' : '');
+    cell.title = horas > 0 ? horas + 'h de estudio' : '';
+
+    var dayNum = document.createElement('div');
+    dayNum.className = 'univ-cal-day-num';
+    dayNum.textContent = d2;
+    cell.appendChild(dayNum);
+
+    if (horas > 0) {
+      var horasEl = document.createElement('div');
+      horasEl.className = 'univ-cal-horas';
+      horasEl.textContent = horas + 'h';
+      cell.appendChild(horasEl);
+    }
+
+    grid.appendChild(cell);
+  }
+
+  wrap.appendChild(grid);
+
+  // Legend
+  var legend = document.createElement('div');
+  legend.className = 'univ-cal-legend';
+  legend.innerHTML = '<span class="univ-cal-legend-dot"></span> Horas de estudio registradas';
+  wrap.appendChild(legend);
 }
 
 // ── Helpers
@@ -8114,75 +8382,89 @@ function formatFecha(str) {
 }
 
 // ── Modales
-document.addEventListener('DOMContentLoaded', function() {
-  var newMatBtn = document.getElementById('univNewMateriaBtn');
-  if (newMatBtn) newMatBtn.onclick = function() { openUnivMateriaModal(); };
-  var newTarBtn = document.getElementById('univNewTareaBtn');
-  if (newTarBtn) newTarBtn.onclick = function() { openUnivTareaModal(); };
-  var newExBtn  = document.getElementById('univNewExamenBtn');
-  if (newExBtn)  newExBtn.onclick  = function() { openUnivExamenModal(); };
-});
-
-function openUnivMateriaModal() {
+function openUnivSemModal() {
   var back = document.createElement('div');
   back.className = 'rutina-modal-backdrop';
-  back.onclick = function(e) { if (e.target === back) back.remove(); };
+  back.onclick = function(e) { if (e.target===back) back.remove(); };
+  var box = document.createElement('div');
+  box.className = 'rutina-modal-box';
+  box.innerHTML = '<div class="rutina-modal-title">🎓 <em>Nuevo semestre</em></div>' +
+    '<div class="modal-field"><label class="modal-label">Nombre</label>' +
+    '<input class="modal-input" id="semNombre" placeholder="ej: Semestre 1, Prepa 3er año..." style="width:100%"></div>' +
+    '<div class="modal-btns" style="margin-top:1.2rem">' +
+    '<button class="modal-btn-cancel" id="semCancel">Cancelar</button>' +
+    '<button class="modal-btn-save" id="semSave">Crear 🎓</button></div>';
+  back.appendChild(box);
+  document.body.appendChild(back);
+  document.getElementById('semCancel').onclick = function() { back.remove(); };
+  document.getElementById('semSave').onclick = function() {
+    var n = document.getElementById('semNombre').value.trim();
+    if (!n) return;
+    // Deactivate all
+    univData.semestres.forEach(function(s){s.activo=false;});
+    univData.semestres.push({ id:'sem_'+Date.now(), nombre:n, activo:true, materias:[], tareas:[], examenes:[] });
+    saveUniv(); renderUniv();
+    back.remove();
+  };
+  document.getElementById('semNombre').focus();
+}
 
+function openUnivMateriaModal() {
+  var sem = getActiveSem();
+  if (!sem) { alert('Primero crea un semestre 🎓'); return; }
+  var back = document.createElement('div');
+  back.className = 'rutina-modal-backdrop';
+  back.onclick = function(e) { if (e.target===back) back.remove(); };
   var colOpts = COLORES_MAT.map(function(c) {
-    return '<span class="univ-color-opt" data-color="' + c + '" style="background:' + c + ';width:20px;height:20px;border-radius:50%;display:inline-block;cursor:pointer;border:2px solid transparent;margin:2px"></span>';
+    return '<span class="univ-color-opt" data-color="'+c+'" style="background:'+c+';width:20px;height:20px;border-radius:50%;display:inline-block;cursor:pointer;border:2px solid transparent;margin:2px"></span>';
   }).join('');
-
   var box = document.createElement('div');
   box.className = 'rutina-modal-box';
   box.innerHTML = '<div class="rutina-modal-title">📚 <em>Nueva materia</em></div>' +
+    '<div style="font-size:.65rem;color:var(--muted);font-weight:600;margin-bottom:.8rem">Semestre: ' + sem.nombre + '</div>' +
     '<div class="modal-field"><label class="modal-label">Nombre</label>' +
     '<input class="modal-input" id="univMatNombre" placeholder="ej: Biología, Química..." style="width:100%"></div>' +
     '<div class="modal-field" style="margin-top:.8rem"><label class="modal-label">Color</label>' +
-    '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px" id="univColorPicker">' + colOpts + '</div></div>' +
+    '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px" id="univColorPicker">'+colOpts+'</div></div>' +
     '<div class="modal-btns" style="margin-top:1.2rem">' +
     '<button class="modal-btn-cancel" id="univMatCancel">Cancelar</button>' +
     '<button class="modal-btn-save" id="univMatSave">Guardar 💙</button></div>';
-
   back.appendChild(box);
   document.body.appendChild(back);
-
   var selColor = COLORES_MAT[0];
   box.querySelectorAll('.univ-color-opt').forEach(function(el) {
-    if (el.dataset.color === selColor) el.style.border = '2px solid #333';
+    if (el.dataset.color===selColor) el.style.border='2px solid #333';
     el.onclick = function() {
-      box.querySelectorAll('.univ-color-opt').forEach(function(o) { o.style.border = '2px solid transparent'; });
-      el.style.border = '2px solid #333';
-      selColor = el.dataset.color;
+      box.querySelectorAll('.univ-color-opt').forEach(function(o){o.style.border='2px solid transparent';});
+      el.style.border='2px solid #333'; selColor=el.dataset.color;
     };
   });
-
   document.getElementById('univMatCancel').onclick = function() { back.remove(); };
   document.getElementById('univMatSave').onclick = function() {
     var n = document.getElementById('univMatNombre').value.trim();
     if (!n) return;
-    univData.materias.push({ id: 'mat_' + Date.now(), name: n, color: selColor, calificacion: '' });
-    saveUniv(); renderUniv();
-    back.remove();
+    sem.materias.push({id:'mat_'+Date.now(),name:n,color:selColor,calificacion:''});
+    saveUniv(); renderUniv(); back.remove();
   };
   document.getElementById('univMatNombre').focus();
 }
 
 function openUnivTareaModal() {
+  var sem = getActiveSem();
+  if (!sem) { alert('Primero crea un semestre 🎓'); return; }
   var back = document.createElement('div');
   back.className = 'rutina-modal-backdrop';
-  back.onclick = function(e) { if (e.target === back) back.remove(); };
-
+  back.onclick = function(e) { if (e.target===back) back.remove(); };
   var materiaOpts = '<option value="">Sin materia</option>' +
-    univData.materias.map(function(m) { return '<option value="' + m.name + '">' + m.name + '</option>'; }).join('');
-
+    sem.materias.map(function(m){return '<option value="'+m.name+'">'+m.name+'</option>';}).join('');
   var box = document.createElement('div');
   box.className = 'rutina-modal-box';
   box.innerHTML = '<div class="rutina-modal-title">📝 <em>Nueva tarea</em></div>' +
     '<div class="modal-field"><label class="modal-label">Tarea</label>' +
     '<input class="modal-input" id="univTareaNombre" placeholder="ej: Resumen capítulo 3..." style="width:100%"></div>' +
     '<div class="modal-field" style="margin-top:.8rem"><label class="modal-label">Materia</label>' +
-    '<select class="modal-input" id="univTareaMateria" style="width:100%">' + materiaOpts + '</select></div>' +
-    '<div class="modal-field" style="margin-top:.8rem"><label class="modal-label">Fecha de entrega (opcional)</label>' +
+    '<select class="modal-input" id="univTareaMateria" style="width:100%">'+materiaOpts+'</select></div>' +
+    '<div class="modal-field" style="margin-top:.8rem"><label class="modal-label">Fecha de entrega</label>' +
     '<input type="date" class="modal-input" id="univTareaFecha" style="width:100%"></div>' +
     '<div class="modal-field" style="margin-top:.8rem;display:flex;align-items:center;gap:.6rem">' +
     '<input type="checkbox" id="univTareaUrgente" style="width:16px;height:16px">' +
@@ -8190,77 +8472,67 @@ function openUnivTareaModal() {
     '<div class="modal-btns" style="margin-top:1.2rem">' +
     '<button class="modal-btn-cancel" id="univTareaCancel">Cancelar</button>' +
     '<button class="modal-btn-save" id="univTareaSave">Guardar 📝</button></div>';
-
   back.appendChild(box);
   document.body.appendChild(back);
-
   document.getElementById('univTareaCancel').onclick = function() { back.remove(); };
   document.getElementById('univTareaSave').onclick = function() {
     var n = document.getElementById('univTareaNombre').value.trim();
     if (!n) return;
-    univData.tareas.push({
-      id: 'tar_' + Date.now(),
-      name: n,
-      materia: document.getElementById('univTareaMateria').value,
-      fecha: document.getElementById('univTareaFecha').value,
-      urgente: document.getElementById('univTareaUrgente').checked,
-      done: false
-    });
-    saveUniv(); renderUniv();
-    back.remove();
+    sem.tareas.push({id:'tar_'+Date.now(),name:n,
+      materia:document.getElementById('univTareaMateria').value,
+      fecha:document.getElementById('univTareaFecha').value,
+      urgente:document.getElementById('univTareaUrgente').checked,done:false});
+    saveUniv(); renderUniv(); back.remove();
   };
   document.getElementById('univTareaNombre').focus();
 }
 
 function openUnivExamenModal() {
+  var sem = getActiveSem();
+  if (!sem) { alert('Primero crea un semestre 🎓'); return; }
   var back = document.createElement('div');
   back.className = 'rutina-modal-backdrop';
-  back.onclick = function(e) { if (e.target === back) back.remove(); };
-
+  back.onclick = function(e) { if (e.target===back) back.remove(); };
   var materiaOpts = '<option value="">Sin materia</option>' +
-    univData.materias.map(function(m) { return '<option value="' + m.name + '">' + m.name + '</option>'; }).join('');
-
+    sem.materias.map(function(m){return '<option value="'+m.name+'">'+m.name+'</option>';}).join('');
   var box = document.createElement('div');
   box.className = 'rutina-modal-box';
   box.innerHTML = '<div class="rutina-modal-title">📅 <em>Nuevo examen</em></div>' +
     '<div class="modal-field"><label class="modal-label">Nombre del examen</label>' +
-    '<input class="modal-input" id="univExNombre" placeholder="ej: Parcial 1, Examen final..." style="width:100%"></div>' +
+    '<input class="modal-input" id="univExNombre" placeholder="ej: Parcial 1..." style="width:100%"></div>' +
     '<div class="modal-field" style="margin-top:.8rem"><label class="modal-label">Materia</label>' +
-    '<select class="modal-input" id="univExMateria" style="width:100%">' + materiaOpts + '</select></div>' +
+    '<select class="modal-input" id="univExMateria" style="width:100%">'+materiaOpts+'</select></div>' +
     '<div class="modal-field" style="margin-top:.8rem"><label class="modal-label">Fecha</label>' +
     '<input type="date" class="modal-input" id="univExFecha" style="width:100%"></div>' +
     '<div class="modal-btns" style="margin-top:1.2rem">' +
     '<button class="modal-btn-cancel" id="univExCancel">Cancelar</button>' +
     '<button class="modal-btn-save" id="univExSave">Guardar 📅</button></div>';
-
   back.appendChild(box);
   document.body.appendChild(back);
-
   document.getElementById('univExCancel').onclick = function() { back.remove(); };
   document.getElementById('univExSave').onclick = function() {
     var n = document.getElementById('univExNombre').value.trim();
     if (!n) return;
-    univData.examenes.push({
-      id: 'ex_' + Date.now(),
-      name: n,
-      materia: document.getElementById('univExMateria').value,
-      fecha: document.getElementById('univExFecha').value
-    });
-    saveUniv(); renderUniv();
-    back.remove();
+    sem.examenes.push({id:'ex_'+Date.now(),name:n,
+      materia:document.getElementById('univExMateria').value,
+      fecha:document.getElementById('univExFecha').value});
+    saveUniv(); renderUniv(); back.remove();
   };
   document.getElementById('univExNombre').focus();
 }
 
-// Cloud sync patch
+// Cloud sync
 var _origSyncUniv = window.syncFromCloud;
 window.syncFromCloud = function() {
   if (window._univData) {
     univData.motivacion = window._univData.motivacion || '';
-    univData.materias   = window._univData.materias   || [];
-    univData.tareas     = window._univData.tareas     || [];
-    univData.examenes   = window._univData.examenes   || [];
     univData.horas      = window._univData.horas      || {};
+    if (window._univData.semestres) {
+      univData.semestres = window._univData.semestres;
+    } else if (window._univData.materias) {
+      univData.semestres = [{id:'sem_legacy',nombre:'Mi primer semestre',activo:true,
+        materias:window._univData.materias||[],tareas:window._univData.tareas||[],examenes:window._univData.examenes||[]}];
+    }
   }
   if (_origSyncUniv) _origSyncUniv();
   renderUniv();
@@ -8268,310 +8540,15 @@ window.syncFromCloud = function() {
 
 loadUniv();
 document.addEventListener('DOMContentLoaded', function() {
-  renderUniv();
+  var newSemBtn = document.getElementById('univNewSemBtn');
+  if (newSemBtn) newSemBtn.onclick = function() { openUnivSemModal(); };
+  var newMatBtn = document.getElementById('univNewMateriaBtn');
+  if (newMatBtn) newMatBtn.onclick = function() { openUnivMateriaModal(); };
+  var newTarBtn = document.getElementById('univNewTareaBtn');
+  if (newTarBtn) newTarBtn.onclick = function() { openUnivTareaModal(); };
+  var newExBtn  = document.getElementById('univNewExamenBtn');
+  if (newExBtn)  newExBtn.onclick  = function() { openUnivExamenModal(); };
 });
-
-</script>
-<script>
-
-// ============================================================
-//  RUTINAS DE BELLEZA
-// ============================================================
-
-var bellezaTemplates = [];
-// [{ id, name, emoji, pasos:[string] }]
-var bellezaRegistros = {};
-// { 'YYYY-MM-DD': [{ templateId, completedSteps:[] }] }
-
-var belDateOffset = 0;
-
-function saveBelleza() {
-  try { localStorage.setItem('belleza_templates', JSON.stringify(bellezaTemplates)); } catch(e){}
-  try { localStorage.setItem('belleza_registros', JSON.stringify(bellezaRegistros)); } catch(e){}
-  if (window.cloudSave) {
-    window.cloudSave('belleza_templates', bellezaTemplates);
-    window.cloudSave('belleza_registros', bellezaRegistros);
-  }
-}
-
-function loadBelleza() {
-  bellezaTemplates = window._bellezaTemplates || JSON.parse(localStorage.getItem('belleza_templates') || '[]');
-  bellezaRegistros = window._bellezaRegistros || JSON.parse(localStorage.getItem('belleza_registros') || '{}');
-}
-
-function getBelDate() {
-  var d = new Date();
-  d.setDate(d.getDate() + belDateOffset);
-  return d;
-}
-
-function renderBelleza() {
-  var date = getBelDate();
-  var dk = dateKey(date);
-  var DIAS_ES  = ['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
-  var MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  var label = DIAS_ES[date.getDay()] + ' ' + date.getDate() + ' de ' + MESES_ES[date.getMonth()];
-  if (belDateOffset === 0) label = 'Hoy - ' + label;
-  if (belDateOffset === 1) label = 'Manana - ' + label;
-  if (belDateOffset === -1) label = 'Ayer - ' + label;
-  var lbl = document.getElementById('belDateLbl');
-  if (lbl) lbl.textContent = label;
-
-  renderBelDayWrap(dk);
-  renderBelPlantillas();
-}
-
-function renderBelDayWrap(dk) {
-  var dayWrap = document.getElementById('belDayWrap');
-  if (!dayWrap) return;
-  dayWrap.innerHTML = '';
-
-  var registros = bellezaRegistros[dk] || [];
-
-  if (registros.length === 0) {
-    var sel = document.createElement('div');
-    sel.className = 'ejercicio-select-wrap';
-    if (bellezaTemplates.length === 0) {
-      sel.innerHTML = '<div class="ejercicio-select-hint">Crea tu primera rutina abajo para empezar a registrar ✨</div>';
-    } else {
-      var hint = document.createElement('div');
-      hint.className = 'ejercicio-select-hint';
-      hint.textContent = 'Selecciona la rutina que hiciste hoy:';
-      sel.appendChild(hint);
-      var grid = document.createElement('div');
-      grid.className = 'ejercicio-select-grid';
-      bellezaTemplates.forEach(function(tpl) {
-        var chip = document.createElement('div');
-        chip.className = 'ejercicio-select-chip';
-        chip.innerHTML = '<span>' + tpl.emoji + '</span><span>' + tpl.name + '</span>';
-        chip.onclick = function() {
-          if (!bellezaRegistros[dk]) bellezaRegistros[dk] = [];
-          bellezaRegistros[dk].push({ templateId: tpl.id, completedSteps: [] });
-          saveBelleza(); renderBelleza();
-        };
-        grid.appendChild(chip);
-      });
-      sel.appendChild(grid);
-    }
-    dayWrap.appendChild(sel);
-  } else {
-    registros.forEach(function(reg, regIdx) {
-      var tpl = bellezaTemplates.find(function(t) { return t.id === reg.templateId; });
-      if (!tpl) return;
-
-      var total = tpl.pasos.length;
-      var done = reg.completedSteps.length;
-      var pct = total > 0 ? Math.round(done/total*100) : 0;
-      var allDone = total > 0 && done === total;
-
-      var card = document.createElement('div');
-      card.className = 'ejercicio-day-card';
-
-      var hdr = document.createElement('div');
-      hdr.className = 'ejercicio-day-card-hdr';
-      hdr.innerHTML = '<div class="ejercicio-emoji">' + tpl.emoji + '</div>' +
-        '<div class="ejercicio-card-info">' +
-          '<div class="ejercicio-card-name">' + tpl.name + '</div>' +
-          '<div class="ejercicio-card-meta">' + done + '/' + total + ' pasos</div>' +
-        '</div>' +
-        '<div class="ejercicio-prog-mini"><div class="ejercicio-prog-mini-fill" style="width:' + pct + '%"></div></div>' +
-        (allDone ? '<span class="ejercicio-done-badge" style="background:linear-gradient(135deg,#fce4ec,#f8bbd9);color:#c0395a">Lista 💗</span>' : '') +
-        '<span class="ejercicio-chevron">v</span>';
-
-      hdr.onclick = function() {
-        card.classList.toggle('ej-open');
-        if (card.classList.contains('ej-open')) renderBelPasos(card, tpl, reg, regIdx, dk);
-      };
-
-      var delBtn = document.createElement('button');
-      delBtn.className = 'rut-action-btn';
-      delBtn.textContent = 'x';
-      delBtn.title = 'Quitar del dia';
-      delBtn.onclick = function(e) {
-        e.stopPropagation();
-        bellezaRegistros[dk].splice(regIdx, 1);
-        saveBelleza(); renderBelleza();
-      };
-      hdr.appendChild(delBtn);
-      card.appendChild(hdr);
-      dayWrap.appendChild(card);
-    });
-  }
-}
-
-function renderBelPasos(card, tpl, reg, regIdx, dk) {
-  var existing = card.querySelector('.belleza-pasos');
-  if (existing) existing.remove();
-
-  var pasosEl = document.createElement('div');
-  pasosEl.className = 'belleza-pasos open';
-
-  tpl.pasos.forEach(function(paso, pIdx) {
-    var isDone = (reg.completedSteps || []).includes(pIdx);
-    var row = document.createElement('div');
-    row.className = 'belleza-paso-row' + (isDone ? ' done' : '');
-
-    var chk = document.createElement('div');
-    chk.className = 'belleza-paso-check';
-    chk.textContent = isDone ? '✓' : '';
-
-    var txt = document.createElement('div');
-    txt.className = 'belleza-paso-texto';
-    txt.textContent = paso;
-
-    row.appendChild(chk);
-    row.appendChild(txt);
-    row.onclick = function() {
-      var arr = bellezaRegistros[dk][regIdx].completedSteps;
-      var i = arr.indexOf(pIdx);
-      if (i === -1) arr.push(pIdx); else arr.splice(i, 1);
-      saveBelleza(); renderBelleza();
-      card.classList.add('ej-open');
-      setTimeout(function() { renderBelPasos(card, tpl, bellezaRegistros[dk][regIdx], regIdx, dk); }, 50);
-    };
-    pasosEl.appendChild(row);
-  });
-
-  card.appendChild(pasosEl);
-}
-
-function renderBelPlantillas() {
-  var list = document.getElementById('belPlantillasList');
-  if (!list) return;
-  list.innerHTML = '';
-
-  if (bellezaTemplates.length === 0) {
-    list.innerHTML = '<div class="belleza-empty">Sin rutinas aún ✨<br><small>Agrega tu rutina de piel, pelo, cuerpo...</small></div>';
-    return;
-  }
-
-  bellezaTemplates.forEach(function(tpl, tplIdx) {
-    var row = document.createElement('div');
-    row.className = 'ejercicio-plantilla-row';
-    row.innerHTML = '<span class="ejercicio-plantilla-emoji">' + tpl.emoji + '</span>' +
-      '<span class="ejercicio-plantilla-name">' + tpl.name + '</span>' +
-      '<span class="ejercicio-plantilla-pasos">' + tpl.pasos.length + ' pasos</span>';
-
-    var editBtn = document.createElement('button');
-    editBtn.className = 'rut-action-btn';
-    editBtn.textContent = '✏️';
-    editBtn.onclick = function() { openBellezaModal(tplIdx); };
-
-    var delBtn = document.createElement('button');
-    delBtn.className = 'rut-action-btn';
-    delBtn.textContent = '✕';
-    delBtn.onclick = function() {
-      if (confirm('Eliminar "' + tpl.name + '"?')) {
-        bellezaTemplates.splice(tplIdx, 1);
-        saveBelleza(); renderBelleza();
-      }
-    };
-
-    row.appendChild(editBtn);
-    row.appendChild(delBtn);
-    list.appendChild(row);
-  });
-}
-
-function openBellezaModal(editIdx) {
-  var editing = editIdx !== null && editIdx !== undefined;
-  var tpl = editing ? bellezaTemplates[editIdx] : { id: 'bel_' + Date.now(), name: '', emoji: '✨', pasos: [] };
-
-  var back = document.createElement('div');
-  back.className = 'rutina-modal-backdrop';
-  back.onclick = function(e) { if (e.target === back) back.remove(); };
-
-  var box = document.createElement('div');
-  box.className = 'rutina-modal-box';
-
-  var pasosHtml = (tpl.pasos || []).map(function(p) {
-    return '<div class="desglose-step-row" style="display:flex;gap:.4rem;align-items:center;margin-bottom:.3rem">' +
-      '<input class="modal-input bel-paso-input" value="' + p.replace(/"/g,'&quot;') + '" style="flex:1" placeholder="Paso...">' +
-      '<button class="univ-materia-del bel-paso-del" style="color:#c77">✕</button></div>';
-  }).join('');
-
-  box.innerHTML = '<div class="rutina-modal-title">' + (editing ? '✏️' : '✨') + ' <em>' + (editing ? 'Editar' : 'Nueva') + ' rutina de belleza</em></div>' +
-    '<div class="modal-field"><label class="modal-label">Emoji</label>' +
-    '<input class="modal-input" id="belEmoji" value="' + (tpl.emoji || '✨') + '" style="width:80px;text-align:center;font-size:1.2rem"></div>' +
-    '<div class="modal-field" style="margin-top:.7rem"><label class="modal-label">Nombre</label>' +
-    '<input class="modal-input" id="belNombre" value="' + (tpl.name || '') + '" placeholder="ej: Rutina piel AM, Mascarilla pelo..." style="width:100%"></div>' +
-    '<div class="modal-field" style="margin-top:.9rem"><label class="modal-label">Pasos</label>' +
-    '<div id="belPasosList">' + pasosHtml + '</div>' +
-    '<button class="belleza-reset-btn" id="belAddPasoBtn" style="margin-top:.4rem">＋ Agregar paso</button></div>' +
-    '<div class="modal-btns" style="margin-top:1.2rem">' +
-    '<button class="modal-btn-cancel" id="belCancel">Cancelar</button>' +
-    '<button class="modal-btn-save" id="belSave">Guardar ✨</button></div>';
-
-  back.appendChild(box);
-  document.body.appendChild(back);
-
-  box.querySelectorAll('.bel-paso-del').forEach(function(btn) {
-    btn.onclick = function() { btn.closest('.desglose-step-row').remove(); };
-  });
-
-  document.getElementById('belAddPasoBtn').onclick = function() {
-    var row = document.createElement('div');
-    row.className = 'desglose-step-row';
-    row.style.cssText = 'display:flex;gap:.4rem;align-items:center;margin-bottom:.3rem';
-    var inp = document.createElement('input');
-    inp.className = 'modal-input bel-paso-input';
-    inp.style.flex = '1';
-    inp.placeholder = 'Nuevo paso...';
-    var del = document.createElement('button');
-    del.className = 'univ-materia-del bel-paso-del';
-    del.style.color = '#c77';
-    del.textContent = '✕';
-    del.onclick = function() { row.remove(); };
-    row.appendChild(inp);
-    row.appendChild(del);
-    document.getElementById('belPasosList').appendChild(row);
-    inp.focus();
-  };
-
-  document.getElementById('belCancel').onclick = function() { back.remove(); };
-  document.getElementById('belSave').onclick = function() {
-    var nombre = document.getElementById('belNombre').value.trim();
-    if (!nombre) return;
-    var emoji = document.getElementById('belEmoji').value.trim() || '✨';
-    var pasos = [];
-    box.querySelectorAll('.bel-paso-input').forEach(function(inp) {
-      var v = inp.value.trim();
-      if (v) pasos.push(v);
-    });
-    if (editing) {
-      bellezaTemplates[editIdx].name  = nombre;
-      bellezaTemplates[editIdx].emoji = emoji;
-      bellezaTemplates[editIdx].pasos = pasos;
-    } else {
-      tpl.name = nombre; tpl.emoji = emoji; tpl.pasos = pasos;
-      bellezaTemplates.push(tpl);
-    }
-    saveBelleza(); renderBelleza();
-    back.remove();
-  };
-  document.getElementById('belNombre').focus();
-}
-
-// Cloud sync patch
-var _origSyncBelleza = window.syncFromCloud;
-window.syncFromCloud = function() {
-  if (window._bellezaTemplates) bellezaTemplates = window._bellezaTemplates;
-  if (window._bellezaRegistros) bellezaRegistros = window._bellezaRegistros;
-  if (_origSyncBelleza) _origSyncBelleza();
-  renderBelleza();
-};
-
-loadBelleza();
-document.addEventListener('DOMContentLoaded', function() {
-  var newBtn = document.getElementById('bellezaNewBtn');
-  if (newBtn) newBtn.onclick = function() { openBellezaModal(null); };
-  var bPrev = document.getElementById('belPrevDay');
-  var bNext = document.getElementById('belNextDay');
-  if (bPrev) bPrev.onclick = function() { belDateOffset--; renderBelleza(); };
-  if (bNext) bNext.onclick = function() { belDateOffset++; renderBelleza(); };
-  renderBelleza();
-});
-
 </script>
 </div><!-- end #app-screen -->
 </body>
