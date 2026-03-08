@@ -971,6 +971,18 @@
   }
   .modal-btn-cancel:hover { border-color: var(--muted2); }
 
+  .modal-btn-delete {
+    background: none;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: .55rem .9rem;
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    letter-spacing: .02em;
+  }
+  .modal-btn-delete:hover { border-color: #e57373; color: #e57373; }
   .modal-btn-save {
     padding: .55rem 1.4rem;
     border-radius: 20px;
@@ -4444,26 +4456,15 @@ function renderRutinas() {
         <div class="rutina-template-actions">
           <button class="rut-action-btn" title="Editar plantilla">✏️</button>
           <button class="rut-action-btn" title="Asignar a hoy">📅</button>
-          <button class="rut-action-btn" title="Eliminar">✕</button>
         </div>`;
 
-      const [editBtn, assignBtn, delBtn] = card.querySelectorAll('.rut-action-btn');
+      const [editBtn, assignBtn] = card.querySelectorAll('.rut-action-btn');
 
       editBtn.onclick   = (e) => { e.stopPropagation(); openRutinaModal(tpl.id); };
       assignBtn.onclick = (e) => {
         e.stopPropagation();
         rutinaAsignaciones[dk] = tpl.id;
         saveRutinas(); renderRutinas();
-      };
-      delBtn.onclick = (e) => {
-        e.stopPropagation();
-        if (confirm(`¿Eliminar la rutina "${tpl.name}"?`)) {
-          rutinaTemplates = rutinaTemplates.filter(t => t.id !== tpl.id);
-          Object.keys(rutinaAsignaciones).forEach(k => {
-            if (rutinaAsignaciones[k] === tpl.id) delete rutinaAsignaciones[k];
-          });
-          saveRutinas(); renderRutinas();
-        }
       };
       card.onclick = () => openRutinaModal(tpl.id);
       list.appendChild(card);
@@ -4568,6 +4569,7 @@ function openRutinaModal(templateId) {
 
     <div class="modal-btns">
       <button class="modal-btn-cancel" onclick="document.getElementById('rutinaEditModal').remove()">Cancelar</button>
+      ${existing ? '<button class="modal-btn-delete" id="rutDelBtn">⋯ Eliminar</button>' : ''}
       <button class="modal-btn-save" id="rutSaveBtn">Guardar 🐱</button>
     </div>`;
 
@@ -4645,6 +4647,21 @@ function openRutinaModal(templateId) {
     renderRutinas();
     backdrop.remove();
   };
+
+  // Wire delete button if editing
+  const rutDelBtn = backdrop.querySelector('#rutDelBtn');
+  if (rutDelBtn) {
+    rutDelBtn.onclick = () => {
+      if (confirm('¿Eliminar la rutina "' + existing.name + '"?')) {
+        rutinaTemplates = rutinaTemplates.filter(t => t.id !== existing.id);
+        Object.keys(rutinaAsignaciones).forEach(k => {
+          if (rutinaAsignaciones[k] === existing.id) delete rutinaAsignaciones[k];
+        });
+        saveRutinas(); renderRutinas();
+        backdrop.remove();
+      }
+    };
+  }
 
   backdrop.querySelector('#rutNombre').focus();
 }
@@ -5283,22 +5300,25 @@ function renderEjercicio() {
         (allDone ? '<span class="ejercicio-done-badge">Completada</span>' : '') +
         '<span class="ejercicio-chevron">v</span>';
 
+      var moreBtn = document.createElement('button');
+      moreBtn.className = 'rut-action-btn';
+      moreBtn.textContent = '⋯';
+      moreBtn.title = 'Opciones';
+      moreBtn.onclick = function(e) {
+        e.stopPropagation();
+        if (confirm('¿Quitar "' + tpl.name + '" del registro de este día?')) {
+          ejRegistros[dk].splice(regIdx, 1);
+          saveEjercicio(); renderEjercicio();
+        }
+      };
+      hdr.appendChild(moreBtn);
       hdr.onclick = function() {
         card.classList.toggle('ej-open');
         if (card.classList.contains('ej-open')) renderEjPasos(card, tpl, reg, regIdx, dk);
       };
 
       // Delete button
-      var delBtn = document.createElement('button');
-      delBtn.className = 'rut-action-btn';
-      delBtn.textContent = 'x';
-      delBtn.title = 'Quitar del dia';
-      delBtn.onclick = function(e) {
-        e.stopPropagation();
-        ejRegistros[dk].splice(regIdx, 1);
-        saveEjercicio(); renderEjercicio();
-      };
-      hdr.appendChild(delBtn);
+      // del moved to ⋯ inside step view
 
       // Body
       var body = document.createElement('div');
@@ -5435,22 +5455,12 @@ function renderEjPlantillas() {
         '<div class="ejercicio-plantilla-meta">' + tpl.pasos.length + ' ejercicios</div>' +
       '</div>' +
       '<div class="rutina-template-actions">' +
-        '<button class="rut-action-btn" data-edit="' + idx + '">e</button>' +
-        '<button class="rut-action-btn" data-del="' + idx + '">x</button>' +
+        '<button class="rut-action-btn" data-edit="' + idx + '">✏️</button>' +
       '</div>';
 
     card.querySelectorAll('.rut-action-btn').forEach(function(btn) {
       if (btn.dataset.edit !== undefined) {
         btn.onclick = function(e) { e.stopPropagation(); openEjModal(tpl.id); };
-      }
-      if (btn.dataset.del !== undefined) {
-        btn.onclick = function(e) {
-          e.stopPropagation();
-          if (confirm('Eliminar rutina "' + tpl.name + '"?')) {
-            ejTemplates.splice(idx, 1);
-            saveEjercicio(); renderEjercicio();
-          }
-        };
       }
     });
 
@@ -5491,6 +5501,7 @@ function openEjModal(templateId) {
     '<button class="rutina-add-paso-btn" id="ejAddPasoBtn">+ Agregar ejercicio</button></div>' +
     '<div class="modal-btns">' +
     '<button class="modal-btn-cancel" id="ejEditModalCancel">Cancelar</button>' +
+    (existing ? '<button class="modal-btn-delete" id="ejDelBtn">⋯ Eliminar</button>' : '') +
     '<button class="modal-btn-save" id="ejSaveBtn">Guardar 💪</button></div>';
 
   back.appendChild(box);
@@ -5498,6 +5509,16 @@ function openEjModal(templateId) {
 
   var ejCancelEl = document.getElementById('ejEditModalCancel');
   if (ejCancelEl) ejCancelEl.onclick = function() { back.remove(); };
+  var ejDelBtn = document.getElementById('ejDelBtn');
+  if (ejDelBtn) {
+    ejDelBtn.onclick = function() {
+      if (confirm('¿Eliminar "' + existing.name + '"?')) {
+        ejTemplates = ejTemplates.filter(function(t){ return t.id !== existing.id; });
+        saveEjercicio(); renderEjercicio();
+        back.remove();
+      }
+    };
+  }
 
   // Emoji picker
   var selectedEmoji = emoji;
@@ -5662,15 +5683,19 @@ function renderBelDayWrap(dk) {
         '<div class="ejercicio-prog-mini"><div class="ejercicio-prog-mini-fill" style="width:' + pct + '%"></div></div>' +
         (allDone ? '<span class="ejercicio-done-badge" style="background:linear-gradient(135deg,#fce4ec,#f8bbd9);color:#c0395a">Lista 💗</span>' : '') +
         '<span class="ejercicio-chevron">v</span>';
-      var delBtn = document.createElement('button');
-      delBtn.className = 'rut-action-btn';
-      delBtn.textContent = 'x';
-      delBtn.onclick = function(e) {
+      // del moved to ⋯ inside step view
+      var moreBelBtn = document.createElement('button');
+      moreBelBtn.className = 'rut-action-btn';
+      moreBelBtn.textContent = '⋯';
+      moreBelBtn.title = 'Opciones';
+      moreBelBtn.onclick = function(e) {
         e.stopPropagation();
-        bellezaRegistros[dk].splice(regIdx, 1);
-        saveBelleza(); renderBelleza();
+        if (confirm('¿Quitar "' + tpl.name + '" del registro de este día?')) {
+          bellezaRegistros[dk].splice(regIdx, 1);
+          saveBelleza(); renderBelleza();
+        }
       };
-      hdr.appendChild(delBtn);
+      hdr.appendChild(moreBelBtn);
       hdr.onclick = function() {
         card.classList.toggle('ej-open');
         if (card.classList.contains('ej-open')) renderBelPasos(card, tpl, reg, regIdx, dk);
@@ -5729,17 +5754,7 @@ function renderBelPlantillas() {
     editBtn.className = 'rut-action-btn';
     editBtn.textContent = '✏️';
     editBtn.onclick = function() { openBellezaModal(tplIdx); };
-    var delBtn = document.createElement('button');
-    delBtn.className = 'rut-action-btn';
-    delBtn.textContent = '✕';
-    delBtn.onclick = function() {
-      if (confirm('Eliminar "' + tpl.name + '"?')) {
-        bellezaTemplates.splice(tplIdx, 1);
-        saveBelleza(); renderBelleza();
-      }
-    };
     row.appendChild(editBtn);
-    row.appendChild(delBtn);
     list.appendChild(row);
   });
 }
@@ -5767,6 +5782,7 @@ function openBellezaModal(editIdx) {
     '<button class="belleza-reset-btn" id="belAddPasoBtn" style="margin-top:.4rem">＋ Agregar paso</button></div>' +
     '<div class="modal-btns" style="margin-top:1.2rem">' +
     '<button class="modal-btn-cancel" id="belCancel">Cancelar</button>' +
+    (editing ? '<button class="modal-btn-delete" id="belDelBtn">⋯ Eliminar</button>' : '') +
     '<button class="modal-btn-save" id="belSave">Guardar ✨</button></div>';
   back.appendChild(box);
   document.body.appendChild(back);
@@ -5812,6 +5828,16 @@ function openBellezaModal(editIdx) {
     saveBelleza(); renderBelleza();
     back.remove();
   };
+  var belDelBtn = document.getElementById('belDelBtn');
+  if (belDelBtn) {
+    belDelBtn.onclick = function() {
+      if (confirm('¿Eliminar "' + tpl.name + '"?')) {
+        bellezaTemplates.splice(editIdx, 1);
+        saveBelleza(); renderBelleza();
+        back.remove();
+      }
+    };
+  }
   document.getElementById('belNombre').focus();
 }
 
@@ -6439,25 +6465,10 @@ function renderCell(cell, slot, date) {
     editBtn.textContent = '✏️';
     editBtn.onclick = (e) => { e.stopPropagation(); openTaskModal(task.id); };
 
-    const delBtn = document.createElement('button');
-    delBtn.className = 'pill-action-btn pill-del-btn';
-    delBtn.title = 'Eliminar tarea';
-    delBtn.textContent = '✕';
-    delBtn.onclick = (e) => {
-      e.stopPropagation();
-      if (confirm('¿Eliminar esta tarea y todas sus repeticiones?')) {
-        recurringTasks = recurringTasks.filter(t => t.id !== task.id);
-        // Clean completions for this task
-        Object.keys(completions).forEach(k => { if (k.startsWith(task.id + '|')) delete completions[k]; });
-        saveData(); updateProgress(); render();
-      }
-    };
-
     pill.appendChild(chk);
     pill.appendChild(txt);
     pill.appendChild(badge);
     pill.appendChild(editBtn);
-    pill.appendChild(delBtn);
     cell.appendChild(pill);
   });
 
@@ -6601,6 +6612,7 @@ function openTaskModal(taskId, defaultSlotId, defaultDate) {
 
       <div class="modal-btns">
         <button class="modal-btn-cancel" onclick="closeTaskModal()">Cancelar</button>
+        ${existing ? '<button class="modal-btn-delete" onclick="deleteTaskFromModal()">⋯ Eliminar</button>' : ''}
         <button class="modal-btn-save"   onclick="saveTaskModal()">Guardar 🐱</button>
       </div>
     </div>`;
@@ -6637,6 +6649,18 @@ function changeInterval(delta) {
 function closeTaskModal() {
   const m = document.getElementById('taskModal');
   if (m) m.remove();
+}
+
+function deleteTaskFromModal() {
+  if (!_modalTaskId) return;
+  const task = recurringTasks.find(t => t.id === _modalTaskId);
+  if (!task) return;
+  if (confirm('¿Eliminar "' + task.text + '" y todas sus repeticiones?')) {
+    recurringTasks = recurringTasks.filter(t => t.id !== _modalTaskId);
+    Object.keys(completions).forEach(k => { if (k.startsWith(_modalTaskId + '|')) delete completions[k]; });
+    saveData(); updateProgress(); render();
+    closeTaskModal();
+  }
 }
 
 function saveTaskModal() {
@@ -6696,7 +6720,13 @@ window.syncFromCloud = function() {
   if (typeof renderCambio     === 'function') { loadCambio();     renderCambio();     }
   if (typeof renderCuida      === 'function') { loadCuida();      renderCuida();      }
   if (typeof renderTimeline   === 'function') { renderTimeline();                     }
-  if (typeof loadGratitud     === 'function') { loadGratitud();   renderGratitud();   }
+  if (typeof loadGratitud === 'function') {
+    loadGratitud();
+    // Only re-render if user is not typing in a gratitud input
+    var activeEl = document.activeElement;
+    var isTypingGratitud = activeEl && activeEl.classList.contains('gratitud-input');
+    if (!isTypingGratitud) renderGratitud();
+  }
   if (typeof loadSueno        === 'function') { loadSueno();      renderSueno();      }
   if (typeof loadMens         === 'function') { loadMens();       renderMens();       }
   if (typeof loadDios         === 'function') { loadDios();       renderDios();       }
@@ -7558,9 +7588,14 @@ renderTracker();
 // ══════════════════════════════════════════
 let gratitudData = {}; // { 'YYYY-MM-DD': ['cosa1','cosa2','cosa3'] }
 
+var _gratitudSaveTimer = null;
 function saveGratitud() {
   try { localStorage.setItem('gratitud_data', JSON.stringify(gratitudData)); } catch(e){}
-  if (window.cloudSave) window.cloudSave('gratitud_data', gratitudData);
+  // Debounce cloud save to avoid re-render while typing
+  if (_gratitudSaveTimer) clearTimeout(_gratitudSaveTimer);
+  _gratitudSaveTimer = setTimeout(function() {
+    if (window.cloudSave) window.cloudSave('gratitud_data', gratitudData);
+  }, 1500);
 }
 function loadGratitud() {
   gratitudData = window._gratitudData || JSON.parse(localStorage.getItem('gratitud_data') || '{}');
