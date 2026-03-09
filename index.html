@@ -172,6 +172,20 @@
       const avatarEl = document.getElementById('user-avatar');
       if (nameEl) nameEl.textContent = user.displayName ? user.displayName.split(' ')[0] : 'tú';
       if (avatarEl && user.photoURL) avatarEl.src = user.photoURL;
+      window._currentUser = user;
+      if (window._onConfigUser) window._onConfigUser(user);
+      // Actualizar drawer perfil
+      var dn = document.getElementById('drawerProfileName');
+      var dai = document.getElementById('drawerAvatarImg');
+      var dap = document.getElementById('drawerAvatarPlaceholder');
+      var customName = localStorage.getItem('config_display_name');
+      var customAvatar = localStorage.getItem('config_avatar_url');
+      if (dn) dn.textContent = customName || (user.displayName ? user.displayName.split(' ')[0] : 'tú');
+      if (dai) {
+        var avatarSrc = customAvatar || user.photoURL || '';
+        if (avatarSrc) { dai.src = avatarSrc; dai.style.display=''; if(dap) dap.style.display='none'; }
+        else { dai.style.display='none'; if(dap) dap.style.display='flex'; }
+      }
       // Show app, hide login
       if (loginScreen) loginScreen.style.display = 'none';
       if (appScreen)   appScreen.style.display   = '';
@@ -4177,13 +4191,44 @@
 
   .drawer-header {
     padding: .6rem 1.2rem 1rem;
-    font-family: 'Playfair Display', serif;
-    font-size: .95rem;
-    color: var(--rosa);
-    font-weight: 700;
     border-bottom: 1.5px solid var(--border);
     margin-bottom: .5rem;
+  }
+  .drawer-kittyplan {
+    font-family: 'Playfair Display', serif;
+    font-size: .8rem;
+    color: var(--muted2);
+    font-weight: 700;
+    margin-top: .5rem;
     letter-spacing: .02em;
+  }
+  .drawer-profile {
+    display: flex; align-items: center; gap: .7rem;
+    cursor: pointer; border-radius: 12px; padding: .4rem .3rem;
+    transition: background .18s;
+  }
+  .drawer-profile:hover { background: var(--surface); }
+  .drawer-avatar-wrap {
+    width: 40px; height: 40px; border-radius: 50%;
+    overflow: hidden; flex-shrink: 0;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .drawer-avatar-img { width:100%; height:100%; object-fit:cover; }
+  .drawer-avatar-placeholder {
+    font-size: 1.2rem; display: flex;
+    align-items: center; justify-content: center; width:100%; height:100%;
+  }
+  .drawer-profile-info { flex: 1; min-width: 0; }
+  .drawer-profile-name {
+    font-family: 'Nunito', sans-serif; font-size: .82rem;
+    font-weight: 800; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .drawer-profile-sub {
+    font-family: 'Nunito', sans-serif; font-size: .65rem;
+    font-weight: 600; color: var(--muted2); margin-top: .05rem;
   }
 
   .drawer-item {
@@ -4250,7 +4295,19 @@ function todayKey() { return dateKey(new Date()); }
 </button>
 <div class="drawer-overlay" id="drawerOverlay"></div>
 <div class="drawer" id="drawer">
-  <div class="drawer-header">🌸 kittyplan</div>
+  <div class="drawer-header" id="drawerHeader">
+    <div class="drawer-profile" id="drawerProfile" onclick="showPage('page-config')" title="Configuración">
+      <div class="drawer-avatar-wrap">
+        <img class="drawer-avatar-img" id="drawerAvatarImg" src="" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="drawer-avatar-placeholder" id="drawerAvatarPlaceholder">🐱</div>
+      </div>
+      <div class="drawer-profile-info">
+        <div class="drawer-profile-name" id="drawerProfileName">tú</div>
+        <div class="drawer-profile-sub">Ver perfil ⚙️</div>
+      </div>
+    </div>
+    <div class="drawer-kittyplan">🌸 kittyplan</div>
+  </div>
   <div id="drawerNav"></div>
 </div>
 
@@ -11782,6 +11839,7 @@ const NAV_PAGES = [
   { icon:'📅', label:'Historial',  page:'page-historial' },
   { icon:'🧠', label:'Braindump', page:'page-braindump' },
   { icon:'📋', label:'Listas',     page:'page-listas'    },
+  { icon:'⚙️', label:'Config',     page:'page-config'    },
 ];
 
 let activePage = 'page-semana';
@@ -14065,6 +14123,285 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 </script>
 </div><!-- end page-listas -->
+<div id="page-config" class="page-section">
+<style>
+  .config-section {
+    max-width: 600px; margin: 2rem auto 0;
+    padding: 0 1rem 4rem;
+    animation: fadeUp .5s .1s ease both; opacity:0; animation-fill-mode:both;
+  }
+  .config-block {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: var(--radius); padding: 1.2rem 1.4rem;
+    margin-bottom: 1rem;
+  }
+  .config-block-title {
+    font-size: .65rem; font-weight: 800; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted2);
+    margin-bottom: 1rem; padding-bottom: .5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .config-profile-preview {
+    display: flex; align-items: center; gap: 1rem; margin-bottom: 1.2rem;
+  }
+  .config-avatar-big {
+    width: 64px; height: 64px; border-radius: 50%;
+    border: 2.5px solid var(--border); background: var(--surface);
+    overflow: hidden; display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; flex-shrink: 0;
+  }
+  .config-avatar-big img { width:100%; height:100%; object-fit:cover; }
+  .config-avatar-name {
+    font-family: 'Playfair Display', serif; font-size: 1.1rem;
+    font-style: italic; color: var(--text);
+  }
+  .config-avatar-email { font-size: .72rem; color: var(--muted2); font-weight: 600; margin-top: .15rem; }
+  .config-field { margin-bottom: .9rem; }
+  .config-label {
+    display: block; font-size: .68rem; font-weight: 800;
+    letter-spacing: .06em; text-transform: uppercase;
+    color: var(--muted2); margin-bottom: .35rem;
+  }
+  .config-input {
+    width: 100%; border: 1.5px solid var(--border); border-radius: 12px;
+    padding: .5rem .9rem; font-family: 'Nunito', sans-serif;
+    font-size: .82rem; font-weight: 600; color: var(--text);
+    background: var(--bg); outline: none; transition: border-color .2s;
+    box-sizing: border-box;
+  }
+  .config-input:focus { border-color: var(--rosa); }
+  .config-save-btn {
+    padding: .45rem 1.2rem; border-radius: 20px; border: none;
+    background: var(--rosa); color: #fff;
+    font-family: 'Nunito', sans-serif; font-size: .8rem; font-weight: 800;
+    cursor: pointer; transition: opacity .15s; margin-top: .2rem;
+  }
+  .config-save-btn:hover { opacity: .85; }
+  .config-save-ok {
+    font-size: .72rem; font-weight: 700; color: var(--verde);
+    margin-left: .6rem; opacity: 0; transition: opacity .3s;
+  }
+  .config-save-ok.show { opacity: 1; }
+
+  /* Temas de color */
+  .theme-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: .6rem;
+    margin-top: .3rem;
+  }
+  .theme-btn {
+    border-radius: 12px; border: 2.5px solid transparent;
+    padding: .6rem .3rem; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: .3rem;
+    transition: all .18s; background: var(--card);
+    font-family: 'Nunito', sans-serif; font-size: .65rem; font-weight: 700;
+    color: var(--muted);
+  }
+  .theme-btn:hover { border-color: var(--border); }
+  .theme-btn.active { border-color: var(--rosa); color: var(--rosa); }
+  .theme-swatch {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: .9rem;
+  }
+
+  /* Export / Danger */
+  .config-action-btn {
+    display: flex; align-items: center; gap: .6rem;
+    width: 100%; padding: .7rem .9rem; border-radius: 12px;
+    border: 1.5px solid var(--border); background: var(--bg);
+    font-family: 'Nunito', sans-serif; font-size: .8rem; font-weight: 700;
+    color: var(--text); cursor: pointer; transition: all .18s; margin-bottom: .5rem;
+    text-align: left;
+  }
+  .config-action-btn:hover { border-color: var(--rosa); color: var(--rosa); }
+  .config-action-btn.danger { color: #c0392b; border-color: #f5c6cb; }
+  .config-action-btn.danger:hover { background: #fff5f5; }
+  .config-signout-btn {
+    display: flex; align-items: center; gap: .6rem;
+    width: 100%; padding: .7rem .9rem; border-radius: 12px;
+    border: 1.5px solid var(--border); background: var(--bg);
+    font-family: 'Nunito', sans-serif; font-size: .8rem; font-weight: 700;
+    color: var(--muted); cursor: pointer; transition: all .18s; margin-top: .3rem;
+  }
+  .config-signout-btn:hover { border-color: var(--rosa); color: var(--rosa); }
+</style>
+
+<section class="config-section">
+  <span class="section-sub">⚙️ ajustes</span>
+  <h2 class="section-title" style="margin-bottom:1.2rem"><em>Configuración</em></h2>
+
+  <!-- Perfil -->
+  <div class="config-block">
+    <div class="config-block-title">👤 Perfil</div>
+    <div class="config-profile-preview">
+      <div class="config-avatar-big" id="configAvatarBig">🐱</div>
+      <div>
+        <div class="config-avatar-name" id="configAvatarName">tú</div>
+        <div class="config-avatar-email" id="configAvatarEmail"></div>
+      </div>
+    </div>
+    <div class="config-field">
+      <label class="config-label">Nombre que se muestra</label>
+      <input class="config-input" id="configDisplayName" placeholder="¿Cómo te llamas?">
+    </div>
+    <div class="config-field">
+      <label class="config-label">Foto de perfil (URL de imagen)</label>
+      <input class="config-input" id="configAvatarUrl" placeholder="https://...">
+    </div>
+    <button class="config-save-btn" onclick="configSaveProfile()">Guardar cambios</button>
+    <span class="config-save-ok" id="configProfileOk">✓ Guardado</span>
+  </div>
+
+  <!-- Tema de color -->
+  <div class="config-block">
+    <div class="config-block-title">🎨 Tema de color</div>
+    <div class="theme-grid" id="themeGrid"></div>
+  </div>
+
+  <!-- Datos -->
+  <div class="config-block">
+    <div class="config-block-title">💾 Mis datos</div>
+    <button class="config-action-btn" onclick="configExportData()">
+      <span>📥</span>
+      <div>
+        <div>Exportar mis datos</div>
+        <div style="font-size:.68rem;color:var(--muted2);font-weight:600">Descarga un respaldo en JSON</div>
+      </div>
+    </button>
+  </div>
+
+  <!-- Cuenta -->
+  <div class="config-block">
+    <div class="config-block-title">🔐 Cuenta</div>
+    <button class="config-signout-btn" onclick="if(confirm('¿Cerrar sesión?')) window.signOutUser()">
+      🚪 Cerrar sesión
+    </button>
+  </div>
+</section>
+
+<script>
+(function(){
+  var THEMES = [
+    { id:'rosa',    label:'Rosa 🌸',  vars:{ '--bg':'#fff0f5','--surface':'#fce4ee','--card':'#fff7fa','--border':'#f0c8d8','--rosa':'#f4a7c0','--rosa-soft':'#fde8f0','--text':'#5a2d4a','--muted':'#b07090','--muted2':'#d4a0b8' }},
+    { id:'lila',    label:'Lila 💜',  vars:{ '--bg':'#f5f0ff','--surface':'#ede4fc','--card':'#faf7ff','--border':'#d4c8f0','--rosa':'#9b7fd4','--rosa-soft':'#ede4fc','--text':'#2d1a5a','--muted':'#7060a0','--muted2':'#b4a0d8' }},
+    { id:'menta',   label:'Menta 🌿', vars:{ '--bg':'#f0fff5','--surface':'#e4fce8','--card':'#f7fff9','--border':'#c8f0d0','--rosa':'#5bbf7a','--rosa-soft':'#e4fce8','--text':'#1a4a2a','--muted':'#4a8a5a','--muted2':'#90c8a0' }},
+    { id:'melocoton',label:'Durazno 🍑',vars:{ '--bg':'#fff5f0','--surface':'#fce8e0','--card':'#fffaf7','--border':'#f0d4c0','--rosa':'#e8906a','--rosa-soft':'#fce8e0','--text':'#5a2d1a','--muted':'#b07050','--muted2':'#d4b0a0' }},
+    { id:'azul',    label:'Azul 🩵',  vars:{ '--bg':'#f0f5ff','--surface':'#e0eafc','--card':'#f7faff','--border':'#c0d4f0','--rosa':'#6a9fe8','--rosa-soft':'#e0eafc','--text':'#1a2d5a','--muted':'#5070a0','--muted2':'#a0b8d8' }},
+    { id:'neutro',  label:'Neutro 🤍',vars:{ '--bg':'#fafafa','--surface':'#f0f0f0','--card':'#ffffff','--border':'#e0e0e0','--rosa':'#9e9e9e','--rosa-soft':'#f0f0f0','--text':'#2a2a2a','--muted':'#707070','--muted2':'#b0b0b0' }},
+    { id:'noche',   label:'Noche 🌙', vars:{ '--bg':'#1a1a2e','--surface':'#16213e','--card':'#0f3460','--border':'#2a2a4a','--rosa':'#e94560','--rosa-soft':'#2a1a2e','--text':'#e0e0e0','--muted':'#a0a0c0','--muted2':'#606080' }},
+    { id:'candy',   label:'Candy 🍬', vars:{ '--bg':'#fff0fb','--surface':'#fce4f8','--card':'#fff7fe','--border':'#f0c0e8','--rosa':'#e060c0','--rosa-soft':'#fce4f8','--text':'#5a0a4a','--muted':'#b040a0','--muted2':'#d890c8' }},
+  ];
+
+  var currentTheme = localStorage.getItem('config_theme') || 'rosa';
+
+  function applyTheme(themeId) {
+    var t = THEMES.find(function(x){ return x.id===themeId; });
+    if (!t) return;
+    var root = document.documentElement;
+    Object.keys(t.vars).forEach(function(k){ root.style.setProperty(k, t.vars[k]); });
+    currentTheme = themeId;
+    localStorage.setItem('config_theme', themeId);
+    renderThemeGrid();
+  }
+
+  function renderThemeGrid() {
+    var grid = document.getElementById('themeGrid'); if(!grid) return;
+    grid.innerHTML = '';
+    THEMES.forEach(function(t) {
+      var btn = document.createElement('button');
+      btn.className = 'theme-btn' + (t.id === currentTheme ? ' active' : '');
+      var swatch = document.createElement('div');
+      swatch.className = 'theme-swatch';
+      swatch.style.background = t.vars['--bg'];
+      swatch.style.border = '2px solid ' + t.vars['--border'];
+      swatch.style.boxShadow = '0 0 0 3px ' + t.vars['--rosa'] + '44';
+      swatch.textContent = t.label.split(' ')[1];
+      btn.appendChild(swatch);
+      btn.appendChild(document.createTextNode(t.label.split(' ')[0]));
+      btn.onclick = (function(id){ return function(){ applyTheme(id); }; })(t.id);
+      grid.appendChild(btn);
+    });
+  }
+
+  function configLoadProfile() {
+    var user = window._currentUser;
+    var customName = localStorage.getItem('config_display_name');
+    var customAvatar = localStorage.getItem('config_avatar_url');
+
+    var nameInp = document.getElementById('configDisplayName');
+    var avatarInp = document.getElementById('configAvatarUrl');
+    var bigAvatar = document.getElementById('configAvatarBig');
+    var bigName = document.getElementById('configAvatarName');
+    var bigEmail = document.getElementById('configAvatarEmail');
+
+    if (nameInp) nameInp.value = customName || (user ? (user.displayName||'') : '');
+    if (avatarInp) avatarInp.value = customAvatar || (user ? (user.photoURL||'') : '');
+    if (bigName) bigName.textContent = customName || (user ? (user.displayName ? user.displayName.split(' ')[0] : 'tú') : 'tú');
+    if (bigEmail) bigEmail.textContent = user ? (user.email||'') : '';
+    if (bigAvatar) {
+      var src = customAvatar || (user ? user.photoURL : '');
+      if (src) bigAvatar.innerHTML = '<img src="'+src+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+      else bigAvatar.textContent = '🐱';
+    }
+  }
+
+  window.configSaveProfile = function() {
+    var nameVal = (document.getElementById('configDisplayName')||{}).value || '';
+    var avatarVal = (document.getElementById('configAvatarUrl')||{}).value || '';
+    localStorage.setItem('config_display_name', nameVal.trim());
+    localStorage.setItem('config_avatar_url', avatarVal.trim());
+
+    // Actualizar drawer y header
+    var dn = document.getElementById('drawerProfileName');
+    var dai = document.getElementById('drawerAvatarImg');
+    var dap = document.getElementById('drawerAvatarPlaceholder');
+    var headerName = document.getElementById('user-display-name');
+    var headerAvatar = document.getElementById('user-avatar');
+    if (dn) dn.textContent = nameVal.trim() || (window._currentUser ? (window._currentUser.displayName||'tú').split(' ')[0] : 'tú');
+    if (headerName) headerName.textContent = nameVal.trim() || (window._currentUser ? (window._currentUser.displayName||'tú').split(' ')[0] : 'tú');
+    if (avatarVal.trim()) {
+      if (dai) { dai.src=avatarVal.trim(); dai.style.display=''; }
+      if (dap) dap.style.display='none';
+      if (headerAvatar) headerAvatar.src=avatarVal.trim();
+    }
+    configLoadProfile();
+    var ok = document.getElementById('configProfileOk');
+    if (ok) { ok.classList.add('show'); setTimeout(function(){ ok.classList.remove('show'); }, 2000); }
+  };
+
+  window.configExportData = function() {
+    var keys = ['sem_data','sem_custom','recurring_tasks','completions','rutina_templates',
+      'rutina_asignaciones','rutina_completions','gratitud_data','sueno_data','mens_data',
+      'ej_templates','ej_registros','belleza_templates','belleza_registros','dios_data',
+      'finanzas_data','limpieza_data','braindump_notes','mood_data','metas_data',
+      'ql_lists','wl_items','vb_items','config_display_name','config_avatar_url','config_theme'];
+    var data = { exportDate: new Date().toISOString(), version: '1.0' };
+    keys.forEach(function(k){
+      try { var v=localStorage.getItem(k); if(v) data[k]=JSON.parse(v); } catch(e){ data[k]=localStorage.getItem(k); }
+    });
+    var blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+    var a = document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download = 'kittyplan-backup-'+new Date().toISOString().slice(0,10)+'.json';
+    a.click();
+  };
+
+  // Init cuando se abre la página
+  var _origShowPage = window.showPage;
+  window.showPage = function(pageId) {
+    if (_origShowPage) _origShowPage(pageId);
+    if (pageId === 'page-config') { setTimeout(function(){ configLoadProfile(); renderThemeGrid(); }, 50); }
+  };
+
+  // Guardar referencia al usuario actual
+  var _origAuth = window._onAuthUser;
+  window._onConfigUser = function(user) { window._currentUser = user; };
+
+  // Aplicar tema guardado al cargar
+  if (currentTheme !== 'rosa') applyTheme(currentTheme);
+  setTimeout(function(){ renderThemeGrid(); configLoadProfile(); }, 300);
+})();
+</script>
+</div><!-- end page-config -->
+
 
 
 
