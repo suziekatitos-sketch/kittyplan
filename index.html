@@ -1882,43 +1882,75 @@ window.kittyConfirm = function(msg, onYes, onNo) {
     position: relative;
     display: flex;
     flex-direction: column;
-    min-height: 320px;
+    min-height: 220px;
+  }
+  @media (min-width: 768px) {
+    .univ-materia-card {
+      min-height: 320px;
+    }
   }
   .univ-materia-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.1); }
   .univ-materia-card-img {
     width: 100%;
-    height: 160px;
+    height: 100px;
     object-fit: cover;
     display: block;
     flex-shrink: 0;
   }
+  @media (min-width: 768px) {
+    .univ-materia-card-img {
+      height: 160px;
+    }
+  }
   .univ-materia-card-noimg {
     width: 100%;
-    height: 160px;
+    height: 100px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 3rem;
+    font-size: 2rem;
     flex-shrink: 0;
   }
+  @media (min-width: 768px) {
+    .univ-materia-card-noimg {
+      height: 160px;
+      font-size: 3rem;
+    }
+  }
   .univ-materia-card-body {
-    padding: .8rem .9rem 1rem;
+    padding: .6rem .7rem .7rem;
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
   }
+  @media (min-width: 768px) {
+    .univ-materia-card-body {
+      padding: .8rem .9rem 1rem;
+    }
+  }
   .univ-materia-card-name {
-    font-size: .82rem;
+    font-size: .75rem;
     font-weight: 800;
     color: var(--text);
     line-height: 1.3;
-    margin-bottom: .35rem;
+    margin-bottom: .2rem;
+  }
+  @media (min-width: 768px) {
+    .univ-materia-card-name {
+      font-size: .82rem;
+      margin-bottom: .35rem;
+    }
   }
   .univ-materia-card-cal {
-    font-size: .72rem;
+    font-size: .68rem;
     font-weight: 700;
     color: var(--rosa);
+  }
+  @media (min-width: 768px) {
+    .univ-materia-card-cal {
+      font-size: .72rem;
+    }
   }
   .univ-materia-card-del {
     position: absolute;
@@ -4581,9 +4613,14 @@ function todayKey() { return dateKey(new Date()); }
   .vb-section { margin-bottom: 2.5rem; }
   .vb-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: .7rem;
     margin-top: 1rem;
+  }
+  @media (min-width: 768px) {
+    .vb-grid {
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    }
   }
   .vb-card {
     border-radius: 16px;
