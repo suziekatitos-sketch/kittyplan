@@ -4554,10 +4554,7 @@ function todayKey() { return dateKey(new Date()); }
     <div class="metas-list" id="metasList"></div>
     <button class="add-meta-btn" onclick="openMetaModal(null)">＋ Nueva meta</button>
   </section>
-</section>
 
-<script>
-// ══ VISION BOARD ══
 (function(){
   var vbItems = [];
 
@@ -4992,6 +4989,27 @@ function todayKey() { return dateKey(new Date()); }
   .pom-tomato { font-size: .9rem; }
   .pom-tomato.done { filter: grayscale(0); }
   .pom-tomato.pending { filter: grayscale(1); opacity: .4; }
+  .pom-gif-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: .6rem 0 .4rem;
+    min-height: 110px;
+  }
+  .pom-gif {
+    width: 110px;
+    height: 110px;
+    object-fit: contain;
+    border-radius: 16px;
+    opacity: 0;
+    transform: scale(.85);
+    transition: opacity .35s ease, transform .35s ease;
+    pointer-events: none;
+  }
+  .pom-gif.visible {
+    opacity: 1;
+    transform: scale(1);
+  }
 </style>
   <span class="section-sub">⏱️ enfoque</span>
   <h2 class="section-title" style="text-align:center"><em>Pomodoro</em></h2>
@@ -5005,6 +5023,9 @@ function todayKey() { return dateKey(new Date()); }
       <button onclick="pomOpenConfig()" style="background:none;border:none;cursor:pointer;font-size:.72rem;font-weight:700;color:var(--muted2);font-family:'Nunito',sans-serif;padding:.2rem .4rem">⚙️ Configurar tiempos</button>
     </div>
     <div class="pomodoro-display" id="pomDisplay">25:00</div>
+    <div class="pom-gif-wrap">
+      <img class="pom-gif" id="pomGif" src="" alt="pusheen" />
+    </div>
     <div class="pomodoro-btns">
       <button class="pom-btn primary" id="pomStartBtn" onclick="pomToggle()">▶ Iniciar</button>
       <button class="pom-btn" onclick="pomReset()">↺ Reset</button>
@@ -5028,6 +5049,29 @@ function todayKey() { return dateKey(new Date()); }
   var pomRunning = false;
   var pomTimer = null;
   var pomSessionsDone = 0;
+
+  // Gifs de Pusheen por estado
+  var POM_GIFS = {
+    work:     'https://i.pinimg.com/originals/4a/17/d8/4a17d8480232258924f366fab5ec5f4c.gif',
+    short:    'https://i.pinimg.com/originals/18/83/b1/1883b15cc4ee41c644e22fd9ea02d730.gif',
+    long:     'https://i.pinimg.com/originals/6f/47/6e/6f476ee5c0b914a49e2f088abd7fa05c.gif',
+    done:     'https://i.pinimg.com/originals/d9/e1/d0/d9e1d0562eb9b42044d3d55754b35d2d.gif'
+  };
+
+  function pomShowGif(key) {
+    var gif = document.getElementById('pomGif');
+    if (!gif) return;
+    gif.classList.remove('visible');
+    setTimeout(function() {
+      gif.src = POM_GIFS[key] || '';
+      if (POM_GIFS[key]) gif.classList.add('visible');
+    }, 120);
+  }
+
+  function pomHideGif() {
+    var gif = document.getElementById('pomGif');
+    if (gif) gif.classList.remove('visible');
+  }
 
   function pomFmt(s) {
     var m = Math.floor(s/60);
@@ -5059,6 +5103,7 @@ function todayKey() { return dateKey(new Date()); }
     pomRunning = false;
     clearInterval(pomTimer);
     pomTimeLeft = POM_MODES[mode];
+    pomHideGif();
     document.querySelectorAll('.pom-mode-btn').forEach(function(b, i) {
       b.classList.toggle('active', ['work','short','long'][i] === mode);
     });
@@ -5069,15 +5114,18 @@ function todayKey() { return dateKey(new Date()); }
     if (pomRunning) {
       pomRunning = false;
       clearInterval(pomTimer);
+      pomHideGif();
       pomUpdateDisplay();
     } else {
       pomRunning = true;
+      pomShowGif(pomMode);
       pomTimer = setInterval(function() {
         pomTimeLeft--;
         pomUpdateDisplay();
         if (pomTimeLeft <= 0) {
           clearInterval(pomTimer);
           pomRunning = false;
+          pomShowGif('done');
           if (pomMode === 'work') {
             pomSessionsDone++;
             pomUpdateSessions();
@@ -5164,6 +5212,7 @@ function todayKey() { return dateKey(new Date()); }
     pomRunning = false;
     clearInterval(pomTimer);
     pomTimeLeft = POM_MODES[pomMode];
+    pomHideGif();
     pomUpdateDisplay();
   };
 
@@ -6161,14 +6210,47 @@ function openRutinaViewModal(templateId) {
   document.body.appendChild(backdrop);
 }
 
+// ── Modal para elegir tipo de rutina
+function openRutinaTipoModal() {
+  const backdrop = document.createElement('div');
+  backdrop.className = 'rutina-modal-backdrop';
+  backdrop.onclick = (e) => { if (e.target === backdrop) backdrop.remove(); };
+
+  const box = document.createElement('div');
+  box.className = 'rutina-modal-box';
+  box.style.maxWidth = '400px';
+  
+  box.innerHTML = `
+    <div class="rutina-modal-title">🐾 <em>¿Qué tipo de rutina?</em></div>
+    <div style="display:flex; gap:1rem; margin-top:2rem;">
+      <button class="modal-btn-save" style="flex:1;" onclick="openRutinaModal(null, 'texto')">📝 Texto con pasos</button>
+      <button class="modal-btn-save" style="flex:1;" onclick="openRutinaModal(null, 'foto')">📸 Foto</button>
+    </button>
+    <div style="margin-top:1rem;">
+      <button class="modal-btn-cancel" style="width:100%;" onclick="document.parentElement.parentElement.remove()">Cancelar</button>
+    </div>
+  `;
+
+  backdrop.appendChild(box);
+  document.body.appendChild(backdrop);
+}
+
 // ── Template editor modal
-function openRutinaModal(templateId) {
+function openRutinaModal(templateId, tipo) {
+  // Si no hay tipo, preguntamos
+  if (!tipo && !templateId) {
+    openRutinaTipoModal();
+    return;
+  }
+  
   const existing = templateId ? rutinaTemplates.find(t => t.id === templateId) : null;
+  const rutinaTipo = tipo || (existing ? existing.tipo : 'texto');
   const old = document.getElementById('rutinaEditModal');
   if (old) old.remove();
 
   const emoji  = existing ? existing.emoji : '🌸';
   const nombre = existing ? existing.name  : '';
+  const foto   = existing ? existing.foto : '';
   const pasos  = existing ? JSON.parse(JSON.stringify(existing.pasos)) : { m:[], t:[], n:[] };
 
   const backdrop = document.createElement('div');
@@ -6184,9 +6266,19 @@ function openRutinaModal(templateId) {
     `<span class="emoji-opt${e === emoji ? ' selected' : ''}" data-emoji="${e}">${e}</span>`
   ).join('');
 
-  box.innerHTML = `
-    <div class="rutina-modal-title">🐾 <em>${existing ? 'Editar' : 'Nueva'} rutina</em></div>
+  // HTML diferente según tipo
+  const htmlContenido = rutinaTipo === 'foto' ? `
+    <div class="modal-field">
+      <label class="modal-label">Nombre de la rutina</label>
+      <input class="modal-input" id="rutNombre" placeholder="ej: Rutina full body..." value="${nombre.replace(/"/g,'&quot;')}">
+    </div>
 
+    <div class="modal-field">
+      <label class="modal-label">Foto</label>
+      <input type="file" id="rutFotoInput" accept="image/*" style="width:100%; padding:.5rem; border:1.5px solid var(--border); border-radius:8px;">
+      ${foto ? `<div style="margin-top:.5rem; text-align:center;"><img src="${foto}" style="max-width:100%; max-height:200px; border-radius:8px;"></div>` : ''}
+    </div>
+  ` : `
     <div class="modal-field">
       <label class="modal-label">Nombre</label>
       <input class="modal-input" id="rutNombre" placeholder="ej: Rutina de lunes, Día de descanso..." value="${nombre.replace(/"/g,'&quot;')}">
@@ -6206,7 +6298,11 @@ function openRutinaModal(templateId) {
           <button class="rutina-add-paso-btn" data-franja="${f.id}">＋ Agregar paso</button>
         </div>`).join('')}
     </div>
+  `;
 
+  box.innerHTML = `
+    <div class="rutina-modal-title">🐾 <em>${existing ? 'Editar' : 'Nueva'} rutina ${rutinaTipo === 'foto' ? '📸' : '📝'}</em></div>
+    ${htmlContenido}
     ${existing ? '<div style="margin-top:.8rem;padding-top:.8rem;border-top:1.5px solid var(--border)"><button class="modal-btn-delete" id="rutDelBtn" style="width:100%">🗑️ Eliminar rutina</button></div>' : ''}
     <div class="modal-btns" style="margin-top:.6rem">
       <button class="modal-btn-cancel" onclick="document.getElementById('rutinaEditModal').remove()">Cancelar</button>
@@ -6216,8 +6312,9 @@ function openRutinaModal(templateId) {
   backdrop.appendChild(box);
   document.body.appendChild(backdrop);
 
-  // Emoji picker
-  let selectedEmoji = emoji;
+  // Emoji picker (solo para texto)
+  if (rutinaTipo === 'texto') {
+    let selectedEmoji = emoji;
   backdrop.querySelectorAll('.emoji-opt').forEach(opt => {
     opt.onclick = () => {
       backdrop.querySelectorAll('.emoji-opt').forEach(o => o.classList.remove('selected'));
@@ -6265,6 +6362,51 @@ function openRutinaModal(templateId) {
     const nombre = backdrop.querySelector('#rutNombre').value.trim();
     if (!nombre) { backdrop.querySelector('#rutNombre').focus(); return; }
 
+    if (rutinaTipo === 'foto') {
+      // Guardar rutina de foto
+      const fotoInput = backdrop.querySelector('#rutFotoInput');
+      let fotoData = foto;
+      
+      if (fotoInput && fotoInput.files && fotoInput.files[0]) {
+        // Convertir foto a base64
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          fotoData = e.target.result;
+          
+          if (existing) {
+            existing.name = nombre;
+            existing.foto = fotoData;
+            existing.tipo = 'foto';
+          } else {
+            rutinaTemplates.push({
+              id: 'rut_' + Date.now(),
+              name: nombre,
+              foto: fotoData,
+              tipo: 'foto'
+            });
+          }
+          
+          saveRutinas();
+          renderRutinas();
+          backdrop.remove();
+        };
+        reader.readAsDataURL(fotoInput.files[0]);
+        return;
+      } else if (existing) {
+        // Editando, mantener foto existente
+        existing.name = nombre;
+        existing.tipo = 'foto';
+        saveRutinas();
+        renderRutinas();
+        backdrop.remove();
+        return;
+      } else if (!fotoData) {
+        alert('Por favor selecciona una foto');
+        return;
+      }
+    }
+
+    // Guardar rutina de texto
     // Clean empty pasos
     RUTINA_FRANJAS.forEach(f => {
       pasos[f.id] = (pasos[f.id] || []).filter(p => p.trim() !== '');
@@ -6274,12 +6416,14 @@ function openRutinaModal(templateId) {
       existing.name = nombre;
       existing.emoji = selectedEmoji;
       existing.pasos = pasos;
+      existing.tipo = 'texto';
     } else {
       rutinaTemplates.push({
         id: 'rut_' + Date.now(),
         name: nombre,
         emoji: selectedEmoji,
-        pasos
+        pasos,
+        tipo: 'texto'
       });
     }
 
@@ -6304,6 +6448,7 @@ function openRutinaModal(templateId) {
   }
 
   backdrop.querySelector('#rutNombre').focus();
+  } // end if (rutinaTipo === 'texto')
 }
 
 // ══════════════════════════════════════════
@@ -8112,7 +8257,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="rutina-templates-wrap">
     <div class="rutina-templates-header">
       <span class="rutina-templates-title">📋 Mis plantillas</span>
-      <button class="rutina-new-btn" onclick="openRutinaModal(null)">＋ Nueva plantilla</button>
+      <button class="rutina-new-btn" onclick="openRutinaTipoModal()">＋ Nueva plantilla</button>
     </div>
     <div class="rutina-templates-list" id="rutTemplatesList"></div>
   </div>
@@ -8181,43 +8326,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="mood-week-grid" id="moodWeekGrid"></div>
 </section>
 
-<!-- METAS -->
-<section class="metas-section" id="sec-metas" style="margin-top:2.5rem">
-<style>
-  .metas-section { max-width:860px;margin:2.5rem auto 0;animation:fadeUp .5s .3s ease both;opacity:0;animation-fill-mode:both;padding-bottom:3rem; }
-  .metas-list { display:flex;flex-direction:column;gap:.8rem;margin-top:1rem; }
-  .meta-card { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem; }
-  .meta-card-header { display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem; }
-  .meta-card-emoji { font-size:1.2rem; }
-  .meta-card-name { font-family:'Playfair Display',serif;font-size:.95rem;font-style:italic;color:var(--text);flex:1; }
-  .meta-card-prog { font-size:.7rem;font-weight:800;color:var(--rosa);min-width:35px;text-align:right; }
-  .meta-progress-bar { height:5px;border-radius:4px;background:var(--border);margin-bottom:.7rem;overflow:hidden; }
-  .meta-progress-fill { height:100%;border-radius:4px;background:var(--rosa);transition:width .4s ease; }
-  .meta-pasos-list { display:flex;flex-direction:column;gap:.35rem; }
-  .meta-paso-row { display:flex;align-items:center;gap:.5rem;cursor:pointer;padding:.2rem 0; }
-  .meta-paso-check { width:17px;height:17px;min-width:17px;border-radius:50%;border:2px solid var(--muted2);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:#fff;transition:all .15s; }
-  .meta-paso-row.done .meta-paso-check { background:var(--rosa);border-color:var(--rosa); }
-  .meta-paso-text { font-size:.78rem;font-weight:600;color:var(--text);transition:color .15s; }
-  .meta-paso-row.done .meta-paso-text { text-decoration:line-through;color:var(--muted2); }
-  .meta-card-actions { display:flex;gap:.5rem;margin-top:.7rem;padding-top:.6rem;border-top:1px solid var(--border); }
-  .meta-action-btn { font-size:.7rem;font-weight:700;color:var(--muted);background:none;border:none;cursor:pointer;padding:.1rem .3rem;border-radius:6px;transition:color .15s; }
-  .meta-action-btn:hover { color:var(--rosa); }
-  .add-meta-btn { display:flex;align-items:center;justify-content:center;gap:.4rem;width:100%;padding:.65rem;border-radius:var(--radius);border:1.5px dashed var(--border);background:transparent;font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:700;color:var(--muted);cursor:pointer;transition:all .2s;margin-top:.4rem; }
-  .add-meta-btn:hover { border-color:var(--rosa);color:var(--rosa); }
-  /* Modal metas */
-  .meta-modal-backdrop { position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1rem; }
-  .meta-modal-box { background:var(--card);border-radius:24px;padding:1.6rem;max-width:440px;width:100%;box-shadow:0 12px 48px rgba(0,0,0,.18);max-height:90vh;overflow-y:auto; }
-  .meta-paso-edit-row { display:flex;align-items:center;gap:.4rem;margin-bottom:.4rem; }
-  .meta-paso-edit-input { flex:1;border:1.5px solid var(--border);border-radius:10px;padding:.4rem .7rem;font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:600;color:var(--text);background:var(--bg);outline:none;transition:border-color .2s; }
-  .meta-paso-edit-input:focus { border-color:var(--rosa); }
-  .meta-paso-edit-del { background:none;border:none;color:var(--muted2);font-size:.85rem;cursor:pointer;padding:.2rem;transition:color .15s; }
-  .meta-paso-edit-del:hover { color:var(--rosa); }
-</style>
-  <span class="section-sub">🎯 crecimiento</span>
-  <h2 class="section-title"><em>Mis</em> Metas</h2>
-  <div class="metas-list" id="metasList"></div>
-  <button class="add-meta-btn" onclick="openMetaModal(null)">＋ Nueva meta</button>
-</section>
+
 
 <script>
 // ══ MOOD TRACKER ══
