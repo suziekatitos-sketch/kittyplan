@@ -1880,34 +1880,43 @@ window.kittyConfirm = function(msg, onYes, onNo) {
     cursor: pointer;
     transition: transform .18s, box-shadow .18s;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 320px;
   }
   .univ-materia-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.1); }
   .univ-materia-card-img {
     width: 100%;
-    height: 90px;
+    height: 160px;
     object-fit: cover;
     display: block;
+    flex-shrink: 0;
   }
   .univ-materia-card-noimg {
     width: 100%;
-    height: 90px;
+    height: 160px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
+    font-size: 3rem;
+    flex-shrink: 0;
   }
   .univ-materia-card-body {
-    padding: .45rem .55rem .5rem;
+    padding: .8rem .9rem 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
   }
   .univ-materia-card-name {
-    font-size: .72rem;
+    font-size: .82rem;
     font-weight: 800;
     color: var(--text);
     line-height: 1.3;
-    margin-bottom: .25rem;
+    margin-bottom: .35rem;
   }
   .univ-materia-card-cal {
-    font-size: .68rem;
+    font-size: .72rem;
     font-weight: 700;
     color: var(--rosa);
   }
@@ -4766,6 +4775,8 @@ function todayKey() { return dateKey(new Date()); }
     <div class="vb-grid" id="vbGrid"></div>
     <div class="vb-add-row">
       <input class="vb-url-input" id="vbUrlInput" placeholder="URL de imagen…" />
+      <span style="font-size:.75rem;color:var(--muted2);padding:0 .5rem">o</span>
+      <input type="file" id="vbFileInput" accept="image/*" style="width:100%;padding:.5rem;border:1.5px solid var(--border);border-radius:8px;font-size:.8rem" placeholder="Subir imagen" />
       <input class="vb-label-input" id="vbLabelInput" placeholder="Etiqueta (opc.)" />
       <button class="vb-add-btn" onclick="vbAdd()">＋ Agregar</button>
     </div>
@@ -4898,17 +4909,46 @@ function todayKey() { return dateKey(new Date()); }
   };
 
   window.vbAdd = function(){
-    var url=document.getElementById('vbUrlInput'); var lbl=document.getElementById('vbLabelInput');
-    if(!url||!url.value.trim()) return;
-    vbItems.push({url:url.value.trim(), label:lbl.value.trim(), posX:'50%', posY:'50%'});
-    url.value=''; lbl.value='';
-    vbSave(); vbRender();
+    var urlInp = document.getElementById('vbUrlInput');
+    var fileInp = document.getElementById('vbFileInput');
+    var lblInp = document.getElementById('vbLabelInput');
+    
+    var url = urlInp ? urlInp.value.trim() : '';
+    var hasFile = fileInp && fileInp.files && fileInp.files[0];
+    
+    if (!url && !hasFile) return;
+    
+    if (url) {
+      // Agregar por URL
+      vbItems.push({url:url, label:lblInp.value.trim(), posX:'50%', posY:'50%'});
+      urlInp.value=''; lblInp.value='';
+      vbSave(); vbRender();
+    } else if (hasFile) {
+      // Agregar por archivo subido
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        vbItems.push({
+          url: e.target.result, 
+          label: lblInp.value.trim(), 
+          posX:'50%', 
+          posY:'50%',
+          tipo: 'archivo'
+        });
+        fileInp.value = '';
+        lblInp.value = '';
+        vbSave(); 
+        vbRender();
+      };
+      reader.readAsDataURL(hasFile);
+    }
   };
   window.vbDelete = function(idx){ vbItems.splice(idx,1); vbSave(); vbRender(); };
 
   document.addEventListener('DOMContentLoaded', function(){
     var inp=document.getElementById('vbUrlInput');
     if(inp) inp.addEventListener('keydown',function(e){if(e.key==='Enter') window.vbAdd();});
+    var fileInp = document.getElementById('vbFileInput');
+    if(fileInp) fileInp.addEventListener('change', function(){if(this.files && this.files[0]) window.vbAdd();});
   });
 
   vbLoad();
@@ -7172,51 +7212,84 @@ function renderEjercicio() {
       var tpl = ejTemplates.find(function(t) { return t.id === reg.templateId; });
       if (!tpl) return;
 
-      var total = tpl.pasos.length;
-      var done = reg.completedSteps.length;
-      var pct = total > 0 ? Math.round(done/total*100) : 0;
-      var allDone = total > 0 && done === total;
-
       var card = document.createElement('div');
       card.className = 'ejercicio-day-card';
 
-      // Header
-      var hdr = document.createElement('div');
-      hdr.className = 'ejercicio-day-card-hdr';
-      hdr.innerHTML = '<div class="ejercicio-emoji">' + tpl.emoji + '</div>' +
-        '<div class="ejercicio-card-info">' +
+      // Si es foto
+      if (tpl.tipo === 'foto') {
+        var hdr = document.createElement('div');
+        hdr.className = 'ejercicio-day-card-hdr';
+        
+        var fotoDisplay = document.createElement('div');
+        fotoDisplay.style.cssText = 'width:100%;max-height:300px;overflow:hidden;border-radius:10px;margin-bottom:1rem';
+        fotoDisplay.innerHTML = '<img src="' + tpl.foto + '" style="width:100%;height:100%;object-fit:cover;border-radius:10px">';
+        
+        hdr.innerHTML = '<div style="flex:1; min-width:0;">' +
           '<div class="ejercicio-card-name">' + tpl.name + '</div>' +
-          '<div class="ejercicio-card-meta">' + done + '/' + total + ' ejercicios</div>' +
-        '</div>' +
-        '<div class="ejercicio-prog-mini"><div class="ejercicio-prog-mini-fill" style="width:' + pct + '%"></div></div>' +
-        (allDone ? '<span class="ejercicio-done-badge">Completada</span>' : '') +
-        '<span class="ejercicio-chevron">v</span>';
+          '<div class="ejercicio-card-meta">📸 Rutina en foto</div>' +
+          '</div>';
 
-      var moreBtn = document.createElement('button');
-      moreBtn.className = 'rut-action-btn';
-      moreBtn.textContent = '⋯';
-      moreBtn.title = 'Opciones';
-      moreBtn.onclick = function(e) {
-        e.stopPropagation();
-        kittyConfirm('¿Quitar "' + tpl.name + '" del registro de este día?', function() {
-          ejRegistros[dk].splice(regIdx, 1);
-          saveEjercicio(); renderEjercicio();
-        });
-      };
-      hdr.appendChild(moreBtn);
-      hdr.onclick = function() {
-        card.classList.toggle('ej-open');
-        if (card.classList.contains('ej-open')) renderEjPasos(card, tpl, reg, regIdx, dk);
-      };
+        var moreBtn = document.createElement('button');
+        moreBtn.className = 'rut-action-btn';
+        moreBtn.textContent = '⋯';
+        moreBtn.title = 'Opciones';
+        moreBtn.onclick = function(e) {
+          e.stopPropagation();
+          kittyConfirm('¿Quitar "' + tpl.name + '" del registro de este día?', function() {
+            ejRegistros[dk].splice(regIdx, 1);
+            saveEjercicio(); renderEjercicio();
+          });
+        };
+        hdr.appendChild(moreBtn);
 
-      // Delete button
-      // del moved to ⋯ inside step view
+        var body = document.createElement('div');
+        body.className = 'ejercicio-body';
+        body.appendChild(fotoDisplay);
+        body.style.display = 'block';
 
-      // Body
-      var body = document.createElement('div');
-      body.className = 'ejercicio-body';
-      card.appendChild(hdr);
-      card.appendChild(body);
+        card.appendChild(hdr);
+        card.appendChild(body);
+      } else {
+        // Rutina de texto con pasos
+        var total = tpl.pasos.length;
+        var done = reg.completedSteps.length;
+        var pct = total > 0 ? Math.round(done/total*100) : 0;
+        var allDone = total > 0 && done === total;
+
+        var hdr = document.createElement('div');
+        hdr.className = 'ejercicio-day-card-hdr';
+        hdr.innerHTML = '<div class="ejercicio-emoji">' + tpl.emoji + '</div>' +
+          '<div class="ejercicio-card-info">' +
+            '<div class="ejercicio-card-name">' + tpl.name + '</div>' +
+            '<div class="ejercicio-card-meta">' + done + '/' + total + ' ejercicios</div>' +
+          '</div>' +
+          '<div class="ejercicio-prog-mini"><div class="ejercicio-prog-mini-fill" style="width:' + pct + '%"></div></div>' +
+          (allDone ? '<span class="ejercicio-done-badge">Completada</span>' : '') +
+          '<span class="ejercicio-chevron">v</span>';
+
+        var moreBtn = document.createElement('button');
+        moreBtn.className = 'rut-action-btn';
+        moreBtn.textContent = '⋯';
+        moreBtn.title = 'Opciones';
+        moreBtn.onclick = function(e) {
+          e.stopPropagation();
+          kittyConfirm('¿Quitar "' + tpl.name + '" del registro de este día?', function() {
+            ejRegistros[dk].splice(regIdx, 1);
+            saveEjercicio(); renderEjercicio();
+          });
+        };
+        hdr.appendChild(moreBtn);
+        hdr.onclick = function() {
+          card.classList.toggle('ej-open');
+          if (card.classList.contains('ej-open')) renderEjPasos(card, tpl, reg, regIdx, dk);
+        };
+
+        var body = document.createElement('div');
+        body.className = 'ejercicio-body';
+        card.appendChild(hdr);
+        card.appendChild(body);
+      }
+
       dayWrap.appendChild(card);
     });
 
@@ -7342,10 +7415,26 @@ function renderEjPlantillas() {
     var card = document.createElement('div');
     card.className = 'ejercicio-plantilla-card';
     card.style.cursor = 'pointer';
-    card.innerHTML = '<span style="font-size:1.3rem">' + tpl.emoji + '</span>' +
-      '<div class="ejercicio-plantilla-info">' +
-        '<div class="ejercicio-plantilla-name">' + tpl.name + '</div>' +
-      '</div>';
+    
+    if (tpl.tipo === 'foto') {
+      // Mostrar foto pequeña
+      card.innerHTML = '<div style="width:50px;height:50px;border-radius:8px;overflow:hidden;background:var(--surface)">' +
+        '<img src="' + tpl.foto + '" style="width:100%;height:100%;object-fit:cover">' +
+        '</div>' +
+        '<div class="ejercicio-plantilla-info">' +
+          '<div class="ejercicio-plantilla-name">' + tpl.name + '</div>' +
+          '<div class="ejercicio-plantilla-meta">📸 Foto</div>' +
+        '</div>';
+    } else {
+      // Mostrar emoji y meta con cantidad de pasos
+      var totalPasos = tpl.pasos.length;
+      card.innerHTML = '<span style="font-size:1.3rem">' + tpl.emoji + '</span>' +
+        '<div class="ejercicio-plantilla-info">' +
+          '<div class="ejercicio-plantilla-name">' + tpl.name + '</div>' +
+          '<div class="ejercicio-plantilla-meta">' + totalPasos + ' pasos</div>' +
+        '</div>';
+    }
+    
     card.onclick = function() { openEjViewModal(tpl.id); };
     list.appendChild(card);
   });
@@ -7371,17 +7460,28 @@ function openEjViewModal(templateId) {
   editBtn.style.cssText = 'position:absolute;top:.7rem;right:.7rem;background:var(--pink-light,#fde8f0);border:none;border-radius:50%;width:32px;height:32px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;';
   editBtn.onclick = function() { back.remove(); openEjModal(templateId); };
 
-  var pasosHtml = '';
-  (tpl.pasos || []).forEach(function(p, i) {
-    pasosHtml += '<div style="display:flex;align-items:center;gap:.5rem;padding:.35rem .5rem;border-radius:8px;background:var(--bg);border:1.5px solid var(--border);margin-bottom:.3rem">' +
-      '<span style="font-size:.65rem;font-weight:700;color:var(--muted2);min-width:16px">' + (i+1) + '.</span>' +
-      '<span style="font-size:.8rem;color:var(--text);font-weight:500">' + pasoText(p) + '</span></div>';
-  });
-
   var inner = document.createElement('div');
-  inner.innerHTML = '<div class="rutina-modal-title" style="padding-right:2.5rem">' + tpl.emoji + ' <em>' + tpl.name + '</em></div>' +
-    '<div style="margin-top:.6rem">' + (pasosHtml || '<div style="color:var(--muted2);font-size:.8rem">Sin ejercicios registrados.</div>') + '</div>' +
-    '<div class="modal-btns" style="margin-top:1rem"><button class="modal-btn-cancel" id="ejViewClose">Cerrar</button></div>';
+  
+  if (tpl.tipo === 'foto') {
+    // Mostrar foto grande
+    inner.innerHTML = '<div class="rutina-modal-title" style="padding-right:2.5rem">📸 <em>' + tpl.name + '</em></div>' +
+      '<div style="margin-top:.6rem; text-align:center;">' +
+      '<img src="' + tpl.foto + '" style="max-width:100%; max-height:400px; border-radius:12px;">' +
+      '</div>' +
+      '<div class="modal-btns" style="margin-top:1rem"><button class="modal-btn-cancel" id="ejViewClose">Cerrar</button></div>';
+  } else {
+    // Mostrar pasos de texto
+    var pasosHtml = '';
+    (tpl.pasos || []).forEach(function(p, i) {
+      pasosHtml += '<div style="display:flex;align-items:center;gap:.5rem;padding:.35rem .5rem;border-radius:8px;background:var(--bg);border:1.5px solid var(--border);margin-bottom:.3rem">' +
+        '<span style="font-size:.65rem;font-weight:700;color:var(--muted2);min-width:16px">' + (i+1) + '.</span>' +
+        '<span style="font-size:.8rem;color:var(--text);font-weight:500">' + pasoText(p) + '</span></div>';
+    });
+
+    inner.innerHTML = '<div class="rutina-modal-title" style="padding-right:2.5rem">' + tpl.emoji + ' <em>' + tpl.name + '</em></div>' +
+      '<div style="margin-top:.6rem">' + (pasosHtml || '<div style="color:var(--muted2);font-size:.8rem">Sin ejercicios registrados.</div>') + '</div>' +
+      '<div class="modal-btns" style="margin-top:1rem"><button class="modal-btn-cancel" id="ejViewClose">Cerrar</button></div>';
+  }
 
   box.appendChild(editBtn);
   box.appendChild(inner);
@@ -7390,13 +7490,44 @@ function openEjViewModal(templateId) {
   document.body.appendChild(back);
 }
 
-function openEjModal(templateId) {
+// Abre modal para seleccionar tipo de rutina (texto o foto)
+function openEjTipoModal() {
+  var backdrop = document.createElement('div');
+  backdrop.className = 'rutina-modal-backdrop';
+  backdrop.onclick = function(e) { if (e.target === backdrop) backdrop.remove(); };
+
+  var box = document.createElement('div');
+  box.className = 'rutina-modal-box';
+  box.style.maxWidth = '400px';
+  
+  box.innerHTML = '<div class="rutina-modal-title">💪 <em>¿Qué tipo de rutina?</em></div>' +
+    '<div style="display:flex; gap:1rem; margin-top:2rem;">' +
+    '<button class="modal-btn-save" style="flex:1;" onclick="openEjModal(null, \'texto\')">📝 Texto con pasos</button>' +
+    '<button class="modal-btn-save" style="flex:1;" onclick="openEjModal(null, \'foto\')">📸 Foto</button>' +
+    '</div>' +
+    '<div style="margin-top:1rem;">' +
+    '<button class="modal-btn-cancel" style="width:100%;" onclick="this.parentElement.parentElement.parentElement.remove()">Cancelar</button>' +
+    '</div>';
+
+  backdrop.appendChild(box);
+  document.body.appendChild(backdrop);
+}
+
+function openEjModal(templateId, tipo) {
+  // Si no hay tipo, preguntamos
+  if (!tipo && !templateId) {
+    openEjTipoModal();
+    return;
+  }
+
   var existing = templateId ? ejTemplates.find(function(t) { return t.id === templateId; }) : null;
+  var ejTipo = tipo || (existing ? existing.tipo : 'texto');
   var old = document.getElementById('ejEditModal');
   if (old) old.remove();
 
   var nombre = existing ? existing.name : '';
   var emoji  = existing ? existing.emoji : '💪';
+  var foto   = existing ? existing.foto : '';
   var pasos  = existing ? JSON.parse(JSON.stringify(existing.pasos)) : [];
 
   var back = document.createElement('div');
@@ -7407,22 +7538,32 @@ function openEjModal(templateId) {
   var box = document.createElement('div');
   box.className = 'rutina-modal-box';
 
-  var emojiOpts = ['💪','🧘','🏃','🤸','🚴','🏋️','⚽','🧗','🤼','🏊','🥊','🎯','🌿','✨'];
-  var emojiPickerHtml = emojiOpts.map(function(e) {
-    return '<span class="emoji-opt' + (e === emoji ? ' selected' : '') + '" data-emoji="' + e + '">' + e + '</span>';
-  }).join('');
-
-  box.innerHTML = '<div class="rutina-modal-title">💪 <em>' + (existing ? 'Editar' : 'Nueva') + ' rutina</em></div>' +
+  // HTML diferente según tipo
+  var htmlContenido = ejTipo === 'foto' ? 
+    '<div class="modal-field"><label class="modal-label">Nombre de la rutina</label>' +
+    '<input class="modal-input" id="ejNombre" placeholder="ej: Rutina full body..." value="' + nombre.replace(/"/g,'&quot;') + '"></div>' +
+    '<div class="modal-field"><label class="modal-label">Foto</label>' +
+    '<input type="file" id="ejFotoInput" accept="image/*" style="width:100%; padding:.5rem; border:1.5px solid var(--border); border-radius:8px;">' +
+    (foto ? '<div style="margin-top:.5rem; text-align:center;"><img src="' + foto + '" style="max-width:100%; max-height:200px; border-radius:8px;"></div>' : '') +
+    '</div>'
+    :
     '<div class="modal-field"><label class="modal-label">Nombre</label>' +
     '<input class="modal-input" id="ejNombre" placeholder="ej: Rutina de cintura, Yoga matutino..." value="' + nombre.replace(/"/g, '&quot;') + '"></div>' +
     '<div class="modal-field"><label class="modal-label">Emoji</label>' +
-    '<div class="emoji-picker-row" id="ejEmojiPicker">' + emojiPickerHtml + '</div></div>' +
+    '<div class="emoji-picker-row" id="ejEmojiPicker">' + 
+      ['💪','🧘','🏃','🤸','🚴','🏋️','⚽','🧗','🤼','🏊','🥊','🎯','🌿','✨'].map(function(e) {
+        return '<span class="emoji-opt' + (e === emoji ? ' selected' : '') + '" data-emoji="' + e + '">' + e + '</span>';
+      }).join('') +
+    '</div></div>' +
     '<div class="modal-field"><label class="modal-label">Ejercicios</label>' +
     '<div id="ejPasosList"></div>' +
-    '<button class="rutina-add-paso-btn" id="ejAddPasoBtn">+ Agregar ejercicio</button></div>' +
+    '<button class="rutina-add-paso-btn" id="ejAddPasoBtn">+ Agregar ejercicio</button></div>';
+
+  box.innerHTML = '<div class="rutina-modal-title">💪 <em>' + (existing ? 'Editar' : 'Nueva') + ' rutina ' + (ejTipo === 'foto' ? '📸' : '📝') + '</em></div>' +
+    htmlContenido +
+    (existing ? '<div style="margin-top:.8rem;padding-top:.8rem;border-top:1.5px solid var(--border)"><button class="modal-btn-delete" id="ejDelBtn" style="width:100%">🗑️ Eliminar rutina</button></div>' : '') +
     '<div class="modal-btns">' +
     '<button class="modal-btn-cancel" id="ejEditModalCancel">Cancelar</button>' +
-    (existing ? '<button class="modal-btn-delete" id="ejDelBtn">⋯ Eliminar</button>' : '') +
     '<button class="modal-btn-save" id="ejSaveBtn">Guardar 💪</button></div>';
 
   back.appendChild(box);
@@ -7441,61 +7582,113 @@ function openEjModal(templateId) {
     };
   }
 
-  // Emoji picker
-  var selectedEmoji = emoji;
-  back.querySelectorAll('.emoji-opt').forEach(function(opt) {
-    opt.onclick = function() {
-      back.querySelectorAll('.emoji-opt').forEach(function(o) { o.classList.remove('selected'); });
-      opt.classList.add('selected');
-      selectedEmoji = opt.dataset.emoji;
-    };
-  });
-
-  function renderPasos() {
-    var list = box.querySelector('#ejPasosList');
-    list.innerHTML = '';
-    pasos.forEach(function(paso, pi) {
-      var row = document.createElement('div');
-      row.className = 'ej-paso-edit-row';
-      row.innerHTML = '<span style="font-size:.65rem;font-weight:700;color:var(--muted2);min-width:16px">' + (pi+1) + '.</span>' +
-        '<input type="text" placeholder="Nombre del ejercicio..." value="' + paso.texto.replace(/"/g,'&quot;') + '">' +
-        '<input type="text" class="ej-dur-input" placeholder="dur. (opc.)" value="' + (paso.duracion || '').replace(/"/g,'&quot;') + '">' +
-        '<button class="rutina-paso-del">x</button>';
-      row.querySelectorAll('input')[0].oninput = function(e) { pasos[pi].texto = e.target.value; };
-      row.querySelectorAll('input')[1].oninput = function(e) { pasos[pi].duracion = e.target.value; };
-      row.querySelector('.rutina-paso-del').onclick = function() { pasos.splice(pi,1); renderPasos(); };
-      list.appendChild(row);
+  // Emoji picker (solo para texto)
+  if (ejTipo === 'texto') {
+    var selectedEmoji = emoji;
+    back.querySelectorAll('.emoji-opt').forEach(function(opt) {
+      opt.onclick = function() {
+        back.querySelectorAll('.emoji-opt').forEach(function(o) { o.classList.remove('selected'); });
+        opt.classList.add('selected');
+        selectedEmoji = opt.dataset.emoji;
+      };
     });
-  }
 
-  renderPasos();
-
-  box.querySelector('#ejAddPasoBtn').onclick = function() {
-    pasos.push({ texto:'', duracion:'' });
-    renderPasos();
-    var inputs = box.querySelectorAll('#ejPasosList input[type=text]');
-    var last = inputs[inputs.length - 2];
-    if (last) last.focus();
-  };
-
-  box.querySelector('#ejSaveBtn').onclick = function() {
-    var n = box.querySelector('#ejNombre').value.trim();
-    if (!n) { box.querySelector('#ejNombre').focus(); return; }
-    var cleanPasos = pasos.filter(function(p) { return p.texto.trim() !== ''; })
-      .map(function(p) { return { texto: p.texto.trim(), duracion: p.duracion ? p.duracion.trim() : '' }; });
-
-    if (existing) {
-      existing.name = n;
-      existing.emoji = selectedEmoji;
-      existing.pasos = cleanPasos;
-    } else {
-      ejTemplates.push({ id: 'ej_' + Date.now(), name: n, emoji: selectedEmoji, pasos: cleanPasos });
+    function renderPasos() {
+      var list = box.querySelector('#ejPasosList');
+      list.innerHTML = '';
+      pasos.forEach(function(paso, pi) {
+        var row = document.createElement('div');
+        row.className = 'ej-paso-edit-row';
+        row.innerHTML = '<span style="font-size:.65rem;font-weight:700;color:var(--muted2);min-width:16px">' + (pi+1) + '.</span>' +
+          '<input type="text" placeholder="Nombre del ejercicio..." value="' + paso.texto.replace(/"/g,'&quot;') + '">' +
+          '<input type="text" class="ej-dur-input" placeholder="dur. (opc.)" value="' + (paso.duracion || '').replace(/"/g,'&quot;') + '">' +
+          '<button class="rutina-paso-del">x</button>';
+        row.querySelectorAll('input')[0].oninput = function(e) { pasos[pi].texto = e.target.value; };
+        row.querySelectorAll('input')[1].oninput = function(e) { pasos[pi].duracion = e.target.value; };
+        row.querySelector('.rutina-paso-del').onclick = function() { pasos.splice(pi,1); renderPasos(); };
+        list.appendChild(row);
+      });
     }
-    saveEjercicio(); renderEjercicio();
-    back.remove();
-  };
 
-  box.querySelector('#ejNombre').focus();
+    renderPasos();
+
+    box.querySelector('#ejAddPasoBtn').onclick = function() {
+      pasos.push({ texto:'', duracion:'' });
+      renderPasos();
+      var inputs = box.querySelectorAll('#ejPasosList input[type=text]');
+      var last = inputs[inputs.length - 2];
+      if (last) last.focus();
+    };
+
+    box.querySelector('#ejSaveBtn').onclick = function() {
+      var n = box.querySelector('#ejNombre').value.trim();
+      if (!n) { box.querySelector('#ejNombre').focus(); return; }
+      var cleanPasos = pasos.filter(function(p) { return p.texto.trim() !== ''; })
+        .map(function(p) { return { texto: p.texto.trim(), duracion: p.duracion ? p.duracion.trim() : '' }; });
+
+      if (existing) {
+        existing.name = n;
+        existing.emoji = selectedEmoji;
+        existing.pasos = cleanPasos;
+        existing.tipo = 'texto';
+      } else {
+        ejTemplates.push({ id: 'ej_' + Date.now(), name: n, emoji: selectedEmoji, pasos: cleanPasos, tipo: 'texto' });
+      }
+      saveEjercicio(); renderEjercicio();
+      back.remove();
+    };
+
+    box.querySelector('#ejNombre').focus();
+  } else {
+    // Tipo FOTO
+    box.querySelector('#ejSaveBtn').onclick = function() {
+      var n = box.querySelector('#ejNombre').value.trim();
+      if (!n) { box.querySelector('#ejNombre').focus(); return; }
+
+      var fotoInput = box.querySelector('#ejFotoInput');
+      var fotoData = foto;
+      
+      if (fotoInput && fotoInput.files && fotoInput.files[0]) {
+        // Convertir foto a base64
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          fotoData = e.target.result;
+          
+          if (existing) {
+            existing.name = n;
+            existing.foto = fotoData;
+            existing.tipo = 'foto';
+          } else {
+            ejTemplates.push({
+              id: 'ej_' + Date.now(),
+              name: n,
+              foto: fotoData,
+              tipo: 'foto'
+            });
+          }
+          
+          saveEjercicio();
+          renderEjercicio();
+          back.remove();
+        };
+        reader.readAsDataURL(fotoInput.files[0]);
+        return;
+      } else if (existing) {
+        // Editando, mantener foto existente
+        existing.name = n;
+        existing.tipo = 'foto';
+        saveEjercicio();
+        renderEjercicio();
+        back.remove();
+        return;
+      } else if (!fotoData) {
+        alert('Por favor selecciona una foto');
+        return;
+      }
+    };
+
+    box.querySelector('#ejNombre').focus();
+  }
 }
 
 // Patch cloud sync
@@ -13225,7 +13418,7 @@ document.addEventListener('DOMContentLoaded', function() {
       var thumb = document.createElement('div');
       thumb.className = 'univ-link-card-thumb';
       thumb.style.background = cat.bg;
-      thumb.textContent = cat.emoji;
+      thumb.textContent = lnk.tipo === 'archivo' ? '📎' : cat.emoji;
       card.appendChild(thumb);
 
       // Delete btn
@@ -13257,18 +13450,33 @@ document.addEventListener('DOMContentLoaded', function() {
       title.className = 'univ-link-card-title';
       title.textContent = lnk.title;
 
-      var url = document.createElement('div');
-      url.className = 'univ-link-card-url';
-      try { url.textContent = new URL(lnk.url).hostname; } catch(e) { url.textContent = lnk.url; }
+      var urlOrFile = document.createElement('div');
+      urlOrFile.className = 'univ-link-card-url';
+      
+      if (lnk.tipo === 'archivo') {
+        urlOrFile.textContent = '📄 ' + (lnk.nombreArchivo || 'Archivo');
+      } else {
+        try { urlOrFile.textContent = new URL(lnk.url).hostname; } catch(e) { urlOrFile.textContent = lnk.url; }
+      }
 
       body.appendChild(tag);
       body.appendChild(title);
-      body.appendChild(url);
+      body.appendChild(urlOrFile);
       card.appendChild(body);
 
-      // Click abre el link
+      // Click abre el link o descarga el archivo
       card.onclick = function() {
-        if (lnk.url) window.open(lnk.url, '_blank', 'noopener');
+        if (lnk.tipo === 'archivo' && lnk.archivo) {
+          // Descargar archivo
+          var link = document.createElement('a');
+          link.href = lnk.archivo;
+          link.download = lnk.nombreArchivo || 'archivo';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } else if (lnk.url) {
+          window.open(lnk.url, '_blank', 'noopener');
+        }
       };
 
       grid.appendChild(card);
@@ -13292,8 +13500,15 @@ document.addEventListener('DOMContentLoaded', function() {
       '<div class="rutina-modal-title">🔗 <em>Nuevo recurso</em></div>' +
       '<div class="modal-field"><label class="modal-label">Nombre del recurso</label>' +
       '<input class="modal-input" id="univLinkTitle" placeholder="ej: Anatomía 3D — Visible Body" style="width:100%"></div>' +
-      '<div class="modal-field" style="margin-top:.8rem"><label class="modal-label">URL</label>' +
+      '<div class="modal-field" style="margin-top:.8rem"><label class="modal-label">Tipo</label>' +
+      '<div style="display:flex;gap:.5rem;margin-top:.4rem">' +
+      '<button class="univ-tipo-btn" data-tipo="url" style="flex:1;padding:.5rem;border-radius:10px;border:2px solid var(--rosa);background:var(--rosa-soft);color:var(--rosa);font-weight:700;cursor:pointer;font-family:Nunito,sans-serif;transition:all .15s">🔗 Link</button>' +
+      '<button class="univ-tipo-btn" data-tipo="archivo" style="flex:1;padding:.5rem;border-radius:10px;border:2px solid var(--border);background:transparent;color:var(--text);font-weight:700;cursor:pointer;font-family:Nunito,sans-serif;transition:all .15s">📎 Archivo</button>' +
+      '</div></div>' +
+      '<div id="univLinkUrlField" class="modal-field" style="margin-top:.8rem"><label class="modal-label">URL</label>' +
       '<input class="modal-input" id="univLinkUrl" placeholder="https://..." style="width:100%"></div>' +
+      '<div id="univLinkFileField" class="modal-field" style="margin-top:.8rem;display:none"><label class="modal-label">Archivo</label>' +
+      '<input type="file" id="univLinkFile" style="width:100%;padding:.5rem;border:1.5px solid var(--border);border-radius:8px;"></div>' +
       '<div class="modal-field" style="margin-top:.8rem"><label class="modal-label">Categoría</label>' +
       '<div style="display:flex;flex-wrap:wrap;margin-top:.2rem" id="univLinkCats">' + catOpts + '</div></div>' +
       '<div class="modal-btns" style="margin-top:1.2rem">' +
@@ -13304,6 +13519,29 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.appendChild(back);
 
     var selCat = 'otro';
+    var selTipo = 'url';
+    
+    // Toggle tipo buttons
+    box.querySelectorAll('.univ-tipo-btn').forEach(function(btn) {
+      btn.onclick = function() {
+        selTipo = btn.dataset.tipo;
+        box.querySelectorAll('.univ-tipo-btn').forEach(function(b) {
+          if (b.dataset.tipo === selTipo) {
+            b.style.borderColor = 'var(--rosa)';
+            b.style.background = 'var(--rosa-soft)';
+            b.style.color = 'var(--rosa)';
+          } else {
+            b.style.borderColor = 'var(--border)';
+            b.style.background = 'transparent';
+            b.style.color = 'var(--text)';
+          }
+        });
+        // Toggle field visibility
+        document.getElementById('univLinkUrlField').style.display = selTipo === 'url' ? 'block' : 'none';
+        document.getElementById('univLinkFileField').style.display = selTipo === 'archivo' ? 'block' : 'none';
+      };
+    });
+    
     function updateCatBtns() {
       box.querySelectorAll('.univ-link-cat-btn').forEach(function(b) {
         var active = b.dataset.cat === selCat;
@@ -13321,13 +13559,43 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('univLinkCancel').onclick = function() { back.remove(); };
     document.getElementById('univLinkSave').onclick = function() {
       var t = document.getElementById('univLinkTitle').value.trim();
-      var u = document.getElementById('univLinkUrl').value.trim();
-      if (!t || !u) return;
-      if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
-      univLinks.push({ id:'lnk_'+Date.now(), title:t, url:u, cat:selCat });
-      saveUnivLinks();
-      renderUnivLinks();
-      back.remove();
+      
+      if (!t) return;
+      
+      if (selTipo === 'url') {
+        var u = document.getElementById('univLinkUrl').value.trim();
+        if (!u) return;
+        if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
+        univLinks.push({ id:'lnk_'+Date.now(), title:t, url:u, cat:selCat, tipo:'url' });
+        saveUnivLinks();
+        renderUnivLinks();
+        back.remove();
+      } else {
+        // Upload de archivo
+        var fileInput = document.getElementById('univLinkFile');
+        if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+          alert('Por favor selecciona un archivo');
+          return;
+        }
+        
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          var fileData = e.target.result;
+          var fileName = fileInput.files[0].name;
+          univLinks.push({ 
+            id:'lnk_'+Date.now(), 
+            title:t, 
+            archivo:fileData, 
+            nombreArchivo:fileName,
+            cat:selCat, 
+            tipo:'archivo' 
+          });
+          saveUnivLinks();
+          renderUnivLinks();
+          back.remove();
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      }
     };
 
     // Enter en URL guarda
