@@ -1894,32 +1894,47 @@ window.kittyConfirm = function(msg, onYes, onNo) {
   .univ-materia-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.1); }
   .univ-materia-card-img {
     width: 100%;
-    height: 90px;
+    height: 100%;
     object-fit: cover;
     display: block;
   }
   .univ-materia-card-noimg {
     width: 100%;
-    height: 90px;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 2rem;
   }
   .univ-materia-card-body {
-    padding: .45rem .55rem .5rem;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: .4rem .5rem;
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+    z-index: 5;
   }
   .univ-materia-card-name {
-    font-size: .72rem;
+    font-size: .6rem;
     font-weight: 800;
-    color: var(--text);
-    line-height: 1.3;
-    margin-bottom: .25rem;
+    color: white;
+    line-height: 1.2;
+    text-shadow: 0 1px 2px rgba(0,0,0,.4);
+    padding: .3rem .4rem;
+    border-radius: 6px;
+    width: fit-content;
   }
   .univ-materia-card-cal {
-    font-size: .68rem;
+    font-size: .55rem;
     font-weight: 700;
-    color: var(--rosa);
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,.4);
+    padding: .2rem .3rem;
+    border-radius: 4px;
+    width: fit-content;
   }
   .univ-materia-card-del {
     position: absolute;
@@ -4582,9 +4597,14 @@ function todayKey() { return dateKey(new Date()); }
   .vb-section { margin-bottom: 2.5rem; }
   .vb-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: .7rem;
     margin-top: 1rem;
+  }
+  @media (min-width: 768px) {
+    .vb-grid {
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    }
   }
   .vb-card {
     border-radius: 16px;
@@ -12320,6 +12340,26 @@ function loadUniv() {
       }];
     }
   }
+  // Limpiar materias duplicadas/corruptas
+  cleanupMaterias();
+}
+
+function cleanupMaterias() {
+  univData.semestres.forEach(function(sem) {
+    if (!sem.materias) return;
+    // Filtrar materias válidas (que tengan nombre)
+    sem.materias = sem.materias.filter(function(mat) {
+      return mat && mat.name && mat.name.trim().length > 0;
+    });
+    // Remover duplicados por nombre
+    var seen = {};
+    sem.materias = sem.materias.filter(function(mat) {
+      if (seen[mat.name]) return false;
+      seen[mat.name] = true;
+      return true;
+    });
+  });
+  saveUniv();
 }
 
 var MESES_CORTO = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
