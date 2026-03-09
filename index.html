@@ -1868,14 +1868,14 @@ window.kittyConfirm = function(msg, onYes, onNo) {
   /* Materias — tarjetas con foto */
   .univ-materias-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: .7rem;
     margin-top: .3rem;
     width: 100%;
     padding: 1.5rem;
     background: var(--surface);
     border-radius: 16px;
-    min-height: 650px;
+    min-height: 500px;
   }
   .univ-materia-card {
     background: var(--card);
@@ -1888,6 +1888,8 @@ window.kittyConfirm = function(msg, onYes, onNo) {
     display: flex;
     flex-direction: column;
     aspect-ratio: 2/3;
+    max-width: 130px;
+    margin: 0 auto;
   }
   .univ-materia-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.1); }
   .univ-materia-card-img {
