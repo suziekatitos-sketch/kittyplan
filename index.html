@@ -12340,19 +12340,6 @@ function loadUniv() {
       }];
     }
   }
-  // Limpiar materias duplicadas/corruptas
-  cleanupMaterias();
-}
-
-function cleanupMaterias() {
-  univData.semestres.forEach(function(sem) {
-    if (!sem.materias) return;
-    // Filtrar materias válidas (que tengan nombre)
-    sem.materias = sem.materias.filter(function(mat) {
-      return mat && mat.name && mat.name.trim().length > 0;
-    });
-  });
-  saveUniv();
 }
 
 var MESES_CORTO = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -13217,7 +13204,9 @@ function openUnivMateriaModal(editIdx) {
     } else {
       sem.materias.push({ id:'mat_'+Date.now(), name:n, color:selColor, img:selImgData, calificacion:'' });
     }
-    saveUniv(); renderUniv(); back.remove();
+    saveUniv(); 
+    renderUnivMaterias();
+    back.remove();
   };
   document.getElementById('univMatNombre').focus();
 }
