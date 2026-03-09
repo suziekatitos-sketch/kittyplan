@@ -11825,6 +11825,7 @@ const NAV_PAGES = [
   { icon:'🏠', label:'Inicio',     page:'page-inicio'    },
   { icon:'🐱', label:'Mi Semana',  page:'page-semana'    },
   { icon:'🙏', label:'Fe',         page:'page-fe'        },
+  { icon:'💙', label:'Medicina',   page:'page-univ'      },
   { icon:'🌿', label:'Calma',      page:'page-calma'     },
   { icon:'📝', label:'Tareas',     page:'page-tareas'    },
   { icon:'🌸', label:'Rutinas',    page:'page-rutinas'   },
@@ -11833,16 +11834,15 @@ const NAV_PAGES = [
   { icon:'🍽️', label:'Recetario',  page:'page-recetario' },
   { icon:'✨', label:'Selfcare',   page:'page-selfcare'  },
   { icon:'🧹', label:'Limpieza',   page:'page-limpieza'  },
-  { icon:'💸', label:'Finanzas',   page:'page-finanzas'  },
-  { icon:'💙', label:'Medicina',   page:'page-univ'      },
   { icon:'🦄', label:'Intereses',  page:'page-intereses' },
-  { icon:'📅', label:'Historial',  page:'page-historial' },
   { icon:'🧠', label:'Braindump', page:'page-braindump' },
   { icon:'📋', label:'Listas',     page:'page-listas'    },
+  { icon:'💸', label:'Finanzas',   page:'page-finanzas'  },
+  { icon:'📅', label:'Historial',  page:'page-historial' },
   { icon:'⚙️', label:'Config',     page:'page-config'    },
 ];
 
-let activePage = 'page-semana';
+let activePage = 'page-inicio';
 
 function showPage(pageId) {
   activePage = pageId;
@@ -11916,7 +11916,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var overlay = document.getElementById('drawerOverlay');
   if (overlay) overlay.onclick = closeDrawer;
   renderDrawerNav();
-  showPage('page-semana');
+  showPage('page-inicio');
   syncImgColHeight();
 });
 </script>
