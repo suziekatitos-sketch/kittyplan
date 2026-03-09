@@ -135,6 +135,19 @@ window.kittyConfirm = function(msg, onYes, onNo) {
         if (raw.metas_data)       { window._metasData       = JSON.parse(raw.metas_data);       }
         if (raw.ql_lists)         { window._qlLists         = JSON.parse(raw.ql_lists);         }
         if (raw.wl_items)         { window._wlItems         = JSON.parse(raw.wl_items);         }
+        // Mirror Firebase → localStorage para todas las keys conocidas
+        const mirrorKeys = ['sem_data','sem_custom','recurring_tasks','completions',
+          'rutina_templates','rutina_asignaciones','rutina_completions','desglose_items',
+          'gratitud_data','sueno_data','mens_data','deco_imgs','ej_templates','ej_registros',
+          'dios_data','versiculos','univ_data','belleza_templates','belleza_registros',
+          'braindump_notes','vb_items','metas_data','mood_data','ql_lists','wl_items',
+          'ci_state','nd_state','calm_tools','water_goal','water_state','food_state',
+          'logros_data','fortalezas','cambio_state','cambio_custom'];
+        mirrorKeys.forEach(function(k) {
+          if (raw[k] !== undefined) {
+            try { localStorage.setItem(k, raw[k]); } catch(e) {}
+          }
+        });
         if (raw.ci_state)     { window._checkinState = JSON.parse(raw.ci_state);     }
         if (raw.nd_state)     { window._needsState   = JSON.parse(raw.nd_state);     }
         if (raw.calm_tools)   { window._calmTools    = JSON.parse(raw.calm_tools);   }
@@ -150,12 +163,34 @@ window.kittyConfirm = function(msg, onYes, onNo) {
     });
   }
 
+  // Cola de guardado pendiente por si el usuario no está autenticado aún
+  var _pendingSaves = {};
+
   window.cloudSave = async function(key, value) {
-    if (!currentUID) return;
+    // Guardar siempre en la cola local por si falla
+    _pendingSaves[key] = value;
+    if (!currentUID) {
+      console.log('cloudSave: sin usuario, guardado en cola →', key);
+      return;
+    }
     try {
       await setDoc(getUserDoc(currentUID), { [key]: JSON.stringify(value) }, { merge: true });
+      delete _pendingSaves[key]; // éxito, quitar de cola
     } catch(e) { console.warn("cloudSave error", e); }
   };
+
+  // Cuando el usuario se autentica, enviar todo lo que estaba en cola
+  async function flushPendingSaves() {
+    var keys = Object.keys(_pendingSaves);
+    if (!keys.length || !currentUID) return;
+    console.log('Flushing', keys.length, 'saves pendientes...');
+    for (var k of keys) {
+      try {
+        await setDoc(getUserDoc(currentUID), { [k]: JSON.stringify(_pendingSaves[k]) }, { merge: true });
+        delete _pendingSaves[k];
+      } catch(e) { console.warn('flush error', k, e); }
+    }
+  }
 
   window.cloudLoad = async function() {
     if (!currentUID) return {};
@@ -217,6 +252,7 @@ window.kittyConfirm = function(msg, onYes, onNo) {
       if (avatarEl && user.photoURL) avatarEl.src = user.photoURL;
       window._currentUser = user;
       if (window._onConfigUser) window._onConfigUser(user);
+      flushPendingSaves(); // enviar datos que esperaban autenticación
       // Actualizar drawer perfil
       var dn = document.getElementById('drawerProfileName');
       var dai = document.getElementById('drawerAvatarImg');
@@ -11682,7 +11718,13 @@ let cambioState   = {}; // key: "wo|dayIdx|cardId" => bool
 let cambioCustom  = []; // array of strings (global, not per day)
 let cambioDayIdx  = 0; // siempre empieza en el primer día del rango visible
 
-function cambioKey(dayIdx, cardId) { return `cb_${weekOffset}_${dayIdx}_${cardId}`; }
+function cambioKey(dayIdx, cardId) {
+  const dates = getWeekDates(weekOffset);
+  const d = dates[dayIdx];
+  if (!d) return `cb_${weekOffset}_${dayIdx}_${cardId}`;
+  const dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  return `cb_${dateStr}_${cardId}`;
+}
 
 function loadCambio() {
   cambioState  = window._cambioState  || JSON.parse(localStorage.getItem('cambio_state')  || '{}');
