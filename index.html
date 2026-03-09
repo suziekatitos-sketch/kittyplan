@@ -189,8 +189,8 @@
     --rosa-soft:#fde8f0;
     --verde:    #b39ddb;
     --verde-soft:#ede7f6;
-    --beige:    #81d4e8;
-    --beige-soft:#e1f5fb;
+    --beige:    #f4a7c0;
+    --beige-soft:#fde8f0;
 
     --text:     #5a2d4a;
     --muted:    #b07090;
@@ -4971,8 +4971,8 @@ function renderRutinas() {
   if (assigned) {
     const chip = document.createElement('div');
     chip.className = 'rutina-assign-chip has-rutina';
-    chip.innerHTML = `${assigned.emoji} ${assigned.name} <span style="opacity:.6;font-size:.65rem">· cambiar</span>`;
-    chip.onclick = () => openAssignModal(dk);
+    chip.innerHTML = `${assigned.emoji} ${assigned.name} <span style="opacity:.6;font-size:.65rem">· ver pasos</span>`;
+    chip.onclick = () => openRutinaSessionModal(assigned.id, dk);
     assignedEl.appendChild(chip);
 
     const clearBtn = document.createElement('button');
@@ -5063,25 +5063,112 @@ function renderRutinas() {
         <span class="rutina-template-emoji">${tpl.emoji}</span>
         <div class="rutina-template-info">
           <div class="rutina-template-name">${tpl.name}</div>
-          <div class="rutina-template-meta">${totalPasos} paso${totalPasos !== 1 ? 's' : ''}</div>
-        </div>
-        <div class="rutina-template-actions">
-          <button class="rut-action-btn" title="Editar plantilla">✏️</button>
-          <button class="rut-action-btn" title="Asignar a hoy">📅</button>
         </div>`;
 
-      const [editBtn, assignBtn] = card.querySelectorAll('.rut-action-btn');
-
-      editBtn.onclick   = (e) => { e.stopPropagation(); openRutinaModal(tpl.id); };
-      assignBtn.onclick = (e) => {
-        e.stopPropagation();
-        rutinaAsignaciones[dk] = tpl.id;
-        saveRutinas(); renderRutinas();
-      };
-      card.onclick = () => openRutinaModal(tpl.id);
+      card.onclick = () => openRutinaViewModal(tpl.id);
       list.appendChild(card);
     });
   }
+}
+
+
+// ── Session modal (read-only + check steps for a specific day)
+function openRutinaSessionModal(templateId, dk) {
+  const tpl = rutinaTemplates.find(t => t.id === templateId);
+  if (!tpl) return;
+  const old = document.getElementById('rutinaSessionModal');
+  if (old) old.remove();
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'rutina-modal-backdrop';
+  backdrop.id = 'rutinaSessionModal';
+  backdrop.onclick = (e) => { if (e.target === backdrop) backdrop.remove(); };
+
+  const box = document.createElement('div');
+  box.className = 'rutina-modal-box';
+  box.style.position = 'relative';
+
+  // Change-rutina button top right
+  const changeBtn = document.createElement('button');
+  changeBtn.title = 'Cambiar rutina del día';
+  changeBtn.textContent = '🔄';
+  changeBtn.style.cssText = 'position:absolute;top:.7rem;right:.7rem;background:var(--pink-light);border:none;border-radius:50%;width:32px;height:32px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;';
+  changeBtn.onclick = () => { backdrop.remove(); openAssignModal(dk); };
+
+  // Title
+  const titleEl = document.createElement('div');
+  titleEl.className = 'rutina-modal-title';
+  titleEl.style.paddingRight = '2.5rem';
+  titleEl.innerHTML = tpl.emoji + ' <em>' + tpl.name + '</em>';
+
+  // Build franjas with checkboxes
+  const bodyEl = document.createElement('div');
+  bodyEl.style.marginTop = '.6rem';
+
+  function buildBody() {
+    bodyEl.innerHTML = '';
+    RUTINA_FRANJAS.forEach(f => {
+      const lista = (tpl.pasos[f.id] || []);
+      if (lista.length === 0) return;
+
+      const franjaDiv = document.createElement('div');
+      franjaDiv.style.marginBottom = '.8rem';
+
+      const franjaTitle = document.createElement('div');
+      franjaTitle.style.cssText = 'font-size:.7rem;font-weight:700;color:var(--muted2);margin-bottom:.4rem';
+      franjaTitle.textContent = f.icon + ' ' + f.name;
+      franjaDiv.appendChild(franjaTitle);
+
+      lista.forEach((paso, idx) => {
+        const cKey = templateId + '|' + dk + '|' + f.id + '|' + idx;
+        const done = !!rutinaCompletions[cKey];
+
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:.5rem;padding:.4rem .5rem;border-radius:8px;background:var(--bg);border:1.5px solid ' + (done ? 'var(--verde)' : 'var(--border)') + ';margin-bottom:.3rem;cursor:pointer;transition:all .15s;' + (done ? 'opacity:.6;' : '');
+
+        const chk = document.createElement('span');
+        chk.style.cssText = 'width:18px;height:18px;min-width:18px;border-radius:50%;border:2px solid ' + (done ? 'var(--verde)' : 'var(--muted2)') + ';display:flex;align-items:center;justify-content:center;font-size:.6rem;background:' + (done ? 'var(--verde)' : 'transparent') + ';color:white;flex-shrink:0;transition:all .15s;';
+        chk.textContent = done ? '✓' : '';
+
+        const txt = document.createElement('span');
+        txt.style.cssText = 'font-size:.8rem;color:var(--text);font-weight:500;' + (done ? 'text-decoration:line-through;' : '');
+        txt.textContent = paso;
+
+        row.appendChild(chk);
+        row.appendChild(txt);
+
+        row.onclick = () => {
+          rutinaCompletions[cKey] = !done;
+          saveRutinas();
+          renderRutinas();
+          buildBody(); // re-render checkboxes in modal
+        };
+
+        franjaDiv.appendChild(row);
+      });
+
+      bodyEl.appendChild(franjaDiv);
+    });
+  }
+
+  buildBody();
+
+  // Buttons
+  const btnsEl = document.createElement('div');
+  btnsEl.className = 'modal-btns';
+  btnsEl.style.marginTop = '1rem';
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'modal-btn-cancel';
+  closeBtn.textContent = 'Listo ✓';
+  closeBtn.onclick = () => backdrop.remove();
+  btnsEl.appendChild(closeBtn);
+
+  box.appendChild(changeBtn);
+  box.appendChild(titleEl);
+  box.appendChild(bodyEl);
+  box.appendChild(btnsEl);
+  backdrop.appendChild(box);
+  document.body.appendChild(backdrop);
 }
 
 // ── Assign modal (pick template for a day)
@@ -5133,6 +5220,58 @@ function openAssignModal(dk) {
   document.body.appendChild(backdrop);
 }
 
+
+// ── Template VIEW modal (read-only)
+function openRutinaViewModal(templateId) {
+  const tpl = rutinaTemplates.find(t => t.id === templateId);
+  if (!tpl) return;
+  const old = document.getElementById('rutinaViewModal');
+  if (old) old.remove();
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'rutina-modal-backdrop';
+  backdrop.id = 'rutinaViewModal';
+  backdrop.onclick = (e) => { if (e.target === backdrop) backdrop.remove(); };
+
+  const box = document.createElement('div');
+  box.className = 'rutina-modal-box';
+  box.style.position = 'relative';
+
+  let pasosHtml = '';
+  RUTINA_FRANJAS.forEach(f => {
+    const lista = (tpl.pasos[f.id] || []);
+    if (lista.length === 0) return;
+    pasosHtml += '<div style="margin-bottom:.8rem">'
+      + '<div style="font-size:.7rem;font-weight:700;color:var(--muted2);margin-bottom:.4rem">' + f.icon + ' ' + f.name + '</div>'
+      + lista.map((p, i) =>
+          '<div style="display:flex;align-items:center;gap:.5rem;padding:.35rem .5rem;border-radius:8px;background:var(--bg);border:1.5px solid var(--border);margin-bottom:.3rem">'
+          + '<span style="font-size:.65rem;font-weight:700;color:var(--muted2);min-width:16px">' + (i+1) + '.</span>'
+          + '<span style="font-size:.8rem;color:var(--text);font-weight:500">' + p + '</span>'
+          + '</div>'
+        ).join('')
+      + '</div>';
+  });
+
+  const editBtn = document.createElement('button');
+  editBtn.id = 'rutViewEditBtn';
+  editBtn.title = 'Editar rutina';
+  editBtn.textContent = '✏️';
+  editBtn.style.cssText = 'position:absolute;top:.7rem;right:.7rem;background:var(--pink-light);border:none;border-radius:50%;width:32px;height:32px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;';
+  editBtn.onclick = () => { backdrop.remove(); openRutinaModal(templateId); };
+
+  const inner = document.createElement('div');
+  inner.innerHTML = '<div class="rutina-modal-title" style="padding-right:2.5rem">' + tpl.emoji + ' <em>' + tpl.name + '</em></div>'
+    + '<div style="margin-top:.6rem">' + (pasosHtml || '<div style="color:var(--muted2);font-size:.8rem">Sin pasos registrados aún.</div>') + '</div>'
+    + '<div class="modal-btns" style="margin-top:1rem"><button class="modal-btn-cancel" id="rutViewCloseBtn">Cerrar</button></div>';
+
+  box.appendChild(editBtn);
+  box.appendChild(inner);
+  inner.querySelector('#rutViewCloseBtn').onclick = () => backdrop.remove();
+
+  backdrop.appendChild(box);
+  document.body.appendChild(backdrop);
+}
+
 // ── Template editor modal
 function openRutinaModal(templateId) {
   const existing = templateId ? rutinaTemplates.find(t => t.id === templateId) : null;
@@ -5179,9 +5318,9 @@ function openRutinaModal(templateId) {
         </div>`).join('')}
     </div>
 
-    <div class="modal-btns">
+    ${existing ? '<div style="margin-top:.8rem;padding-top:.8rem;border-top:1.5px solid var(--border)"><button class="modal-btn-delete" id="rutDelBtn" style="width:100%">🗑️ Eliminar rutina</button></div>' : ''}
+    <div class="modal-btns" style="margin-top:.6rem">
       <button class="modal-btn-cancel" onclick="document.getElementById('rutinaEditModal').remove()">Cancelar</button>
-      ${existing ? '<button class="modal-btn-delete" id="rutDelBtn">⋯ Eliminar</button>' : ''}
       <button class="modal-btn-save" id="rutSaveBtn">Guardar 🐱</button>
     </div>`;
 
@@ -5277,6 +5416,220 @@ function openRutinaModal(templateId) {
 
   backdrop.querySelector('#rutNombre').focus();
 }
+
+// ══════════════════════════════════════════
+// PROYECTOS ACADÉMICOS
+// ══════════════════════════════════════════
+let univProyectos = [];
+
+function saveProyectos() {
+  try { localStorage.setItem('univ_proyectos', JSON.stringify(univProyectos)); } catch(e){}
+  if (window.cloudSave) window.cloudSave('univ_proyectos', univProyectos);
+}
+
+function loadProyectos() {
+  univProyectos = JSON.parse(localStorage.getItem('univ_proyectos') || '[]');
+}
+
+function renderProyectos() {
+  const list = document.getElementById('univProyectosList');
+  if (!list) return;
+  list.innerHTML = '';
+  if (univProyectos.length === 0) {
+    list.innerHTML = '<div class="rutina-empty-state">🔬 Sin proyectos aún.<br>¡Crea tu primer proyecto académico!</div>';
+    return;
+  }
+  univProyectos.forEach((proy, proyIdx) => {
+    const total   = proy.pasos.length;
+    const done    = (proy.completedSteps || []).length;
+    const allDone = total > 0 && done === total;
+    const pct     = total > 0 ? Math.round((done / total) * 100) : 0;
+    const card = document.createElement('div');
+    card.className = 'desglose-card';
+    card.id = 'pcard_' + proy.id;
+    card.innerHTML =
+      '<div class="desglose-card-header">' +
+        '<div class="desglose-card-main">' +
+          '<div class="desglose-card-title">' + proy.title +
+            (proy.tipo ? '<span class="desglose-recompensa-tag" style="margin-left:.4rem">🔬 ' + proy.tipo + '</span>' : '') +
+          '</div>' +
+          '<div class="desglose-card-meta">' + done + '/' + total + ' pasos completados</div>' +
+        '</div>' +
+        '<div class="desglose-progress-mini"><div class="desglose-progress-mini-fill" style="width:' + pct + '%"></div></div>' +
+        '<div class="desglose-card-actions">' +
+          '<button class="rut-action-btn" data-edit="' + proy.id + '">✏️</button>' +
+          '<button class="rut-action-btn" data-del="' + proy.id + '">✕</button>' +
+        '</div>' +
+        '<span class="desglose-chevron">▼</span>' +
+      '</div>' +
+      '<div class="desglose-body">' +
+        '<div class="desglose-steps" id="psteps_' + proy.id + '"></div>' +
+        '<div class="desglose-congrats ' + (allDone ? 'show' : '') + '">🌟 ¡Proyecto completado! Eso se llama dedicación 🎓</div>' +
+      '</div>';
+    card.querySelector('.desglose-card-header').onclick = (e) => {
+      if (e.target.closest('.desglose-card-actions')) return;
+      card.classList.toggle('open');
+      if (card.classList.contains('open')) renderProyectoSteps(proy, proyIdx);
+    };
+    card.querySelector('[data-edit]').onclick = (e) => { e.stopPropagation(); openProyectoModal(proy.id); };
+    card.querySelector('[data-del]').onclick = (e) => {
+      e.stopPropagation();
+      if (confirm('¿Eliminar "' + proy.title + '"?')) {
+        univProyectos.splice(proyIdx, 1);
+        saveProyectos(); renderProyectos();
+      }
+    };
+    list.appendChild(card);
+  });
+}
+
+function renderProyectoSteps(proy, proyIdx) {
+  const stepsEl = document.getElementById('psteps_' + proy.id);
+  if (!stepsEl) return;
+  stepsEl.innerHTML = '';
+  const completed = proy.completedSteps || [];
+  proy.pasos.forEach((paso, idx) => {
+    const isDone   = completed.includes(idx);
+    const isLocked = !isDone && idx > 0 && !completed.includes(idx - 1);
+    const row = document.createElement('div');
+    row.className = 'desglose-step' + (isDone ? ' step-done' : '') + (isLocked ? ' step-locked' : '');
+    const num = document.createElement('span');
+    num.className = 'desglose-step-num';
+    num.textContent = isDone ? '✓' : (idx + 1);
+    const chk = document.createElement('span');
+    chk.className = 'desglose-step-check';
+    chk.textContent = isDone ? '✓' : '';
+    if (!isLocked) {
+      chk.onclick = (e) => { e.stopPropagation(); toggleProyectoStep(proy.id, idx); };
+      row.onclick = () => toggleProyectoStep(proy.id, idx);
+    }
+    const txt = document.createElement('span');
+    txt.className = 'desglose-step-text';
+    txt.textContent = paso;
+    row.appendChild(num); row.appendChild(chk); row.appendChild(txt);
+    stepsEl.appendChild(row);
+  });
+}
+
+function toggleProyectoStep(proyId, stepIdx) {
+  const proy = univProyectos.find(p => p.id === proyId);
+  if (!proy) return;
+  if (!proy.completedSteps) proy.completedSteps = [];
+  const already = proy.completedSteps.includes(stepIdx);
+  if (already) {
+    proy.completedSteps = proy.completedSteps.filter(i => i < stepIdx);
+  } else {
+    proy.completedSteps.push(stepIdx);
+  }
+  saveProyectos(); renderProyectos();
+  setTimeout(() => {
+    const card = document.getElementById('pcard_' + proyId);
+    if (card) {
+      card.classList.add('open');
+      const proyIdx = univProyectos.findIndex(p => p.id === proyId);
+      renderProyectoSteps(univProyectos[proyIdx], proyIdx);
+    }
+  }, 50);
+}
+
+function openProyectoModal(proyId) {
+  const existing = proyId ? univProyectos.find(p => p.id === proyId) : null;
+  const old = document.getElementById('proyectoModal');
+  if (old) old.remove();
+  const titleVal = existing ? existing.title : '';
+  const tipoVal  = existing ? (existing.tipo || '') : '';
+  const pasos    = existing ? [...existing.pasos] : [];
+  const TIPOS = ['Maqueta','Investigación','Exposición','Trabajo escrito','Laboratorio','Otro'];
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'rutina-modal-backdrop';
+  backdrop.id = 'proyectoModal';
+  backdrop.onclick = (e) => { if (e.target === backdrop) backdrop.remove(); };
+  const box = document.createElement('div');
+  box.className = 'rutina-modal-box';
+
+  box.innerHTML =
+    '<div class="rutina-modal-title">🔬 <em>' + (existing ? 'Editar' : 'Nuevo') + ' proyecto</em></div>' +
+    '<div class="modal-field"><label class="modal-label">Nombre del proyecto</label>' +
+    '<input class="modal-input" id="pTitle" placeholder="ej: Maqueta del sistema solar..." value="' + titleVal.replace(/"/g,'&quot;') + '"></div>' +
+    '<div class="modal-field"><label class="modal-label">Tipo de proyecto</label>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.3rem" id="pTipoWrap">' +
+    TIPOS.map(t => '<button class="proy-tipo-btn' + (tipoVal === t ? ' selected' : '') + '" data-tipo="' + t + '" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:.72rem;font-weight:600;cursor:pointer;color:var(--text);transition:all .15s">' + t + '</button>').join('') +
+    '</div></div>' +
+    '<div class="modal-field"><label class="modal-label">Pasos en orden estricto 🔒</label>' +
+    '<div id="pPasosList" class="rutina-pasos-list"></div>' +
+    '<button class="rutina-add-paso-btn" id="pAddPasoBtn">＋ Agregar paso</button></div>' +
+    (existing ? '<div style="margin-top:.8rem;padding-top:.8rem;border-top:1.5px solid var(--border)"><button class="modal-btn-delete" id="pDelBtn" style="width:100%">🗑️ Eliminar proyecto</button></div>' : '') +
+    '<div class="modal-btns" style="margin-top:.6rem"><button class="modal-btn-cancel" id="pCancelBtn">Cancelar</button><button class="modal-btn-save" id="pSaveBtn">Guardar 🎓</button></div>';
+
+  backdrop.appendChild(box);
+  document.body.appendChild(backdrop);
+
+  let selectedTipo = tipoVal;
+  box.querySelectorAll('.proy-tipo-btn').forEach(btn => {
+    btn.onclick = () => {
+      box.querySelectorAll('.proy-tipo-btn').forEach(b => { b.style.background='var(--bg)'; b.style.borderColor='var(--border)'; b.style.color='var(--text)'; });
+      btn.style.background='var(--rosa)'; btn.style.borderColor='var(--rosa)'; btn.style.color='white';
+      selectedTipo = btn.dataset.tipo;
+    };
+    if (tipoVal === btn.dataset.tipo) {
+      btn.style.background='var(--rosa)'; btn.style.borderColor='var(--rosa)'; btn.style.color='white';
+    }
+  });
+
+  function renderModalPasos() {
+    const list = box.querySelector('#pPasosList');
+    list.innerHTML = '';
+    pasos.forEach((paso, idx) => {
+      const row = document.createElement('div');
+      row.className = 'rutina-paso-edit-row';
+      row.innerHTML = '<span style="font-size:.65rem;font-weight:700;color:var(--muted2);min-width:16px">' + (idx+1) + '.</span>' +
+        '<input type="text" value="' + paso.replace(/"/g,'&quot;') + '" placeholder="Paso ' + (idx+1) + '...">' +
+        '<button class="rutina-paso-del">✕</button>';
+      row.querySelector('input').oninput = (e) => { pasos[idx] = e.target.value; };
+      row.querySelector('.rutina-paso-del').onclick = () => { pasos.splice(idx,1); renderModalPasos(); };
+      list.appendChild(row);
+    });
+  }
+  renderModalPasos();
+
+  box.querySelector('#pAddPasoBtn').onclick = () => {
+    pasos.push(''); renderModalPasos();
+    const inputs = box.querySelectorAll('#pPasosList input');
+    if (inputs.length) inputs[inputs.length-1].focus();
+  };
+  box.querySelector('#pCancelBtn').onclick = () => backdrop.remove();
+  box.querySelector('#pSaveBtn').onclick = () => {
+    const t = box.querySelector('#pTitle').value.trim();
+    if (!t) { box.querySelector('#pTitle').focus(); return; }
+    const cleanPasos = pasos.filter(p => p.trim() !== '');
+    if (cleanPasos.length === 0) { box.querySelector('#pAddPasoBtn').focus(); return; }
+    if (existing) {
+      existing.title = t; existing.tipo = selectedTipo; existing.pasos = cleanPasos;
+    } else {
+      univProyectos.push({ id: 'proy_' + Date.now(), title: t, tipo: selectedTipo, pasos: cleanPasos, completedSteps: [] });
+    }
+    saveProyectos(); renderProyectos(); backdrop.remove();
+  };
+  const pDelBtn = box.querySelector('#pDelBtn');
+  if (pDelBtn) {
+    pDelBtn.onclick = () => {
+      if (confirm('¿Eliminar "' + existing.title + '"?')) {
+        univProyectos = univProyectos.filter(p => p.id !== existing.id);
+        saveProyectos(); renderProyectos(); backdrop.remove();
+      }
+    };
+  }
+  box.querySelector('#pTitle').focus();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  loadProyectos();
+  renderProyectos();
+  const btn = document.getElementById('univNewProyectoBtn');
+  if (btn) btn.onclick = () => openProyectoModal(null);
+});
+
 
 // Nav buttons
 var _rutPrev = document.getElementById('rutPrevDay'); if(_rutPrev) _rutPrev.onclick = () => { rutinaDateOffset--; renderRutinas(); };
@@ -5555,7 +5908,10 @@ function openDesgloseModal(itemId) {
   box.querySelector('#dTitle').focus();
 }
 
-var _desNew = document.getElementById('desgloseNewBtn'); if(_desNew) _desNew.onclick = () => openDesgloseModal(null);
+document.addEventListener('DOMContentLoaded', function() {
+  var _desNew = document.getElementById('desgloseNewBtn');
+  if(_desNew) _desNew.onclick = () => openDesgloseModal(null);
+});
 
 // Patch cloud sync for desglose
 const _origSyncR = window.syncFromCloud;
@@ -9483,6 +9839,15 @@ document.addEventListener('DOMContentLoaded', function() {
       <button class="rutina-new-btn" id="univNewExamenBtn">＋ Examen</button>
     </div>
     <div id="univExamenesList"></div>
+  </div>
+
+  <!-- Proyectos académicos -->
+  <div class="univ-block">
+    <div class="univ-block-hdr">
+      <span class="univ-block-title">🔬 Mis proyectos</span>
+      <button class="rutina-new-btn" id="univNewProyectoBtn">＋ Nuevo proyecto</button>
+    </div>
+    <div id="univProyectosList"></div>
   </div>
 
   <!-- Horas de estudio -->
