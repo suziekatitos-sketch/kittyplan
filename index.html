@@ -6583,13 +6583,9 @@ var _rutPrev = document.getElementById('rutPrevDay'); if(_rutPrev) _rutPrev.oncl
 var _rutNext = document.getElementById('rutNextDay'); if(_rutNext) _rutNext.onclick = () => { rutinaDateOffset++; renderRutinas(); };
 var _rutNew = document.getElementById('rutNewBtn'); if(_rutNew) _rutNew.onclick = () => { 
   console.log('Botón Nueva plantilla clickeado');
-  if (!window.rutinaTemplates) { console.warn('rutinaTemplates no existe aún'); return; }
-  const id = 'tpl_' + Date.now();
-  const template = { id, emoji: '🌸', name: '', pasos: { m:[], t:[], n:[] } };
-  window.rutinaTemplates.push(template);
-  console.log('Template creado:', template);
   if (window.openRutinaModal) {
-    window.openRutinaModal(id);
+    window.openRutinaModal(null);
+    console.log('Modal abierto');
   } else {
     console.error('openRutinaModal no existe');
   }
