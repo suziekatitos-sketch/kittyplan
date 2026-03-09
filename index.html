@@ -5600,7 +5600,7 @@ function openProyectoModal(proyId) {
       const row = document.createElement('div');
       row.className = 'rutina-paso-edit-row';
       row.innerHTML = '<span style="font-size:.65rem;font-weight:700;color:var(--muted2);min-width:16px">' + (idx+1) + '.</span>' +
-        '<input type="text" value="' + paso.replace(/"/g,'&quot;') + '" placeholder="Paso ' + (idx+1) + '...">' +
+        '<input type="text" value="' + pasoText(paso).replace(/"/g,'&quot;') + '" placeholder="Paso ' + (idx+1) + '...">' +
         '<button class="rutina-paso-del">✕</button>';
       row.querySelector('input').oninput = (e) => { pasos[idx] = e.target.value; };
       row.querySelector('.rutina-paso-del').onclick = () => { pasos.splice(idx,1); renderModalPasos(); };
@@ -5878,7 +5878,7 @@ function openDesgloseModal(itemId) {
       row.className = 'rutina-paso-edit-row';
       row.innerHTML = `
         <span style="font-size:.65rem;font-weight:700;color:var(--muted2);min-width:16px">${idx+1}.</span>
-        <input type="text" value="${paso.replace(/"/g,'&quot;')}" placeholder="Paso ${idx+1}...">
+        <input type="text" value="${pasoText(paso).replace(/"/g,'&quot;')}" placeholder="Paso ${idx+1}...">
         <button class="rutina-paso-del">✕</button>`;
       row.querySelector('input').oninput = (e) => { pasos[idx] = e.target.value; };
       row.querySelector('.rutina-paso-del').onclick = () => { pasos.splice(idx,1); renderModalPasos(); };
@@ -6457,7 +6457,7 @@ function openEjViewModal(templateId) {
   (tpl.pasos || []).forEach(function(p, i) {
     pasosHtml += '<div style="display:flex;align-items:center;gap:.5rem;padding:.35rem .5rem;border-radius:8px;background:var(--bg);border:1.5px solid var(--border);margin-bottom:.3rem">' +
       '<span style="font-size:.65rem;font-weight:700;color:var(--muted2);min-width:16px">' + (i+1) + '.</span>' +
-      '<span style="font-size:.8rem;color:var(--text);font-weight:500">' + p + '</span></div>';
+      '<span style="font-size:.8rem;color:var(--text);font-weight:500">' + pasoText(p) + '</span></div>';
   });
 
   var inner = document.createElement('div');
@@ -6723,7 +6723,7 @@ function renderBelPasos(card, tpl, reg, regIdx, dk) {
     chk.textContent = isDone ? '✓' : '';
     var txt = document.createElement('div');
     txt.className = 'belleza-paso-texto';
-    txt.textContent = paso;
+    txt.textContent = pasoText(paso);
     row.appendChild(chk);
     row.appendChild(txt);
     row.onclick = function() {
@@ -6781,7 +6781,7 @@ function openBelViewModal(tplIdx) {
   (tpl.pasos || []).forEach(function(p, i) {
     pasosHtml += '<div style="display:flex;align-items:center;gap:.5rem;padding:.35rem .5rem;border-radius:8px;background:var(--bg);border:1.5px solid var(--border);margin-bottom:.3rem">' +
       '<span style="font-size:.65rem;font-weight:700;color:var(--muted2);min-width:16px">' + (i+1) + '.</span>' +
-      '<span style="font-size:.8rem;color:var(--text);font-weight:500">' + p + '</span></div>';
+      '<span style="font-size:.8rem;color:var(--text);font-weight:500">' + pasoText(p) + '</span></div>';
   });
 
   var inner = document.createElement('div');
@@ -10925,6 +10925,7 @@ const NAV_PAGES = [
   { icon:'💸', label:'Finanzas',   page:'page-finanzas'  },
   { icon:'💙', label:'Medicina',   page:'page-univ'      },
   { icon:'🦄', label:'Intereses',  page:'page-intereses' },
+  { icon:'📅', label:'Historial',  page:'page-historial' },
 ];
 
 let activePage = 'page-semana';
@@ -11872,6 +11873,644 @@ document.addEventListener('DOMContentLoaded', function() {
 ══════════════════════════════════════════ -->
 
 </div><!-- end page-intereses -->
+<div id="page-historial" class="page-section">
+<style>
+  .historial-section {
+    max-width: 860px;
+    margin: 2rem auto 0;
+    padding: 0 1rem 4rem;
+    animation: fadeUp .5s .1s ease both;
+    opacity: 0;
+    animation-fill-mode: both;
+  }
+  .historial-header {
+    text-align: center;
+    margin-bottom: 1.6rem;
+  }
+  .historial-header .section-sub { display: block; margin-bottom: .3rem; }
+  .historial-view-toggle {
+    display: flex;
+    gap: .5rem;
+    justify-content: center;
+    margin-bottom: 1.4rem;
+  }
+  .hist-view-btn {
+    padding: .35rem .9rem;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--card);
+    font-family: 'Nunito', sans-serif;
+    font-size: .75rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .hist-view-btn.active {
+    background: var(--rosa);
+    border-color: var(--rosa);
+    color: #fff;
+  }
+  /* ── Calendario mensual ── */
+  .hist-cal-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: .8rem;
+  }
+  .hist-cal-nav-btn {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 50%;
+    width: 30px; height: 30px;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .2s;
+    color: var(--muted);
+  }
+  .hist-cal-nav-btn:hover { border-color: var(--rosa); color: var(--rosa); }
+  .hist-cal-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-style: italic;
+    color: var(--text);
+    min-width: 160px;
+    text-align: center;
+  }
+  .hist-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 1.2rem;
+  }
+  .hist-cal-dow {
+    text-align: center;
+    font-size: .6rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted2);
+    padding: .3rem 0;
+  }
+  .hist-cal-day {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    border: 1.5px solid transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all .18s;
+    background: var(--card);
+    position: relative;
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+  }
+  .hist-cal-day:hover { border-color: var(--rosa-soft); background: var(--surface); }
+  .hist-cal-day.today { border-color: var(--rosa); color: var(--rosa); }
+  .hist-cal-day.selected { background: var(--rosa); color: #fff; border-color: var(--rosa); }
+  .hist-cal-day.has-data::after {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--rosa);
+    position: absolute;
+    bottom: 4px;
+  }
+  .hist-cal-day.selected.has-data::after { background: rgba(255,255,255,.7); }
+  .hist-cal-day.empty-cell { background: transparent; border-color: transparent; cursor: default; }
+  .hist-cal-day.other-month { opacity: .35; }
+  /* ── Vista semanal ── */
+  .hist-week-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: .9rem;
+  }
+  .hist-week-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--text);
+    min-width: 200px;
+    text-align: center;
+  }
+  .hist-week-strip {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-bottom: 1.2rem;
+  }
+  .hist-week-cell {
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    background: var(--card);
+    padding: .5rem .3rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all .18s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .2rem;
+    position: relative;
+  }
+  .hist-week-cell:hover { border-color: var(--rosa-soft); }
+  .hist-week-cell.today { border-color: var(--rosa); }
+  .hist-week-cell.selected { background: var(--rosa); border-color: var(--rosa); }
+  .hist-week-cell-dow {
+    font-size: .58rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted2);
+  }
+  .hist-week-cell.selected .hist-week-cell-dow { color: rgba(255,255,255,.75); }
+  .hist-week-cell-num {
+    font-size: .85rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .hist-week-cell.selected .hist-week-cell-num { color: #fff; }
+  .hist-week-cell.has-data::after {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--rosa);
+    position: absolute;
+    bottom: 4px;
+  }
+  .hist-week-cell.selected.has-data::after { background: rgba(255,255,255,.7); }
+  /* ── Panel de registros ── */
+  .hist-day-panel {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.2rem 1.4rem;
+    min-height: 120px;
+  }
+  .hist-day-panel-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--rosa);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  .hist-no-data {
+    color: var(--muted2);
+    font-size: .8rem;
+    font-weight: 600;
+    text-align: center;
+    padding: 1.5rem 0;
+  }
+  .hist-rec-section {
+    margin-bottom: 1rem;
+  }
+  .hist-rec-title {
+    font-size: .65rem;
+    font-weight: 800;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted2);
+    margin-bottom: .45rem;
+    padding-bottom: .3rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .hist-rec-item {
+    font-size: .8rem;
+    font-weight: 600;
+    color: var(--text);
+    padding: .3rem 0;
+    border-bottom: 1px dashed var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: .4rem;
+  }
+  .hist-rec-item:last-child { border-bottom: none; }
+  .hist-rec-item.done { color: var(--muted2); text-decoration: line-through; }
+  .hist-rec-meta {
+    font-size: .68rem;
+    color: var(--muted);
+    font-weight: 500;
+    margin-top: .1rem;
+  }
+  .hist-no-sel {
+    color: var(--muted2);
+    font-size: .82rem;
+    font-weight: 600;
+    text-align: center;
+    padding: 2rem 0;
+  }
+</style>
+
+<section class="historial-section">
+  <div class="historial-header">
+    <span class="section-sub">📅 tu historia</span>
+    <h2 class="section-title"><em>Mi Historial</em></h2>
+  </div>
+
+  <div class="historial-view-toggle">
+    <button class="hist-view-btn active" id="histBtnMensual" onclick="histSetView('mensual')">📅 Mensual</button>
+    <button class="hist-view-btn" id="histBtnSemanal" onclick="histSetView('semanal')">🗓️ Semanal</button>
+  </div>
+
+  <!-- Vista mensual -->
+  <div id="histViewMensual">
+    <div class="hist-cal-nav">
+      <button class="hist-cal-nav-btn" onclick="histMonthOffset--; renderHistCal()">‹</button>
+      <div class="hist-cal-label" id="histCalLabel"></div>
+      <button class="hist-cal-nav-btn" onclick="histMonthOffset++; renderHistCal()">›</button>
+    </div>
+    <div class="hist-cal-grid" id="histCalGrid"></div>
+  </div>
+
+  <!-- Vista semanal -->
+  <div id="histViewSemanal" style="display:none">
+    <div class="hist-week-nav">
+      <button class="hist-cal-nav-btn" onclick="histWeekOffset--; renderHistWeek()">‹</button>
+      <div class="hist-week-label" id="histWeekLabel"></div>
+      <button class="hist-cal-nav-btn" onclick="histWeekOffset++; renderHistWeek()">›</button>
+    </div>
+    <div class="hist-week-strip" id="histWeekStrip"></div>
+  </div>
+
+  <!-- Panel de registros del día seleccionado -->
+  <div class="hist-day-panel" id="histDayPanel">
+    <div class="hist-no-sel">Selecciona un día para ver tus registros 🌸</div>
+  </div>
+</section>
+
+<script>
+(function(){
+  var histView = 'mensual';
+  var histMonthOffset = 0;
+  var histWeekOffset = 0;
+  var histSelectedDk = null;
+
+  window.histMonthOffset = 0;
+  window.histWeekOffset = 0;
+
+  var DIAS_CORTO = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  var MESES_HIST = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+  function dkFromDate(d) {
+    var y = d.getFullYear();
+    var m = String(d.getMonth()+1).padStart(2,'0');
+    var day = String(d.getDate()).padStart(2,'0');
+    return y+'-'+m+'-'+day;
+  }
+
+  function todayDk() { return dkFromDate(new Date()); }
+
+  function dateHasData(dk) {
+    if (typeof completions !== 'undefined' && typeof recurringTasks !== 'undefined') {
+      if (recurringTasks.some(function(t){ return completions[t.id+'|'+dk]; })) return true;
+    }
+    if (typeof ejRegistros !== 'undefined' && ejRegistros[dk] && ejRegistros[dk].length > 0) return true;
+    if (typeof bellezaRegistros !== 'undefined' && bellezaRegistros[dk] && bellezaRegistros[dk].length > 0) return true;
+    if (typeof gratitudData !== 'undefined' && gratitudData[dk] && gratitudData[dk].filter(function(g){return g&&g.trim();}).length > 0) return true;
+    if (typeof suenoData !== 'undefined' && suenoData[dk] && (suenoData[dk].dormirse || suenoData[dk].despertar)) return true;
+    if (typeof diosData !== 'undefined' && diosData[dk] && (diosData[dk].oracion || diosData[dk].intencion || diosData[dk].ore > 0)) return true;
+    if (typeof finMovimientos !== 'undefined' && finMovimientos.some(function(m){ return m.fecha === dk; })) return true;
+    if (typeof rutinaAsignaciones !== 'undefined') {
+      var keys = Object.keys(rutinaAsignaciones);
+      if (keys.some(function(k){ return k.split('|')[0] === dk; })) return true;
+    }
+    return false;
+  }
+
+  window.histSetView = function(v) {
+    histView = v;
+    document.getElementById('histBtnMensual').classList.toggle('active', v==='mensual');
+    document.getElementById('histBtnSemanal').classList.toggle('active', v==='semanal');
+    document.getElementById('histViewMensual').style.display = v==='mensual' ? '' : 'none';
+    document.getElementById('histViewSemanal').style.display = v==='semanal' ? '' : 'none';
+    if (v==='mensual') renderHistCal();
+    else renderHistWeek();
+  };
+
+  window.renderHistCal = function() {
+    var mo = window.histMonthOffset;
+    var now = new Date();
+    var base = new Date(now.getFullYear(), now.getMonth() + mo, 1);
+    var year = base.getFullYear();
+    var month = base.getMonth();
+
+    document.getElementById('histCalLabel').textContent = MESES_HIST[month] + ' ' + year;
+
+    var grid = document.getElementById('histCalGrid');
+    grid.innerHTML = '';
+
+    // Day of week headers
+    DIAS_CORTO.forEach(function(d) {
+      var el = document.createElement('div');
+      el.className = 'hist-cal-dow';
+      el.textContent = d;
+      grid.appendChild(el);
+    });
+
+    var firstDay = new Date(year, month, 1).getDay();
+    var daysInMonth = new Date(year, month+1, 0).getDate();
+    var todayStr = todayDk();
+
+    // Empty cells before first day
+    for (var i = 0; i < firstDay; i++) {
+      var emp = document.createElement('div');
+      emp.className = 'hist-cal-day empty-cell';
+      grid.appendChild(emp);
+    }
+
+    for (var d = 1; d <= daysInMonth; d++) {
+      var date = new Date(year, month, d);
+      var dk = dkFromDate(date);
+      var cell = document.createElement('div');
+      var cls = 'hist-cal-day';
+      if (dk === todayStr) cls += ' today';
+      if (dk === histSelectedDk) cls += ' selected';
+      if (dateHasData(dk)) cls += ' has-data';
+      cell.className = cls;
+      cell.textContent = d;
+      cell.dataset.dk = dk;
+      cell.onclick = function() { histSelectDay(this.dataset.dk); };
+      grid.appendChild(cell);
+    }
+  };
+
+  window.renderHistWeek = function() {
+    var wo = window.histWeekOffset;
+    var now = new Date();
+    var day = now.getDay();
+    var monday = new Date(now);
+    monday.setDate(now.getDate() - day + (day===0 ? -6 : 1) + wo*7);
+
+    var dates = [];
+    for (var i = 0; i < 7; i++) {
+      var d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      dates.push(d);
+    }
+
+    var fmt = function(d) { return d.getDate() + ' ' + MESES_HIST[d.getMonth()].slice(0,3); };
+    document.getElementById('histWeekLabel').textContent = fmt(dates[0]) + ' – ' + fmt(dates[6]);
+
+    var strip = document.getElementById('histWeekStrip');
+    strip.innerHTML = '';
+    var todayStr = todayDk();
+
+    dates.forEach(function(date) {
+      var dk = dkFromDate(date);
+      var cell = document.createElement('div');
+      var cls = 'hist-week-cell';
+      if (dk === todayStr) cls += ' today';
+      if (dk === histSelectedDk) cls += ' selected';
+      if (dateHasData(dk)) cls += ' has-data';
+      cell.className = cls;
+
+      var dow = document.createElement('div');
+      dow.className = 'hist-week-cell-dow';
+      dow.textContent = DIAS_CORTO[date.getDay()];
+
+      var num = document.createElement('div');
+      num.className = 'hist-week-cell-num';
+      num.textContent = date.getDate();
+
+      cell.appendChild(dow);
+      cell.appendChild(num);
+      cell.dataset.dk = dk;
+      cell.onclick = function() { histSelectDay(this.dataset.dk); };
+      strip.appendChild(cell);
+    });
+  };
+
+  function histSelectDay(dk) {
+    histSelectedDk = dk;
+    if (histView === 'mensual') renderHistCal();
+    else renderHistWeek();
+    renderHistPanel(dk);
+  }
+
+  function renderHistPanel(dk) {
+    var panel = document.getElementById('histDayPanel');
+    panel.innerHTML = '';
+
+    var d = new Date(dk + 'T12:00:00');
+    var label = DIAS_CORTO[d.getDay()] + ' ' + d.getDate() + ' de ' + MESES_HIST[d.getMonth()] + ' ' + d.getFullYear();
+
+    var title = document.createElement('div');
+    title.className = 'hist-day-panel-title';
+    title.innerHTML = '📅 ' + label;
+    panel.appendChild(title);
+
+    var hasAnything = false;
+
+    // ── Tareas completadas
+    if (typeof completions !== 'undefined' && typeof recurringTasks !== 'undefined') {
+      var doneTasks = recurringTasks.filter(function(t){ return completions[t.id+'|'+dk]; });
+      if (doneTasks.length > 0) {
+        hasAnything = true;
+        var sec = document.createElement('div'); sec.className = 'hist-rec-section';
+        sec.innerHTML = '<div class="hist-rec-title">✅ Tareas completadas</div>';
+        doneTasks.forEach(function(t) {
+          var it = document.createElement('div'); it.className = 'hist-rec-item done';
+          it.textContent = '✓ ' + t.text; sec.appendChild(it);
+        });
+        panel.appendChild(sec);
+      }
+    }
+
+    // ── Rutinas asignadas ese día
+    if (typeof rutinaAsignaciones !== 'undefined' && typeof rutinaTemplates !== 'undefined') {
+      var rutItems = [];
+      Object.keys(rutinaAsignaciones).forEach(function(k) {
+        var parts = k.split('|');
+        if (parts[0] === dk) {
+          var tpl = rutinaTemplates.find(function(r){ return r.id === rutinaAsignaciones[k]; });
+          if (tpl) rutItems.push(tpl.emoji + ' ' + tpl.name);
+        }
+      });
+      if (rutItems.length > 0) {
+        hasAnything = true;
+        var sec = document.createElement('div'); sec.className = 'hist-rec-section';
+        sec.innerHTML = '<div class="hist-rec-title">🌸 Rutinas del día</div>';
+        rutItems.forEach(function(r) {
+          var it = document.createElement('div'); it.className = 'hist-rec-item';
+          it.textContent = r; sec.appendChild(it);
+        });
+        panel.appendChild(sec);
+      }
+    }
+
+    // ── Ejercicio
+    if (typeof ejRegistros !== 'undefined' && ejRegistros[dk] && ejRegistros[dk].length > 0) {
+      hasAnything = true;
+      var sec = document.createElement('div'); sec.className = 'hist-rec-section';
+      sec.innerHTML = '<div class="hist-rec-title">🏃 Ejercicio</div>';
+      ejRegistros[dk].forEach(function(reg) {
+        var tpl = typeof ejTemplates !== 'undefined' && ejTemplates.find(function(t){ return t.id===reg.templateId; });
+        if (!tpl) return;
+        var it = document.createElement('div'); it.className = 'hist-rec-item';
+        it.textContent = tpl.emoji + ' ' + tpl.name + ' · ' + reg.completedSteps.length + '/' + tpl.pasos.length + ' ejercicios';
+        sec.appendChild(it);
+      });
+      panel.appendChild(sec);
+    }
+
+    // ── Belleza / Selfcare
+    if (typeof bellezaRegistros !== 'undefined' && bellezaRegistros[dk] && bellezaRegistros[dk].length > 0) {
+      hasAnything = true;
+      var sec = document.createElement('div'); sec.className = 'hist-rec-section';
+      sec.innerHTML = '<div class="hist-rec-title">✨ Selfcare & Belleza</div>';
+      bellezaRegistros[dk].forEach(function(reg) {
+        var tpl = typeof bellezaTemplates !== 'undefined' && bellezaTemplates.find(function(t){ return t.id===reg.templateId; });
+        if (!tpl) return;
+        var it = document.createElement('div'); it.className = 'hist-rec-item';
+        it.textContent = tpl.emoji + ' ' + tpl.name + ' · ' + reg.completedSteps.length + '/' + tpl.pasos.length + ' pasos';
+        sec.appendChild(it);
+      });
+      panel.appendChild(sec);
+    }
+
+    // ── Fe / Espiritualidad
+    if (typeof diosData !== 'undefined' && diosData[dk]) {
+      var dd = diosData[dk];
+      if (dd.oracion || dd.intencion || dd.ore > 0) {
+        hasAnything = true;
+        var sec = document.createElement('div'); sec.className = 'hist-rec-section';
+        sec.innerHTML = '<div class="hist-rec-title">🙏 Fe & Espiritualidad</div>';
+        if (dd.ore > 0) {
+          var it = document.createElement('div'); it.className = 'hist-rec-item';
+          it.textContent = '🙏 Oré ' + dd.ore + ' vez' + (dd.ore>1?'es':'') + ' ese día';
+          sec.appendChild(it);
+        }
+        if (dd.oracion) {
+          var it = document.createElement('div'); it.className = 'hist-rec-item';
+          it.innerHTML = '<div><div class="hist-rec-meta">Oración / reflexión</div>' + dd.oracion + '</div>';
+          sec.appendChild(it);
+        }
+        if (dd.intencion) {
+          var it = document.createElement('div'); it.className = 'hist-rec-item';
+          it.innerHTML = '<div><div class="hist-rec-meta">Intención / petición</div>' + dd.intencion + '</div>';
+          sec.appendChild(it);
+        }
+        panel.appendChild(sec);
+      }
+    }
+
+    // ── Agradecimiento / Journal
+    if (typeof gratitudData !== 'undefined' && gratitudData[dk]) {
+      var gr = gratitudData[dk].filter(function(g){ return g && g.trim(); });
+      if (gr.length > 0) {
+        hasAnything = true;
+        var sec = document.createElement('div'); sec.className = 'hist-rec-section';
+        sec.innerHTML = '<div class="hist-rec-title">🌸 Agradecimiento del día</div>';
+        gr.forEach(function(g) {
+          var it = document.createElement('div'); it.className = 'hist-rec-item';
+          it.textContent = '✨ ' + g; sec.appendChild(it);
+        });
+        panel.appendChild(sec);
+      }
+    }
+
+    // ── Sueño
+    if (typeof suenoData !== 'undefined' && suenoData[dk]) {
+      var sd = suenoData[dk];
+      if (sd.dormirse || sd.despertar) {
+        hasAnything = true;
+        var sec = document.createElement('div'); sec.className = 'hist-rec-section';
+        sec.innerHTML = '<div class="hist-rec-title">🌙 Sueño</div>';
+        var it = document.createElement('div'); it.className = 'hist-rec-item';
+        var txt = '';
+        if (sd.dormirse) txt += '😴 Me dormí a las ' + sd.dormirse;
+        if (sd.despertar) txt += (txt?' · ':'') + '☀️ Desperté a las ' + sd.despertar;
+        if (sd.calidad) txt += ' · ' + sd.calidad;
+        it.textContent = txt; sec.appendChild(it);
+        panel.appendChild(sec);
+      }
+    }
+
+    // ── Finanzas
+    if (typeof finMovimientos !== 'undefined') {
+      var movs = finMovimientos.filter(function(m){ return m.fecha === dk; });
+      if (movs.length > 0) {
+        hasAnything = true;
+        var sec = document.createElement('div'); sec.className = 'hist-rec-section';
+        sec.innerHTML = '<div class="hist-rec-title">💸 Finanzas</div>';
+        movs.forEach(function(m) {
+          var cat = typeof finCategorias !== 'undefined' && finCategorias.find(function(c){ return c.id===m.categoriaId; });
+          var it = document.createElement('div'); it.className = 'hist-rec-item';
+          var signo = m.tipo === 'ingreso' ? '+' : '-';
+          var color = m.tipo === 'ingreso' ? 'var(--verde)' : 'var(--rosa)';
+          it.innerHTML = '<span style="color:'+color+';font-weight:800">'+signo+'$'+Number(m.monto).toFixed(2)+'</span>'
+            + '<span>' + (m.desc || '') + (cat ? ' <span style="color:var(--muted);font-size:.7rem">· '+cat.nombre+'</span>' : '') + '</span>';
+          sec.appendChild(it);
+        });
+        panel.appendChild(sec);
+      }
+    }
+
+    // ── Salud (logros/síntomas si los hay en mensData)
+    if (typeof mensData !== 'undefined' && mensData[dk]) {
+      var md = mensData[dk];
+      if (md.fase || (md.sintomas && md.sintomas.length > 0)) {
+        hasAnything = true;
+        var sec = document.createElement('div'); sec.className = 'hist-rec-section';
+        sec.innerHTML = '<div class="hist-rec-title">🍏 Salud</div>';
+        if (md.fase) {
+          var it = document.createElement('div'); it.className = 'hist-rec-item';
+          it.textContent = '📍 Fase: ' + md.fase; sec.appendChild(it);
+        }
+        if (md.sintomas && md.sintomas.length > 0) {
+          var it2 = document.createElement('div'); it2.className = 'hist-rec-item';
+          it2.textContent = '🩺 ' + md.sintomas.join(', '); sec.appendChild(it2);
+        }
+        panel.appendChild(sec);
+      }
+    }
+
+    if (!hasAnything) {
+      var empty = document.createElement('div');
+      empty.className = 'hist-no-data';
+      empty.textContent = 'Sin registros para este día 🌙';
+      panel.appendChild(empty);
+    }
+  }
+
+  // Init on page load
+  window._initHistorial = function() {
+    window.histMonthOffset = 0;
+    window.histWeekOffset = 0;
+    renderHistCal();
+  };
+
+  // Hook into nav clicks to init when page becomes active
+  var _origNav = window.showPage;
+  window.showPage = function(pageId) {
+    if (_origNav) _origNav(pageId);
+    if (pageId === 'page-historial') {
+      setTimeout(function(){ renderHistCal(); renderHistWeek(); }, 50);
+    }
+  };
+
+  // Also render on DOMContentLoaded if already on this page
+  document.addEventListener('DOMContentLoaded', function() {
+    renderHistCal();
+    renderHistWeek();
+  });
+  setTimeout(function(){ renderHistCal(); renderHistWeek(); }, 300);
+
+})();
+</script>
+</div><!-- end page-historial -->
+
   </div><!-- end #app-content -->
   <div class="img-col img-col-right" id="imgColRight"></div>
 </div><!-- end .app-layout -->
