@@ -13886,10 +13886,16 @@ document.addEventListener('DOMContentLoaded', function() {
         itemsDiv.appendChild(row);
       });
       card.appendChild(itemsDiv);
-      var header=''; var items='';
-      var addRow='<div class="ql-add-row"><input class="ql-add-input" id="qlInput_'+lIdx+'" placeholder="Agregar ítem…" onkeydown="qlInputKey(event,'+lIdx+')">'  
-        +'<button class="ql-add-btn" onclick="qlAddItem('+lIdx+')">＋</button></div>';
-      card.innerHTML=header+items+addRow;
+
+      // Add row
+      var addRowDiv = document.createElement('div'); addRowDiv.className='ql-add-row';
+      var addInp = document.createElement('input'); addInp.className='ql-add-input';
+      addInp.id = 'qlInput_'+lIdx; addInp.placeholder='Agregar ítem…';
+      addInp.onkeydown = (function(idx){ return function(e){ if(e.key==='Enter') window.qlAddItem(idx); }; })(lIdx);
+      var addBtn = document.createElement('button'); addBtn.className='ql-add-btn'; addBtn.textContent='＋';
+      addBtn.onclick = (function(idx){ return function(){ window.qlAddItem(idx); }; })(lIdx);
+      addRowDiv.appendChild(addInp); addRowDiv.appendChild(addBtn);
+      card.appendChild(addRowDiv);
       container.appendChild(card);
     });
   }
