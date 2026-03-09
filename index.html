@@ -85,6 +85,13 @@
         if (raw.univ_data)           { window._univData           = JSON.parse(raw.univ_data);           }
         if (raw.belleza_templates)   { window._bellezaTemplates   = JSON.parse(raw.belleza_templates);   }
         if (raw.belleza_registros)   { window._bellezaRegistros   = JSON.parse(raw.belleza_registros);   }
+        if (raw.braindump_notes)    { window._braindumpNotes    = JSON.parse(raw.braindump_notes);    }
+        if (raw.vb_items)         { window._vbItems         = JSON.parse(raw.vb_items);         }
+        if (raw.metas_data)       { window._metasData       = JSON.parse(raw.metas_data);       }
+        if (raw.mood_data)        { window._moodData        = JSON.parse(raw.mood_data);        }
+        if (raw.metas_data)       { window._metasData       = JSON.parse(raw.metas_data);       }
+        if (raw.ql_lists)         { window._qlLists         = JSON.parse(raw.ql_lists);         }
+        if (raw.wl_items)         { window._wlItems         = JSON.parse(raw.wl_items);         }
         if (raw.ci_state)     { window._checkinState = JSON.parse(raw.ci_state);     }
         if (raw.nd_state)     { window._needsState   = JSON.parse(raw.nd_state);     }
         if (raw.calm_tools)   { window._calmTools    = JSON.parse(raw.calm_tools);   }
@@ -4258,7 +4265,325 @@ function todayKey() { return dateKey(new Date()); }
   <div style="font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:700;color:var(--muted)">Sincronizando con la nube…</div>
 </div>
 
-<div id="page-semana" class="page-section active">
+
+<div id="page-inicio" class="page-section active">
+<style>
+  .inicio-section {
+    max-width: 860px;
+    margin: 2rem auto 0;
+    padding: 0 1rem 4rem;
+    animation: fadeUp .5s .1s ease both;
+    opacity: 0;
+    animation-fill-mode: both;
+  }
+  /* ── Vision Board ── */
+  .vb-section { margin-bottom: 2.5rem; }
+  .vb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: .7rem;
+    margin-top: 1rem;
+  }
+  .vb-card {
+    border-radius: 16px;
+    border: 1.5px solid var(--border);
+    background: var(--card);
+    overflow: hidden;
+    aspect-ratio: 4/3;
+    position: relative;
+    cursor: pointer;
+    transition: box-shadow .2s, transform .2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .vb-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,.12); transform: scale(1.02); }
+  .vb-card img { width:100%; height:100%; object-fit:cover; display:block; }
+  .vb-card-label {
+    position: absolute; bottom:0; left:0; right:0;
+    background: linear-gradient(transparent, rgba(0,0,0,.45));
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-size: .7rem;
+    font-weight: 700;
+    padding: .5rem .6rem .4rem;
+  }
+  .vb-card-del {
+    position: absolute; top:.4rem; right:.4rem;
+    background: rgba(0,0,0,.35); border:none; border-radius:50%;
+    color:#fff; width:22px; height:22px; font-size:.7rem;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+    opacity:0; transition:opacity .15s;
+  }
+  .vb-card:hover .vb-card-del { opacity:1; }
+  .vb-empty-card {
+    border: 1.5px dashed var(--border);
+    background: transparent;
+    color: var(--muted2);
+    font-size: .78rem;
+    font-weight: 700;
+    font-family: 'Nunito', sans-serif;
+    gap: .3rem;
+    flex-direction: column;
+  }
+  .vb-add-row {
+    display: flex; gap: .6rem; margin-top: .8rem; flex-wrap: wrap; align-items: center;
+  }
+  .vb-url-input {
+    flex: 1; min-width: 200px;
+    border: 1.5px solid var(--border); border-radius: 12px;
+    padding: .4rem .8rem;
+    font-family: 'Nunito', sans-serif; font-size: .78rem; font-weight: 600;
+    color: var(--text); background: var(--bg); outline: none;
+    transition: border-color .2s;
+  }
+  .vb-url-input:focus { border-color: var(--rosa); }
+  .vb-label-input {
+    width: 130px;
+    border: 1.5px solid var(--border); border-radius: 12px;
+    padding: .4rem .8rem;
+    font-family: 'Nunito', sans-serif; font-size: .78rem; font-weight: 600;
+    color: var(--text); background: var(--bg); outline: none;
+    transition: border-color .2s;
+  }
+  .vb-label-input:focus { border-color: var(--rosa); }
+  .vb-add-btn {
+    padding: .4rem 1rem; border-radius: 20px; border: none;
+    background: var(--rosa); color: #fff;
+    font-family: 'Nunito', sans-serif; font-size: .78rem; font-weight: 800;
+    cursor: pointer; transition: opacity .15s; white-space: nowrap;
+  }
+  .vb-add-btn:hover { opacity: .85; }
+
+  /* Metas — reusar estilos ya definidos */
+  .metas-section { max-width:860px; margin:2.5rem auto 0; padding-bottom:3rem; }
+</style>
+
+<section class="inicio-section">
+  <!-- Vision Board -->
+  <div class="vb-section">
+    <span class="section-sub">✨ inspiración</span>
+    <h2 class="section-title"><em>Vision</em> Board</h2>
+    <div class="vb-grid" id="vbGrid"></div>
+    <div class="vb-add-row">
+      <input class="vb-url-input" id="vbUrlInput" placeholder="URL de imagen…" />
+      <input class="vb-label-input" id="vbLabelInput" placeholder="Etiqueta (opc.)" />
+      <button class="vb-add-btn" onclick="vbAdd()">＋ Agregar</button>
+    </div>
+  </div>
+
+  <!-- Metas -->
+  <section class="metas-section" id="sec-metas">
+    <span class="section-sub">🎯 crecimiento</span>
+    <h2 class="section-title"><em>Mis</em> Metas</h2>
+    <div class="metas-list" id="metasList"></div>
+    <button class="add-meta-btn" onclick="openMetaModal(null)">＋ Nueva meta</button>
+  </section>
+</section>
+
+<script>
+// ══ VISION BOARD ══
+(function(){
+  var vbItems = [];
+
+  function vbSave(){ try{localStorage.setItem('vb_items',JSON.stringify(vbItems));}catch(e){} if(window.cloudSave) window.cloudSave('vb_items',vbItems); }
+  function vbLoad(){ if(window._vbItems){vbItems=window._vbItems;return;} try{vbItems=JSON.parse(localStorage.getItem('vb_items')||'[]');}catch(e){vbItems=[];} }
+
+  function vbRender(){
+    var grid = document.getElementById('vbGrid'); if(!grid) return;
+    grid.innerHTML = '';
+    if(vbItems.length===0){
+      var emp = document.createElement('div');
+      emp.className='vb-card vb-empty-card';
+      emp.innerHTML='<span style="font-size:1.5rem">🌟</span>Agrega imágenes que te inspiren';
+      grid.appendChild(emp);
+      return;
+    }
+    vbItems.forEach(function(item, idx){
+      var card = document.createElement('div'); card.className='vb-card';
+      var img = document.createElement('img'); img.src=item.url; img.alt=item.label||'';
+      img.onerror=function(){ card.style.background='var(--surface)'; img.style.display='none'; };
+      card.appendChild(img);
+      if(item.label){
+        var lbl=document.createElement('div'); lbl.className='vb-card-label'; lbl.textContent=item.label;
+        card.appendChild(lbl);
+      }
+      var del=document.createElement('button'); del.className='vb-card-del'; del.textContent='✕';
+      del.onclick=(function(i){return function(e){e.stopPropagation();vbDelete(i);};})(idx);
+      card.appendChild(del);
+      grid.appendChild(card);
+    });
+  }
+
+  window.vbAdd = function(){
+    var url=document.getElementById('vbUrlInput'); var lbl=document.getElementById('vbLabelInput');
+    if(!url||!url.value.trim()) return;
+    vbItems.push({url:url.value.trim(), label:lbl.value.trim()});
+    url.value=''; lbl.value='';
+    vbSave(); vbRender();
+  };
+  window.vbDelete = function(idx){ vbItems.splice(idx,1); vbSave(); vbRender(); };
+
+  document.addEventListener('DOMContentLoaded', function(){
+    var inp=document.getElementById('vbUrlInput');
+    if(inp) inp.addEventListener('keydown',function(e){if(e.key==='Enter') window.vbAdd();});
+  });
+
+  vbLoad();
+  setTimeout(vbRender, 100);
+})();
+
+// ══ METAS ══
+(function(){
+  var metas = [];
+
+  function metaSave() {
+    try { localStorage.setItem('metas_data', JSON.stringify(metas)); } catch(e){}
+    if (window.cloudSave) window.cloudSave('metas_data', metas);
+  }
+  function metaLoad() {
+    if (window._metasData) { metas = window._metasData; return; }
+    try { metas = JSON.parse(localStorage.getItem('metas_data') || '[]'); } catch(e){ metas=[]; }
+  }
+
+  function metaProgress(meta) {
+    if (!meta.pasos || meta.pasos.length === 0) return 0;
+    var done = meta.pasos.filter(function(p){return p.done;}).length;
+    return Math.round(done / meta.pasos.length * 100);
+  }
+
+  window.renderMetas = function() {
+    var list = document.getElementById('metasList');
+    if (!list) return;
+    list.innerHTML = '';
+    if (metas.length === 0) {
+      list.innerHTML = '<div style="color:var(--muted2);font-size:.8rem;font-weight:600;text-align:center;padding:1.5rem 0">Todavía no tienes metas 🌱 ¡Agrega tu primera!</div>';
+      return;
+    }
+    metas.forEach(function(meta, mIdx) {
+      var pct = metaProgress(meta);
+      var card = document.createElement('div'); card.className='meta-card';
+
+      var hdrEl = document.createElement('div'); hdrEl.className='meta-card-header';
+      hdrEl.innerHTML = '<span class="meta-card-emoji">'+meta.emoji+'</span>'
+        + '<span class="meta-card-name">'+meta.name+'</span>'
+        + '<span class="meta-card-prog">'+pct+'%</span>';
+      card.appendChild(hdrEl);
+
+      var barEl = document.createElement('div'); barEl.className='meta-progress-bar';
+      var fillEl = document.createElement('div'); fillEl.className='meta-progress-fill';
+      fillEl.style.width = pct+'%'; barEl.appendChild(fillEl); card.appendChild(barEl);
+
+      var pasosEl = document.createElement('div'); pasosEl.className='meta-pasos-list';
+      (meta.pasos||[]).forEach(function(p, pIdx) {
+        var row = document.createElement('div');
+        row.className = 'meta-paso-row' + (p.done ? ' done' : '');
+        var chk = document.createElement('div'); chk.className='meta-paso-check'; chk.textContent = p.done ? '✓' : '';
+        var txt = document.createElement('span'); txt.className='meta-paso-text'; txt.textContent = p.text;
+        row.appendChild(chk); row.appendChild(txt);
+        row.onclick = (function(m,p){return function(){metaTogglePaso(m,p);};})(mIdx,pIdx);
+        pasosEl.appendChild(row);
+      });
+      card.appendChild(pasosEl);
+
+      var actEl = document.createElement('div'); actEl.className='meta-card-actions';
+      var editBtn = document.createElement('button'); editBtn.className='meta-action-btn'; editBtn.textContent='✏️ Editar';
+      editBtn.onclick = (function(m){return function(){openMetaModal(m);};})(mIdx);
+      var delBtn = document.createElement('button'); delBtn.className='meta-action-btn'; delBtn.textContent='🗑️ Eliminar';
+      delBtn.onclick = (function(m){return function(){metaDelete(m);};})(mIdx);
+      actEl.appendChild(editBtn); actEl.appendChild(delBtn); card.appendChild(actEl);
+      list.appendChild(card);
+    });
+  };
+
+  window.metaTogglePaso = function(mIdx, pIdx) {
+    metas[mIdx].pasos[pIdx].done = !metas[mIdx].pasos[pIdx].done;
+    metaSave(); renderMetas();
+  };
+
+  window.metaDelete = function(mIdx) {
+    if (confirm('¿Eliminar la meta "'+metas[mIdx].name+'"?')) {
+      metas.splice(mIdx,1); metaSave(); renderMetas();
+    }
+  };
+
+  var META_EMOJIS = ['🎯','🌟','💪','📚','✨','🚀','🌸','💡','🏆','❤️','🎨','🌱'];
+
+  window.openMetaModal = function(mIdx) {
+    var old = document.getElementById('metaModal'); if(old) old.remove();
+    var existing = mIdx !== null ? metas[mIdx] : null;
+    var emoji = existing ? existing.emoji : '🎯';
+    var name = existing ? existing.name : '';
+    var pasos = existing ? JSON.parse(JSON.stringify(existing.pasos||[])) : [];
+
+    var backdrop = document.createElement('div');
+    backdrop.className='meta-modal-backdrop'; backdrop.id='metaModal';
+    backdrop.onclick=function(e){if(e.target===backdrop)backdrop.remove();};
+
+    var box = document.createElement('div'); box.className='meta-modal-box';
+    var emojiOpts = META_EMOJIS.map(function(e){ return '<span class="mood-emoji-opt'+(e===emoji?' selected':'')+'" data-e="'+e+'" style="font-size:1.3rem">'+e+'</span>'; }).join('');
+
+    box.innerHTML = '<div class="mood-modal-title">'+(existing?'Editar':'Nueva')+' meta 🎯</div>'
+      + '<div class="mood-emoji-picker" id="metaEmojiPicker">'+emojiOpts+'</div>'
+      + '<div class="modal-field"><label class="modal-label">Nombre de la meta</label>'
+      + '<input class="modal-input" id="metaNameInput" placeholder="Ej: Terminar mi portafolio…" value="'+name.replace(/"/g,'&quot;')+'"></div>'
+      + '<div class="modal-field"><label class="modal-label">Pasos</label><div id="metaPasosList"></div>'
+      + '<button class="rutina-add-paso-btn" onclick="metaAddPasoRow()" style="margin-top:.3rem">＋ Agregar paso</button></div>'
+      + '<div class="modal-btns" style="margin-top:.8rem">'
+      + '<button class="modal-btn-cancel" onclick="document.getElementById(&quot;metaModal&quot;).remove()">Cancelar</button>'
+      + '<button class="modal-btn-save" id="metaSaveBtn">Guardar 🌟</button></div>';
+
+    backdrop.appendChild(box);
+    document.body.appendChild(backdrop);
+
+    var selEmoji = emoji;
+    backdrop.querySelectorAll('.mood-emoji-opt').forEach(function(opt){
+      opt.onclick=function(){
+        backdrop.querySelectorAll('.mood-emoji-opt').forEach(function(o){o.classList.remove('selected');});
+        opt.classList.add('selected'); selEmoji=opt.dataset.e;
+      };
+    });
+
+    function renderPasos() {
+      var list = document.getElementById('metaPasosList'); list.innerHTML='';
+      pasos.forEach(function(p,i){
+        var row=document.createElement('div'); row.className='meta-paso-edit-row';
+        var inp=document.createElement('input'); inp.className='meta-paso-edit-input';
+        inp.type='text'; inp.value=p.text; inp.placeholder='Paso '+(i+1)+'…';
+        inp.oninput=function(){pasos[i].text=inp.value;};
+        var del=document.createElement('button'); del.className='meta-paso-edit-del'; del.textContent='✕';
+        del.onclick=function(){pasos.splice(i,1);renderPasos();};
+        row.appendChild(inp); row.appendChild(del); list.appendChild(row);
+      });
+    }
+    renderPasos();
+
+    window.metaAddPasoRow = function() {
+      pasos.push({text:'',done:false}); renderPasos();
+      var inputs=document.querySelectorAll('.meta-paso-edit-input');
+      if(inputs.length) inputs[inputs.length-1].focus();
+    };
+
+    document.getElementById('metaSaveBtn').onclick = function() {
+      var nameVal = document.getElementById('metaNameInput').value.trim();
+      if (!nameVal) { document.getElementById('metaNameInput').focus(); return; }
+      var cleanPasos = pasos.filter(function(p){return p.text.trim();}).map(function(p){return{text:p.text.trim(),done:p.done||false};});
+      if (existing) {
+        metas[mIdx].emoji=selEmoji; metas[mIdx].name=nameVal; metas[mIdx].pasos=cleanPasos;
+      } else {
+        metas.push({id:'meta_'+Date.now(),emoji:selEmoji,name:nameVal,pasos:cleanPasos});
+      }
+      metaSave(); renderMetas(); backdrop.remove();
+    };
+
+    document.getElementById('metaNameInput').focus();
+  };
+
+  metaLoad();
+  setTimeout(renderMetas, 150);
+})();
+</script>
+</div><!-- end page-inicio -->
+
+<div id="page-semana" class="page-section">
 <header class="header" id="sec-semana">
   <span class="week-label">🌿 organizador semanal</span>
   <h1><em>Mi Semana</em></h1>
@@ -4303,9 +4628,201 @@ function todayKey() { return dateKey(new Date()); }
   </div>
 </section>
 
-<!-- ══════════════════════════════════════════
-     SECCIÓN 6 · AGUA & COMIDAS
-══════════════════════════════════════════ -->
+<section class="pomodoro-section" id="sec-pomodoro" style="margin-top:1.5rem">
+<style>
+  .pomodoro-section {
+    max-width: 520px;
+    margin: 1.5rem auto 0;
+    animation: fadeUp .5s .2s ease both;
+    opacity: 0;
+    animation-fill-mode: both;
+  }
+  .pomodoro-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.4rem 1.6rem;
+    text-align: center;
+  }
+  .pomodoro-label {
+    font-size: .62rem;
+    font-weight: 800;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted2);
+    margin-bottom: .6rem;
+  }
+  .pomodoro-mode-row {
+    display: flex;
+    gap: .4rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+  .pom-mode-btn {
+    padding: .25rem .8rem;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    font-family: 'Nunito', sans-serif;
+    font-size: .7rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .18s;
+  }
+  .pom-mode-btn.active { background: var(--rosa); border-color: var(--rosa); color: #fff; }
+  .pomodoro-display {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: .04em;
+    line-height: 1;
+    margin: .6rem 0 1rem;
+  }
+  .pomodoro-display.running { color: var(--rosa); }
+  .pomodoro-display.break { color: var(--verde); }
+  .pomodoro-btns {
+    display: flex;
+    gap: .6rem;
+    justify-content: center;
+    margin-bottom: .8rem;
+  }
+  .pom-btn {
+    padding: .45rem 1.3rem;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--card);
+    font-family: 'Nunito', sans-serif;
+    font-size: .8rem;
+    font-weight: 800;
+    color: var(--text);
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .pom-btn.primary { background: var(--rosa); border-color: var(--rosa); color: #fff; }
+  .pom-btn:hover { opacity: .85; transform: scale(1.04); }
+  .pomodoro-sessions {
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--muted);
+    display: flex;
+    gap: .3rem;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .pom-tomato { font-size: .9rem; }
+  .pom-tomato.done { filter: grayscale(0); }
+  .pom-tomato.pending { filter: grayscale(1); opacity: .4; }
+</style>
+  <span class="section-sub">⏱️ enfoque</span>
+  <h2 class="section-title" style="text-align:center"><em>Pomodoro</em></h2>
+  <div class="pomodoro-card">
+    <div class="pomodoro-mode-row">
+      <button class="pom-mode-btn active" onclick="pomSetMode('work')">🍅 Foco</button>
+      <button class="pom-mode-btn" onclick="pomSetMode('short')">☕ Descanso corto</button>
+      <button class="pom-mode-btn" onclick="pomSetMode('long')">🛋️ Descanso largo</button>
+    </div>
+    <div class="pomodoro-display" id="pomDisplay">25:00</div>
+    <div class="pomodoro-btns">
+      <button class="pom-btn primary" id="pomStartBtn" onclick="pomToggle()">▶ Iniciar</button>
+      <button class="pom-btn" onclick="pomReset()">↺ Reset</button>
+    </div>
+    <div class="pomodoro-sessions" id="pomSessions"></div>
+  </div>
+</section>
+
+<script>
+(function(){
+  var POM_MODES = { work: 25*60, short: 5*60, long: 15*60 };
+  var pomMode = 'work';
+  var pomTimeLeft = POM_MODES.work;
+  var pomRunning = false;
+  var pomTimer = null;
+  var pomSessionsDone = 0;
+
+  function pomFmt(s) {
+    var m = Math.floor(s/60);
+    var sec = s % 60;
+    return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+  }
+
+  function pomUpdateDisplay() {
+    var disp = document.getElementById('pomDisplay');
+    var btn = document.getElementById('pomStartBtn');
+    if (!disp) return;
+    disp.textContent = pomFmt(pomTimeLeft);
+    disp.className = 'pomodoro-display' + (pomRunning ? (pomMode==='work' ? ' running' : ' break') : '');
+    if (btn) btn.textContent = pomRunning ? '⏸ Pausar' : '▶ Iniciar';
+  }
+
+  function pomUpdateSessions() {
+    var el = document.getElementById('pomSessions');
+    if (!el) return;
+    var html = 'Sesiones: ';
+    for (var i = 0; i < 4; i++) {
+      html += '<span class="pom-tomato ' + (i < pomSessionsDone % 4 ? 'done' : 'pending') + '">🍅</span>';
+    }
+    el.innerHTML = html;
+  }
+
+  window.pomSetMode = function(mode) {
+    pomMode = mode;
+    pomRunning = false;
+    clearInterval(pomTimer);
+    pomTimeLeft = POM_MODES[mode];
+    document.querySelectorAll('.pom-mode-btn').forEach(function(b, i) {
+      b.classList.toggle('active', ['work','short','long'][i] === mode);
+    });
+    pomUpdateDisplay();
+  };
+
+  window.pomToggle = function() {
+    if (pomRunning) {
+      pomRunning = false;
+      clearInterval(pomTimer);
+      pomUpdateDisplay();
+    } else {
+      pomRunning = true;
+      pomTimer = setInterval(function() {
+        pomTimeLeft--;
+        pomUpdateDisplay();
+        if (pomTimeLeft <= 0) {
+          clearInterval(pomTimer);
+          pomRunning = false;
+          if (pomMode === 'work') {
+            pomSessionsDone++;
+            pomUpdateSessions();
+            pomNotify('¡Sesión completada! 🍅 Tómate un descanso.');
+          } else {
+            pomNotify('¡Descanso terminado! Vuelve al foco 💪');
+          }
+        }
+      }, 1000);
+      pomUpdateDisplay();
+    }
+  };
+
+  window.pomReset = function() {
+    pomRunning = false;
+    clearInterval(pomTimer);
+    pomTimeLeft = POM_MODES[pomMode];
+    pomUpdateDisplay();
+  };
+
+  function pomNotify(msg) {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('kittyplan ⏱️', { body: msg });
+    } else {
+      alert(msg);
+    }
+  }
+
+  setTimeout(function(){ pomUpdateDisplay(); pomUpdateSessions(); }, 200);
+})();
+</script>
+
 </div><!-- end page-semana -->
 <div id="page-fe" class="page-section">
 <div id="sec-fe-nav" style="scroll-margin-top:60px"></div>
@@ -7278,6 +7795,357 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </section>
 
+
+<!-- MOOD TRACKER -->
+<section class="mood-section" id="sec-mood" style="margin-top:2.5rem">
+<style>
+  .mood-section { max-width: 860px; margin: 2.5rem auto 0; animation: fadeUp .5s .25s ease both; opacity:0; animation-fill-mode:both; }
+  .mood-week-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-top:1rem; }
+  .mood-day-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: .6rem .4rem;
+    display: flex; flex-direction: column; align-items: center; gap: .35rem;
+    cursor: pointer; transition: all .18s;
+  }
+  .mood-day-card:hover { border-color: var(--rosa-soft); }
+  .mood-day-card.today-cell { border-color: var(--rosa); }
+  .mood-day-name { font-size:.58rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--muted2); }
+  .mood-day-card.today-cell .mood-day-name { color:var(--rosa); }
+  .mood-emoji-display { font-size:1.4rem; line-height:1; min-height:1.4rem; }
+  .mood-score-display { font-size:.65rem; font-weight:800; color:var(--muted); }
+  .mood-note-preview { font-size:.58rem; color:var(--muted2); font-weight:600; text-align:center; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  /* Modal */
+  .mood-modal-backdrop { position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1rem; }
+  .mood-modal-box { background:var(--card);border-radius:24px;padding:1.6rem;max-width:400px;width:100%;box-shadow:0 12px 48px rgba(0,0,0,.18); }
+  .mood-modal-title { font-family:'Playfair Display',serif;font-size:1.1rem;font-style:italic;color:var(--rosa);margin-bottom:1rem; }
+  .mood-emoji-picker { display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;margin-bottom:1rem; }
+  .mood-emoji-opt { font-size:1.6rem;cursor:pointer;border-radius:50%;padding:.2rem;transition:transform .15s;border:2.5px solid transparent; }
+  .mood-emoji-opt:hover { transform:scale(1.2); }
+  .mood-emoji-opt.selected { border-color:var(--rosa);background:var(--pink-light); }
+  .mood-scale-row { display:flex;gap:.3rem;justify-content:center;margin-bottom:1rem; }
+  .mood-scale-btn { width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);font-size:.72rem;font-weight:800;color:var(--muted);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center; }
+  .mood-scale-btn.selected { background:var(--rosa);border-color:var(--rosa);color:#fff; }
+  .mood-note-input { width:100%;border:1.5px solid var(--border);border-radius:12px;padding:.6rem .8rem;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:600;color:var(--text);background:var(--bg);resize:none;outline:none;box-sizing:border-box;min-height:60px;transition:border-color .2s; }
+  .mood-note-input:focus { border-color:var(--rosa); }
+  @media(max-width:600px){ .mood-week-grid{grid-template-columns:repeat(4,1fr);} }
+</style>
+  <span class="section-sub">😊 bienestar emocional</span>
+  <h2 class="section-title"><em>Mood</em> Tracker</h2>
+  <div class="mood-week-grid" id="moodWeekGrid"></div>
+</section>
+
+<!-- METAS -->
+<section class="metas-section" id="sec-metas" style="margin-top:2.5rem">
+<style>
+  .metas-section { max-width:860px;margin:2.5rem auto 0;animation:fadeUp .5s .3s ease both;opacity:0;animation-fill-mode:both;padding-bottom:3rem; }
+  .metas-list { display:flex;flex-direction:column;gap:.8rem;margin-top:1rem; }
+  .meta-card { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem; }
+  .meta-card-header { display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem; }
+  .meta-card-emoji { font-size:1.2rem; }
+  .meta-card-name { font-family:'Playfair Display',serif;font-size:.95rem;font-style:italic;color:var(--text);flex:1; }
+  .meta-card-prog { font-size:.7rem;font-weight:800;color:var(--rosa);min-width:35px;text-align:right; }
+  .meta-progress-bar { height:5px;border-radius:4px;background:var(--border);margin-bottom:.7rem;overflow:hidden; }
+  .meta-progress-fill { height:100%;border-radius:4px;background:var(--rosa);transition:width .4s ease; }
+  .meta-pasos-list { display:flex;flex-direction:column;gap:.35rem; }
+  .meta-paso-row { display:flex;align-items:center;gap:.5rem;cursor:pointer;padding:.2rem 0; }
+  .meta-paso-check { width:17px;height:17px;min-width:17px;border-radius:50%;border:2px solid var(--muted2);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:#fff;transition:all .15s; }
+  .meta-paso-row.done .meta-paso-check { background:var(--rosa);border-color:var(--rosa); }
+  .meta-paso-text { font-size:.78rem;font-weight:600;color:var(--text);transition:color .15s; }
+  .meta-paso-row.done .meta-paso-text { text-decoration:line-through;color:var(--muted2); }
+  .meta-card-actions { display:flex;gap:.5rem;margin-top:.7rem;padding-top:.6rem;border-top:1px solid var(--border); }
+  .meta-action-btn { font-size:.7rem;font-weight:700;color:var(--muted);background:none;border:none;cursor:pointer;padding:.1rem .3rem;border-radius:6px;transition:color .15s; }
+  .meta-action-btn:hover { color:var(--rosa); }
+  .add-meta-btn { display:flex;align-items:center;justify-content:center;gap:.4rem;width:100%;padding:.65rem;border-radius:var(--radius);border:1.5px dashed var(--border);background:transparent;font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:700;color:var(--muted);cursor:pointer;transition:all .2s;margin-top:.4rem; }
+  .add-meta-btn:hover { border-color:var(--rosa);color:var(--rosa); }
+  /* Modal metas */
+  .meta-modal-backdrop { position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1rem; }
+  .meta-modal-box { background:var(--card);border-radius:24px;padding:1.6rem;max-width:440px;width:100%;box-shadow:0 12px 48px rgba(0,0,0,.18);max-height:90vh;overflow-y:auto; }
+  .meta-paso-edit-row { display:flex;align-items:center;gap:.4rem;margin-bottom:.4rem; }
+  .meta-paso-edit-input { flex:1;border:1.5px solid var(--border);border-radius:10px;padding:.4rem .7rem;font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:600;color:var(--text);background:var(--bg);outline:none;transition:border-color .2s; }
+  .meta-paso-edit-input:focus { border-color:var(--rosa); }
+  .meta-paso-edit-del { background:none;border:none;color:var(--muted2);font-size:.85rem;cursor:pointer;padding:.2rem;transition:color .15s; }
+  .meta-paso-edit-del:hover { color:var(--rosa); }
+</style>
+  <span class="section-sub">🎯 crecimiento</span>
+  <h2 class="section-title"><em>Mis</em> Metas</h2>
+  <div class="metas-list" id="metasList"></div>
+  <button class="add-meta-btn" onclick="openMetaModal(null)">＋ Nueva meta</button>
+</section>
+
+<script>
+// ══ MOOD TRACKER ══
+(function(){
+  var MOOD_EMOJIS = ['😭','😢','😔','😐','🙂','😊','😄','🥰','✨','🌟'];
+  var DIAS_MOOD = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  var moodData = {};
+
+  function moodSave() {
+    try { localStorage.setItem('mood_data', JSON.stringify(moodData)); } catch(e){}
+    if (window.cloudSave) window.cloudSave('mood_data', moodData);
+  }
+  function moodLoad() {
+    if (window._moodData) { moodData = window._moodData; return; }
+    try { moodData = JSON.parse(localStorage.getItem('mood_data') || '{}'); } catch(e){ moodData={}; }
+  }
+
+  function getWeekDays() {
+    var today = new Date();
+    var day = today.getDay();
+    var monday = new Date(today);
+    monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
+    var days = [];
+    for (var i = 0; i < 7; i++) {
+      var d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      days.push(d);
+    }
+    return days;
+  }
+
+  function dkOf(d) {
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+
+  window.renderMoodGrid = function() {
+    var grid = document.getElementById('moodWeekGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    var days = getWeekDays();
+    var todayDk = dkOf(new Date());
+    days.forEach(function(d) {
+      var dk = dkOf(d);
+      var entry = moodData[dk] || {};
+      var card = document.createElement('div');
+      card.className = 'mood-day-card' + (dk === todayDk ? ' today-cell' : '');
+
+      var name = document.createElement('div'); name.className='mood-day-name'; name.textContent=DIAS_MOOD[d.getDay()]+' '+d.getDate();
+      var emoji = document.createElement('div'); emoji.className='mood-emoji-display'; emoji.textContent=entry.emoji||'·';
+      var score = document.createElement('div'); score.className='mood-score-display'; score.textContent=entry.score ? entry.score+'/10' : '';
+      var note = document.createElement('div'); note.className='mood-note-preview'; note.textContent=entry.note||'';
+
+      card.appendChild(name); card.appendChild(emoji); card.appendChild(score); card.appendChild(note);
+      card.onclick = function(){ openMoodModal(dk, d); };
+      grid.appendChild(card);
+    });
+  };
+
+  function openMoodModal(dk, d) {
+    var old = document.getElementById('moodModal'); if(old) old.remove();
+    var entry = moodData[dk] || {};
+    var selEmoji = entry.emoji || '🙂';
+    var selScore = entry.score || 5;
+
+    var backdrop = document.createElement('div');
+    backdrop.className='mood-modal-backdrop'; backdrop.id='moodModal';
+    backdrop.onclick = function(e){ if(e.target===backdrop) backdrop.remove(); };
+
+    var box = document.createElement('div'); box.className='mood-modal-box';
+    var label = DIAS_MOOD[d.getDay()]+' '+d.getDate()+' · ¿Cómo estás?';
+    box.innerHTML = '<div class="mood-modal-title">'+label+'</div>'
+      + '<div class="mood-emoji-picker" id="moodEmojiPicker"></div>'
+      + '<div class="mood-scale-row" id="moodScaleRow"></div>'
+      + '<textarea class="mood-note-input" id="moodNoteInput" placeholder="Nota opcional… ¿qué pasó hoy?">'+(entry.note||'')+'</textarea>'
+      + '<div class="modal-btns" style="margin-top:.8rem">'
+      + '<button class="modal-btn-cancel" onclick="document.getElementById(&quot;moodModal&quot;).remove()">Cancelar</button>'
+      + '<button class="modal-btn-save" id="moodSaveBtn">Guardar 🌟</button></div>';
+
+    backdrop.appendChild(box);
+    document.body.appendChild(backdrop);
+
+    // Emoji picker
+    var picker = document.getElementById('moodEmojiPicker');
+    MOOD_EMOJIS.forEach(function(em) {
+      var opt = document.createElement('span'); opt.className='mood-emoji-opt'+(em===selEmoji?' selected':'');
+      opt.textContent=em;
+      opt.onclick=function(){ document.querySelectorAll('.mood-emoji-opt').forEach(function(o){o.classList.remove('selected');}); opt.classList.add('selected'); selEmoji=em; };
+      picker.appendChild(opt);
+    });
+
+    // Scale 1-10
+    var scaleRow = document.getElementById('moodScaleRow');
+    for (var i=1;i<=10;i++) {
+      (function(n){
+        var btn = document.createElement('button'); btn.className='mood-scale-btn'+(n===selScore?' selected':'');
+        btn.textContent=n;
+        btn.onclick=function(){
+          document.querySelectorAll('.mood-scale-btn').forEach(function(b){b.classList.remove('selected');});
+          btn.classList.add('selected'); selScore=n;
+        };
+        scaleRow.appendChild(btn);
+      })(i);
+    }
+
+    document.getElementById('moodSaveBtn').onclick = function() {
+      var note = document.getElementById('moodNoteInput').value.trim();
+      moodData[dk] = { emoji: selEmoji, score: selScore, note: note };
+      moodSave();
+      renderMoodGrid();
+      backdrop.remove();
+    };
+  }
+
+  moodLoad();
+  setTimeout(renderMoodGrid, 150);
+})();
+
+// ══ METAS ══
+(function(){
+  var metas = [];
+
+  function metaSave() {
+    try { localStorage.setItem('metas_data', JSON.stringify(metas)); } catch(e){}
+    if (window.cloudSave) window.cloudSave('metas_data', metas);
+  }
+  function metaLoad() {
+    if (window._metasData) { metas = window._metasData; return; }
+    try { metas = JSON.parse(localStorage.getItem('metas_data') || '[]'); } catch(e){ metas=[]; }
+  }
+
+  function metaProgress(meta) {
+    if (!meta.pasos || meta.pasos.length === 0) return 0;
+    var done = meta.pasos.filter(function(p){return p.done;}).length;
+    return Math.round(done / meta.pasos.length * 100);
+  }
+
+  window.renderMetas = function() {
+    var list = document.getElementById('metasList');
+    if (!list) return;
+    list.innerHTML = '';
+    if (metas.length === 0) {
+      list.innerHTML = '<div style="color:var(--muted2);font-size:.8rem;font-weight:600;text-align:center;padding:1.5rem 0">Todavía no tienes metas 🌱 ¡Agrega tu primera!</div>';
+      return;
+    }
+    metas.forEach(function(meta, mIdx) {
+      var pct = metaProgress(meta);
+      var card = document.createElement('div'); card.className='meta-card';
+
+      // Header
+      var hdrEl = document.createElement('div'); hdrEl.className='meta-card-header';
+      hdrEl.innerHTML = '<span class="meta-card-emoji">'+meta.emoji+'</span>'
+        + '<span class="meta-card-name">'+meta.name+'</span>'
+        + '<span class="meta-card-prog">'+pct+'%</span>';
+      card.appendChild(hdrEl);
+
+      // Progress bar
+      var barEl = document.createElement('div'); barEl.className='meta-progress-bar';
+      var fillEl = document.createElement('div'); fillEl.className='meta-progress-fill';
+      fillEl.style.width = pct+'%'; barEl.appendChild(fillEl); card.appendChild(barEl);
+
+      // Pasos
+      var pasosEl = document.createElement('div'); pasosEl.className='meta-pasos-list';
+      (meta.pasos||[]).forEach(function(p, pIdx) {
+        var row = document.createElement('div');
+        row.className = 'meta-paso-row' + (p.done ? ' done' : '');
+        var chk = document.createElement('div'); chk.className='meta-paso-check'; chk.textContent = p.done ? '✓' : '';
+        var txt = document.createElement('span'); txt.className='meta-paso-text'; txt.textContent = p.text;
+        row.appendChild(chk); row.appendChild(txt);
+        row.onclick = function(){ metaTogglePaso(mIdx, pIdx); };
+        pasosEl.appendChild(row);
+      });
+      card.appendChild(pasosEl);
+
+      // Actions
+      var actEl = document.createElement('div'); actEl.className='meta-card-actions';
+      var editBtn = document.createElement('button'); editBtn.className='meta-action-btn'; editBtn.textContent='✏️ Editar';
+      editBtn.onclick = function(){ openMetaModal(mIdx); };
+      var delBtn = document.createElement('button'); delBtn.className='meta-action-btn'; delBtn.textContent='🗑️ Eliminar';
+      delBtn.onclick = function(){ metaDelete(mIdx); };
+      actEl.appendChild(editBtn); actEl.appendChild(delBtn); card.appendChild(actEl);
+
+      list.appendChild(card);
+    });
+  };
+
+  window.metaTogglePaso = function(mIdx, pIdx) {
+    metas[mIdx].pasos[pIdx].done = !metas[mIdx].pasos[pIdx].done;
+    metaSave(); renderMetas();
+  };
+
+  window.metaDelete = function(mIdx) {
+    if (confirm('¿Eliminar la meta "'+metas[mIdx].name+'"?')) {
+      metas.splice(mIdx,1); metaSave(); renderMetas();
+    }
+  };
+
+  var META_EMOJIS = ['🎯','🌟','💪','📚','✨','🚀','🌸','💡','🏆','❤️','🎨','🌱'];
+
+  window.openMetaModal = function(mIdx) {
+    var old = document.getElementById('metaModal'); if(old) old.remove();
+    var existing = mIdx !== null ? metas[mIdx] : null;
+    var emoji = existing ? existing.emoji : '🎯';
+    var name = existing ? existing.name : '';
+    var pasos = existing ? JSON.parse(JSON.stringify(existing.pasos||[])) : [];
+
+    var backdrop = document.createElement('div');
+    backdrop.className='meta-modal-backdrop'; backdrop.id='metaModal';
+    backdrop.onclick=function(e){if(e.target===backdrop)backdrop.remove();};
+
+    var box = document.createElement('div'); box.className='meta-modal-box';
+    var emojiOpts = META_EMOJIS.map(function(e){ return '<span class="mood-emoji-opt'+(e===emoji?' selected':'')+'" data-e="'+e+'" style="font-size:1.3rem">'+e+'</span>'; }).join('');
+
+    box.innerHTML = '<div class="mood-modal-title">'+(existing?'Editar':'Nueva')+' meta 🎯</div>'
+      + '<div class="mood-emoji-picker" id="metaEmojiPicker">'+emojiOpts+'</div>'
+      + '<div class="modal-field"><label class="modal-label">Nombre de la meta</label>'
+      + '<input class="modal-input" id="metaNameInput" placeholder="Ej: Terminar mi portafolio…" value="'+name.replace(/"/g,'&quot;')+'"></div>'
+      + '<div class="modal-field"><label class="modal-label">Pasos</label><div id="metaPasosList"></div>'
+      + '<button class="rutina-add-paso-btn" onclick="metaAddPasoRow()" style="margin-top:.3rem">＋ Agregar paso</button></div>'
+      + '<div class="modal-btns" style="margin-top:.8rem">'
+      + '<button class="modal-btn-cancel" onclick="document.getElementById(&quot;metaModal&quot;).remove()">Cancelar</button>'
+      + '<button class="modal-btn-save" id="metaSaveBtn">Guardar 🌟</button></div>';
+
+    backdrop.appendChild(box);
+    document.body.appendChild(backdrop);
+
+    var selEmoji = emoji;
+    backdrop.querySelectorAll('.mood-emoji-opt').forEach(function(opt){
+      opt.onclick=function(){
+        backdrop.querySelectorAll('.mood-emoji-opt').forEach(function(o){o.classList.remove('selected');});
+        opt.classList.add('selected'); selEmoji=opt.dataset.e;
+      };
+    });
+
+    function renderPasos() {
+      var list = document.getElementById('metaPasosList'); list.innerHTML='';
+      pasos.forEach(function(p,i){
+        var row=document.createElement('div'); row.className='meta-paso-edit-row';
+        var inp=document.createElement('input'); inp.className='meta-paso-edit-input';
+        inp.type='text'; inp.value=p.text; inp.placeholder='Paso '+(i+1)+'…';
+        inp.oninput=function(){pasos[i].text=inp.value;};
+        var del=document.createElement('button'); del.className='meta-paso-edit-del'; del.textContent='✕';
+        del.onclick=function(){pasos.splice(i,1);renderPasos();};
+        row.appendChild(inp); row.appendChild(del); list.appendChild(row);
+      });
+    }
+    renderPasos();
+
+    window.metaAddPasoRow = function() {
+      pasos.push({text:'',done:false}); renderPasos();
+      var inputs=document.querySelectorAll('.meta-paso-edit-input');
+      if(inputs.length) inputs[inputs.length-1].focus();
+    };
+
+    document.getElementById('metaSaveBtn').onclick = function() {
+      var nameVal = document.getElementById('metaNameInput').value.trim();
+      if (!nameVal) { document.getElementById('metaNameInput').focus(); return; }
+      var cleanPasos = pasos.filter(function(p){return p.text.trim();}).map(function(p){return{text:p.text.trim(),done:p.done||false};});
+      if (existing) {
+        metas[mIdx].emoji=selEmoji; metas[mIdx].name=nameVal; metas[mIdx].pasos=cleanPasos;
+      } else {
+        metas.push({id:'meta_'+Date.now(),emoji:selEmoji,name:nameVal,pasos:cleanPasos});
+      }
+      metaSave(); renderMetas(); backdrop.remove();
+    };
+
+    document.getElementById('metaNameInput').focus();
+  };
+
+  metaLoad();
+  setTimeout(renderMetas, 150);
+})();
+</script>
+
 </div><!-- end page-journal -->
 <div id="page-selfcare" class="page-section">
 <div id="sec-selfcare-nav" style="scroll-margin-top:60px"></div>
@@ -9945,24 +10813,9 @@ document.addEventListener('DOMContentLoaded', function() {
     <div id="univHistorialList"></div>
   </div>
 
-  <!-- Calendario de registros -->
-  <div class="univ-block">
-    <div class="univ-block-hdr">
-      <span class="univ-block-title">🗓️ Calendario de estudio</span>
-    </div>
-    <div id="univCalendario"></div>
-  </div>
-
-  <!-- Recuerdos -->
-  <div class="univ-block" id="univRecuerdosBlock">
-    <div class="univ-block-hdr">
-      <span class="univ-block-title">🌸 Recuerdos</span>
-    </div>
-    <p style="font-size:.7rem;color:var(--muted);font-weight:600;margin-bottom:.8rem">
-      Selecciona un día en el calendario de arriba para ver todo lo que registraste ese día 💙
-    </p>
-    <div id="univRecuerdosContent"></div>
-  </div>
+  <!-- Calendario y Recuerdos ocultos — ver sección Historial -->
+  <div id="univCalendario" style="display:none"></div>
+  <div id="univRecuerdosBlock" style="display:none"><div id="univRecuerdosContent"></div></div>
 </section>
 
 <style>
@@ -10912,6 +11765,7 @@ renderTimeline();
 
 <script>
 const NAV_PAGES = [
+  { icon:'🏠', label:'Inicio',     page:'page-inicio'    },
   { icon:'🐱', label:'Mi Semana',  page:'page-semana'    },
   { icon:'🙏', label:'Fe',         page:'page-fe'        },
   { icon:'🌿', label:'Calma',      page:'page-calma'     },
@@ -10926,6 +11780,8 @@ const NAV_PAGES = [
   { icon:'💙', label:'Medicina',   page:'page-univ'      },
   { icon:'🦄', label:'Intereses',  page:'page-intereses' },
   { icon:'📅', label:'Historial',  page:'page-historial' },
+  { icon:'🧠', label:'Braindump', page:'page-braindump' },
+  { icon:'📋', label:'Listas',     page:'page-listas'    },
 ];
 
 let activePage = 'page-semana';
@@ -12510,6 +13366,701 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 </script>
 </div><!-- end page-historial -->
+<div id="page-braindump" class="page-section">
+<style>
+  .braindump-section {
+    max-width: 760px;
+    margin: 2rem auto 0;
+    padding: 0 1rem 4rem;
+    animation: fadeUp .5s .1s ease both;
+    opacity: 0;
+    animation-fill-mode: both;
+  }
+  .braindump-header { text-align: center; margin-bottom: 1.6rem; }
+  .braindump-header .section-sub { display: block; margin-bottom: .3rem; }
+
+  .braindump-input-area {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+    margin-bottom: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+  }
+  .braindump-textarea {
+    width: 100%;
+    min-height: 80px;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: .75rem 1rem;
+    font-family: 'Nunito', sans-serif;
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--text);
+    resize: none;
+    outline: none;
+    transition: border-color .2s;
+    box-sizing: border-box;
+  }
+  .braindump-textarea:focus { border-color: var(--rosa); }
+  .braindump-textarea::placeholder { color: var(--muted2); font-weight: 500; }
+  .braindump-add-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .6rem;
+  }
+  .braindump-tag-row {
+    display: flex;
+    gap: .4rem;
+    flex-wrap: wrap;
+  }
+  .braindump-tag-btn {
+    padding: .25rem .7rem;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    font-family: 'Nunito', sans-serif;
+    font-size: .7rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .18s;
+  }
+  .braindump-tag-btn:hover,
+  .braindump-tag-btn.selected { border-color: var(--rosa); color: var(--rosa); background: var(--pink-light); }
+  .braindump-submit {
+    padding: .4rem 1.1rem;
+    border-radius: 20px;
+    border: none;
+    background: var(--rosa);
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-size: .8rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .braindump-submit:hover { opacity: .85; transform: scale(1.04); }
+
+  /* Filter bar */
+  .braindump-filter-row {
+    display: flex;
+    gap: .4rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+    align-items: center;
+  }
+  .braindump-filter-label {
+    font-size: .65rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted2);
+    margin-right: .2rem;
+  }
+  .braindump-filter-btn {
+    padding: .2rem .65rem;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--card);
+    font-family: 'Nunito', sans-serif;
+    font-size: .7rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .18s;
+  }
+  .braindump-filter-btn:hover { border-color: var(--rosa-soft); }
+  .braindump-filter-btn.active { background: var(--rosa); border-color: var(--rosa); color: #fff; }
+
+  /* Cards grid */
+  .braindump-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: .8rem;
+  }
+  .braindump-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: .9rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    position: relative;
+    animation: fadeUp .25s ease both;
+    transition: box-shadow .2s;
+  }
+  .braindump-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+  .braindump-card-tag {
+    font-size: .62rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--rosa);
+  }
+  .braindump-card-text {
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .braindump-card-date {
+    font-size: .65rem;
+    color: var(--muted2);
+    font-weight: 600;
+    margin-top: .2rem;
+  }
+  .braindump-card-del {
+    position: absolute;
+    top: .6rem;
+    right: .6rem;
+    background: none;
+    border: none;
+    color: var(--muted2);
+    font-size: .85rem;
+    cursor: pointer;
+    line-height: 1;
+    transition: color .15s;
+    padding: .1rem .3rem;
+    border-radius: 6px;
+  }
+  .braindump-card-del:hover { color: var(--rosa); background: var(--pink-light); }
+  .braindump-empty {
+    text-align: center;
+    color: var(--muted2);
+    font-size: .82rem;
+    font-weight: 600;
+    padding: 2.5rem 0;
+    grid-column: 1 / -1;
+  }
+
+  @media (max-width: 600px) {
+    .braindump-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+
+<section class="braindump-section">
+  <div class="braindump-header">
+    <span class="section-sub">🧠 suelta lo que sea</span>
+    <h2 class="section-title"><em>Brain</em>dump</h2>
+  </div>
+
+  <div class="braindump-input-area">
+    <textarea class="braindump-textarea" id="bdTextarea" placeholder="Escribe lo que se te venga a la mente… ideas, preocupaciones, pendientes, lo que sea 🌀"></textarea>
+    <div class="braindump-add-row">
+      <div class="braindump-tag-row" id="bdTagRow"></div>
+      <button class="braindump-submit" onclick="bdAddNote()">＋ Soltar</button>
+    </div>
+  </div>
+
+  <div class="braindump-filter-row" id="bdFilterRow"></div>
+
+  <div class="braindump-grid" id="bdGrid"></div>
+</section>
+
+<script>
+(function(){
+  var BD_TAGS = [
+    { id:'idea',       label:'💡 Idea'       },
+    { id:'pendiente',  label:'📌 Pendiente'  },
+    { id:'sentimiento',label:'💭 Sentimiento' },
+    { id:'random',     label:'🌀 Random'     },
+    { id:'sueno',      label:'🌙 Sueño'      },
+  ];
+
+  var bdNotes = [];
+  var bdSelectedTag = 'random';
+  var bdFilterTag = 'all';
+
+  var MESES_BD = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+  function bdSave() {
+    try { localStorage.setItem('braindump_notes', JSON.stringify(bdNotes)); } catch(e){}
+    if (window.cloudSave) window.cloudSave('braindump_notes', bdNotes);
+  }
+
+  function bdLoad() {
+    if (window._braindumpNotes) { bdNotes = window._braindumpNotes; return; }
+    try { bdNotes = JSON.parse(localStorage.getItem('braindump_notes') || '[]'); } catch(e){ bdNotes = []; }
+  }
+
+  function bdFmtDate(ts) {
+    var d = new Date(ts);
+    return d.getDate() + ' ' + MESES_BD[d.getMonth()] + ' · ' +
+      String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  }
+
+  function bdRenderTags() {
+    var row = document.getElementById('bdTagRow');
+    if (!row) return;
+    row.innerHTML = '';
+    BD_TAGS.forEach(function(t) {
+      var btn = document.createElement('button');
+      btn.className = 'braindump-tag-btn' + (t.id === bdSelectedTag ? ' selected' : '');
+      btn.textContent = t.label;
+      btn.onclick = function() { bdSelectedTag = t.id; bdRenderTags(); };
+      row.appendChild(btn);
+    });
+  }
+
+  function bdRenderFilters() {
+    var row = document.getElementById('bdFilterRow');
+    if (!row) return;
+    row.innerHTML = '<span class="braindump-filter-label">Filtrar:</span>';
+    var allBtn = document.createElement('button');
+    allBtn.className = 'braindump-filter-btn' + (bdFilterTag === 'all' ? ' active' : '');
+    allBtn.textContent = '✨ Todas';
+    allBtn.onclick = function() { bdFilterTag = 'all'; bdRenderFilters(); bdRenderGrid(); };
+    row.appendChild(allBtn);
+    BD_TAGS.forEach(function(t) {
+      var btn = document.createElement('button');
+      btn.className = 'braindump-filter-btn' + (bdFilterTag === t.id ? ' active' : '');
+      btn.textContent = t.label;
+      btn.onclick = function() { bdFilterTag = t.id; bdRenderFilters(); bdRenderGrid(); };
+      row.appendChild(btn);
+    });
+  }
+
+  function bdRenderGrid() {
+    var grid = document.getElementById('bdGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    var filtered = bdFilterTag === 'all' ? bdNotes : bdNotes.filter(function(n){ return n.tag === bdFilterTag; });
+    // Newest first
+    var sorted = filtered.slice().reverse();
+    if (sorted.length === 0) {
+      var emp = document.createElement('div');
+      emp.className = 'braindump-empty';
+      emp.textContent = bdFilterTag === 'all' ? 'Todavía no hay nada aquí… ¡suelta lo que tengas! 🌀' : 'Sin notas con esta etiqueta 🌸';
+      grid.appendChild(emp);
+      return;
+    }
+    sorted.forEach(function(note) {
+      var tagObj = BD_TAGS.find(function(t){ return t.id === note.tag; }) || BD_TAGS[3];
+      var card = document.createElement('div');
+      card.className = 'braindump-card';
+
+      var tagEl = document.createElement('div');
+      tagEl.className = 'braindump-card-tag';
+      tagEl.textContent = tagObj.label;
+
+      var textEl = document.createElement('div');
+      textEl.className = 'braindump-card-text';
+      textEl.textContent = note.text;
+
+      var dateEl = document.createElement('div');
+      dateEl.className = 'braindump-card-date';
+      dateEl.textContent = bdFmtDate(note.ts);
+
+      var delBtn = document.createElement('button');
+      delBtn.className = 'braindump-card-del';
+      delBtn.textContent = '✕';
+      delBtn.title = 'Borrar nota';
+      delBtn.onclick = function() {
+        if (confirm('¿Borrar esta nota?')) {
+          bdNotes = bdNotes.filter(function(n){ return n.ts !== note.ts; });
+          bdSave();
+          bdRenderGrid();
+          bdRenderFilters();
+        }
+      };
+
+      card.appendChild(delBtn);
+      card.appendChild(tagEl);
+      card.appendChild(textEl);
+      card.appendChild(dateEl);
+      grid.appendChild(card);
+    });
+  }
+
+  window.bdAddNote = function() {
+    var ta = document.getElementById('bdTextarea');
+    if (!ta) return;
+    var text = ta.value.trim();
+    if (!text) { ta.focus(); return; }
+    bdNotes.push({ ts: Date.now(), text: text, tag: bdSelectedTag });
+    bdSave();
+    ta.value = '';
+    bdRenderGrid();
+    bdRenderFilters();
+  };
+
+  // Enter + Ctrl/Cmd to submit
+  document.addEventListener('DOMContentLoaded', function() {
+    var ta = document.getElementById('bdTextarea');
+    if (ta) {
+      ta.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { window.bdAddNote(); }
+      });
+    }
+  });
+
+  // Hook cloud sync
+  var _origSyncBD = window.syncFromCloud;
+  window.syncFromCloud = function() {
+    if (_origSyncBD) _origSyncBD();
+    if (window._braindumpNotes) bdNotes = window._braindumpNotes;
+    bdRenderGrid();
+  };
+
+  function bdInit() {
+    bdLoad();
+    bdRenderTags();
+    bdRenderFilters();
+    bdRenderGrid();
+  }
+
+  // Init
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bdInit);
+  } else {
+    setTimeout(bdInit, 100);
+  }
+})();
+</script>
+</div><!-- end page-braindump -->
+<div id="page-listas" class="page-section">
+<style>
+  .listas-section { max-width:860px;margin:2rem auto 0;padding:0 1rem 4rem;animation:fadeUp .5s .1s ease both;opacity:0;animation-fill-mode:both; }
+  .listas-tabs { display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.4rem;border-bottom:1.5px solid var(--border);padding-bottom:.8rem; }
+  .lista-tab { padding:.3rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-family:'Nunito',sans-serif;font-size:.75rem;font-weight:700;color:var(--muted);cursor:pointer;transition:all .18s; }
+  .lista-tab.active { background:var(--rosa);border-color:var(--rosa);color:#fff; }
+
+  /* ── Listas rápidas ── */
+  .ql-list-card { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem;margin-bottom:.8rem; }
+  .ql-list-header { display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem; }
+  .ql-list-title { font-family:'Playfair Display',serif;font-size:.95rem;font-style:italic;color:var(--text);flex:1; }
+  .ql-list-actions { display:flex;gap:.3rem; }
+  .ql-action-btn { background:none;border:none;font-size:.8rem;color:var(--muted2);cursor:pointer;padding:.15rem .3rem;border-radius:6px;transition:color .15s; }
+  .ql-action-btn:hover { color:var(--rosa); }
+  .ql-items { display:flex;flex-direction:column;gap:.3rem; }
+  .ql-item-row { display:flex;align-items:center;gap:.5rem;cursor:pointer;padding:.2rem 0; }
+  .ql-item-check { width:17px;height:17px;min-width:17px;border-radius:4px;border:2px solid var(--muted2);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:#fff;transition:all .15s;flex-shrink:0; }
+  .ql-item-row.done .ql-item-check { background:var(--rosa);border-color:var(--rosa); }
+  .ql-item-text { font-size:.8rem;font-weight:600;color:var(--text);transition:color .15s;flex:1; }
+  .ql-item-row.done .ql-item-text { text-decoration:line-through;color:var(--muted2); }
+  .ql-item-del { background:none;border:none;color:transparent;font-size:.75rem;cursor:pointer;padding:.1rem;transition:color .15s;flex-shrink:0; }
+  .ql-item-row:hover .ql-item-del { color:var(--muted2); }
+  .ql-item-del:hover { color:var(--rosa) !important; }
+  .ql-add-row { display:flex;gap:.5rem;margin-top:.6rem;padding-top:.5rem;border-top:1px dashed var(--border); }
+  .ql-add-input { flex:1;border:1.5px solid var(--border);border-radius:10px;padding:.35rem .7rem;font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:600;color:var(--text);background:var(--bg);outline:none;transition:border-color .2s; }
+  .ql-add-input:focus { border-color:var(--rosa); }
+  .ql-add-btn { padding:.35rem .8rem;border-radius:10px;border:none;background:var(--rosa);color:#fff;font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:800;cursor:pointer;transition:opacity .15s; }
+  .ql-add-btn:hover { opacity:.85; }
+  .add-ql-btn { display:flex;align-items:center;justify-content:center;gap:.4rem;width:100%;padding:.65rem;border-radius:var(--radius);border:1.5px dashed var(--border);background:transparent;font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:700;color:var(--muted);cursor:pointer;transition:all .2s;margin-top:.4rem; }
+  .add-ql-btn:hover { border-color:var(--rosa);color:var(--rosa); }
+
+  /* ── Watchlist ── */
+  .wl-cat-tabs { display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:1rem; }
+  .wl-cat-btn { padding:.22rem .7rem;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-family:'Nunito',sans-serif;font-size:.7rem;font-weight:700;color:var(--muted);cursor:pointer;transition:all .18s; }
+  .wl-cat-btn.active { background:var(--rosa);border-color:var(--rosa);color:#fff; }
+  .wl-status-filter { display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:1rem;align-items:center; }
+  .wl-status-label { font-size:.62rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);margin-right:.2rem; }
+  .wl-status-btn { padding:.18rem .6rem;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-family:'Nunito',sans-serif;font-size:.68rem;font-weight:700;color:var(--muted);cursor:pointer;transition:all .18s; }
+  .wl-status-btn.active { border-color:var(--rosa);color:var(--rosa);background:var(--pink-light); }
+  .wl-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.7rem; }
+  .wl-card { background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:.9rem 1rem;display:flex;flex-direction:column;gap:.4rem;position:relative;transition:box-shadow .2s; }
+  .wl-card:hover { box-shadow:0 4px 16px rgba(0,0,0,.08); }
+  .wl-card-status { font-size:.6rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:.18rem .6rem;border-radius:20px;display:inline-block;width:fit-content; }
+  .wl-card-status.pendiente { background:var(--surface);color:var(--muted2); }
+  .wl-card-status.viendo { background:#fff3cd;color:#856404; }
+  .wl-card-status.terminado { background:#d4edda;color:#155724; }
+  .wl-card-status.abandonado { background:#f8d7da;color:#721c24; }
+  .wl-card-title { font-size:.85rem;font-weight:700;color:var(--text);line-height:1.3; }
+  .wl-card-cat { font-size:.65rem;font-weight:700;color:var(--muted2); }
+  .wl-stars { display:flex;gap:1px;font-size:.85rem; }
+  .wl-star { cursor:pointer;transition:transform .1s;color:var(--border); }
+  .wl-star.filled { color:#f5a623; }
+  .wl-star:hover { transform:scale(1.2); }
+  .wl-card-del { position:absolute;top:.5rem;right:.5rem;background:none;border:none;color:transparent;font-size:.78rem;cursor:pointer;padding:.1rem .3rem;border-radius:6px;transition:color .15s; }
+  .wl-card:hover .wl-card-del { color:var(--muted2); }
+  .wl-card-del:hover { color:var(--rosa) !important; }
+  .wl-add-btn { display:flex;align-items:center;justify-content:center;gap:.4rem;width:100%;padding:.65rem;border-radius:var(--radius);border:1.5px dashed var(--border);background:transparent;font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:700;color:var(--muted);cursor:pointer;transition:all .2s;margin-top:.4rem; }
+  .wl-add-btn:hover { border-color:var(--rosa);color:var(--rosa); }
+  .wl-empty { text-align:center;color:var(--muted2);font-size:.8rem;font-weight:600;padding:2rem 0;grid-column:1/-1; }
+
+  @media(max-width:600px){ .wl-grid{grid-template-columns:1fr 1fr;} }
+</style>
+
+<section class="listas-section">
+  <span class="section-sub">📋 organización</span>
+  <h2 class="section-title" style="margin-bottom:1rem"><em>Mis</em> Listas</h2>
+  <div class="listas-tabs">
+    <button class="lista-tab active" onclick="listasSetTab('rapidas')">⚡ Listas rápidas</button>
+    <button class="lista-tab" onclick="listasSetTab('watchlist')">🎬 Watchlist & Lecturas</button>
+  </div>
+
+  <!-- Listas rápidas -->
+  <div id="listasTabRapidas">
+    <div id="qlListsContainer"></div>
+    <button class="add-ql-btn" onclick="openQlModal(null)">＋ Nueva lista</button>
+  </div>
+
+  <!-- Watchlist -->
+  <div id="listasTabWatchlist" style="display:none">
+    <div class="wl-cat-tabs" id="wlCatTabs"></div>
+    <div class="wl-status-filter" id="wlStatusFilter"></div>
+    <div class="wl-grid" id="wlGrid"></div>
+    <button class="wl-add-btn" onclick="openWlModal(null)">＋ Agregar entrada</button>
+  </div>
+</section>
+
+<script>
+(function(){
+  // ══ LISTAS RÁPIDAS ══
+  var qlLists = [];
+  var WL_CATS = [
+    {id:'libro',  label:'📚 Libros'},
+    {id:'serie',  label:'📺 Series'},
+    {id:'anime',  label:'🌸 Animes'},
+    {id:'kdrama', label:'🇰🇷 Kdramas'},
+    {id:'pelicula',label:'🎬 Películas'},
+  ];
+  var WL_STATUSES = [
+    {id:'pendiente', label:'⏳ Pendiente'},
+    {id:'viendo',    label:'👀 Viendo/Leyendo'},
+    {id:'terminado', label:'✅ Terminado'},
+    {id:'abandonado',label:'🚫 Abandonado'},
+  ];
+  var wlItems = [];
+  var wlCatFilter = 'all';
+  var wlStatusFilter = 'all';
+  var listasTab = 'rapidas';
+
+  function qlSave(){ try{localStorage.setItem('ql_lists',JSON.stringify(qlLists));}catch(e){} if(window.cloudSave) window.cloudSave('ql_lists',qlLists); }
+  function qlLoad(){ if(window._qlLists){qlLists=window._qlLists;return;} try{qlLists=JSON.parse(localStorage.getItem('ql_lists')||'[]');}catch(e){qlLists=[];} }
+  function wlSave(){ try{localStorage.setItem('wl_items',JSON.stringify(wlItems));}catch(e){} if(window.cloudSave) window.cloudSave('wl_items',wlItems); }
+  function wlLoad(){ if(window._wlItems){wlItems=window._wlItems;return;} try{wlItems=JSON.parse(localStorage.getItem('wl_items')||'[]');}catch(e){wlItems=[];} }
+
+  window.listasSetTab = function(tab) {
+    listasTab = tab;
+    document.querySelectorAll('.lista-tab').forEach(function(b,i){ b.classList.toggle('active',['rapidas','watchlist'][i]===tab); });
+    document.getElementById('listasTabRapidas').style.display = tab==='rapidas'?'':'none';
+    document.getElementById('listasTabWatchlist').style.display = tab==='watchlist'?'':'none';
+    if(tab==='watchlist'){ renderWlCatTabs(); renderWlStatusFilter(); renderWlGrid(); }
+  };
+
+  // ── Render listas rápidas
+  function renderQlLists() {
+    var container = document.getElementById('qlListsContainer'); if(!container) return;
+    container.innerHTML='';
+    if(qlLists.length===0){
+      container.innerHTML='<div style="color:var(--muted2);font-size:.8rem;font-weight:600;text-align:center;padding:1.5rem 0">Crea tu primera lista rápida ⚡</div>';
+      return;
+    }
+    qlLists.forEach(function(lst,lIdx){
+      var card=document.createElement('div'); card.className='ql-list-card';
+      // Header
+      var hdrDiv = document.createElement('div'); hdrDiv.className='ql-list-header';
+      var emojiSpan = document.createElement('span'); emojiSpan.style.fontSize='1.1rem'; emojiSpan.textContent=lst.emoji;
+      var nameSpan = document.createElement('span'); nameSpan.className='ql-list-title'; nameSpan.textContent=lst.name;
+      var actDiv = document.createElement('div'); actDiv.className='ql-list-actions';
+      var editB = document.createElement('button'); editB.className='ql-action-btn'; editB.textContent='✏️';
+      editB.onclick = (function(idx){ return function(){ openQlModal(idx); }; })(lIdx);
+      var delB = document.createElement('button'); delB.className='ql-action-btn'; delB.textContent='🗑️';
+      delB.onclick = (function(idx){ return function(){ qlDeleteList(idx); }; })(lIdx);
+      actDiv.appendChild(editB); actDiv.appendChild(delB);
+      hdrDiv.appendChild(emojiSpan); hdrDiv.appendChild(nameSpan); hdrDiv.appendChild(actDiv);
+      card.appendChild(hdrDiv);
+
+      // Items
+      var itemsDiv = document.createElement('div'); itemsDiv.className='ql-items';
+      (lst.items||[]).forEach(function(it,iIdx){
+        var row = document.createElement('div');
+        row.className = 'ql-item-row' + (it.done ? ' done' : '');
+        var chk = document.createElement('div'); chk.className='ql-item-check'; chk.textContent = it.done ? '✓' : '';
+        var txt = document.createElement('span'); txt.className='ql-item-text'; txt.textContent = it.text;
+        var delI = document.createElement('button'); delI.className='ql-item-del'; delI.textContent='✕';
+        delI.onclick = (function(l,i){ return function(e){ e.stopPropagation(); qlDeleteItem(l,i); }; })(lIdx,iIdx);
+        row.onclick = (function(l,i){ return function(){ qlToggleItem(l,i); }; })(lIdx,iIdx);
+        row.appendChild(chk); row.appendChild(txt); row.appendChild(delI);
+        itemsDiv.appendChild(row);
+      });
+      card.appendChild(itemsDiv);
+      var header=''; var items='';
+      var addRow='<div class="ql-add-row"><input class="ql-add-input" id="qlInput_'+lIdx+'" placeholder="Agregar ítem…" onkeydown="qlInputKey(event,'+lIdx+')">'  
+        +'<button class="ql-add-btn" onclick="qlAddItem('+lIdx+')">＋</button></div>';
+      card.innerHTML=header+items+addRow;
+      container.appendChild(card);
+    });
+  }
+
+  window.qlInputKey=function(e,lIdx){ if(e.key==='Enter') window.qlAddItem(lIdx); };
+  window.qlToggleItem=function(lIdx,iIdx){ qlLists[lIdx].items[iIdx].done=!qlLists[lIdx].items[iIdx].done; qlSave(); renderQlLists(); };
+  window.qlDeleteItem=function(lIdx,iIdx){ qlLists[lIdx].items.splice(iIdx,1); qlSave(); renderQlLists(); };
+  window.qlDeleteList=function(lIdx){ if(confirm('¿Eliminar la lista "'+qlLists[lIdx].name+'"?')){ qlLists.splice(lIdx,1); qlSave(); renderQlLists(); } };
+  window.qlAddItem=function(lIdx){ var inp=document.getElementById('qlInput_'+lIdx); if(!inp||!inp.value.trim()) return; qlLists[lIdx].items.push({text:inp.value.trim(),done:false}); inp.value=''; qlSave(); renderQlLists(); };
+
+  var QL_EMOJIS=['📋','🛒','📌','💡','🎯','🌸','📦','🧴','🍕','✈️'];
+  window.openQlModal=function(lIdx){
+    var old=document.getElementById('qlModal'); if(old) old.remove();
+    var existing=lIdx!==null?qlLists[lIdx]:null;
+    var emoji=existing?existing.emoji:'📋'; var name=existing?existing.name:'';
+    var backdrop=document.createElement('div'); backdrop.className='meta-modal-backdrop'; backdrop.id='qlModal';
+    backdrop.onclick=function(e){if(e.target===backdrop)backdrop.remove();};
+    var box=document.createElement('div'); box.className='meta-modal-box';
+    var emojiOpts=QL_EMOJIS.map(function(e){return '<span class="mood-emoji-opt'+(e===emoji?' selected':'')+'" data-e="'+e+'" style="font-size:1.3rem">'+e+'</span>';}).join('');
+    box.innerHTML='<div class="mood-modal-title">'+(existing?'Editar':'Nueva')+' lista</div>'
+      +'<div class="mood-emoji-picker" id="qlEmojiPicker">'+emojiOpts+'</div>'
+      +'<div class="modal-field"><label class="modal-label">Nombre</label>'
+      +'<input class="modal-input" id="qlNameInput" placeholder="Ej: Lista del súper…" value="'+name.replace(/"/g,'&quot;')+'"></div>'
+      +'<div class="modal-btns" style="margin-top:.8rem">'
+      +'<button class="modal-btn-cancel" onclick="document.getElementById(&quot;qlModal&quot;).remove()">Cancelar</button>'
+      +'<button class="modal-btn-save" id="qlSaveBtn">Guardar</button></div>';
+    backdrop.appendChild(box); document.body.appendChild(backdrop);
+    var selEmoji=emoji;
+    backdrop.querySelectorAll('.mood-emoji-opt').forEach(function(o){
+      o.onclick=function(){backdrop.querySelectorAll('.mood-emoji-opt').forEach(function(x){x.classList.remove('selected');});o.classList.add('selected');selEmoji=o.dataset.e;};
+    });
+    document.getElementById('qlSaveBtn').onclick=function(){
+      var n=document.getElementById('qlNameInput').value.trim(); if(!n){document.getElementById('qlNameInput').focus();return;}
+      if(existing){qlLists[lIdx].emoji=selEmoji;qlLists[lIdx].name=n;}
+      else{qlLists.push({id:'ql_'+Date.now(),emoji:selEmoji,name:n,items:[]});}
+      qlSave(); renderQlLists(); backdrop.remove();
+    };
+    document.getElementById('qlNameInput').focus();
+  };
+
+  // ── Watchlist
+  function renderWlCatTabs(){
+    var tabs=document.getElementById('wlCatTabs'); if(!tabs) return;
+    tabs.innerHTML='';
+    var all=document.createElement('button'); all.className='wl-cat-btn'+(wlCatFilter==='all'?' active':'');
+    all.textContent='✨ Todas'; all.onclick=function(){wlCatFilter='all';renderWlCatTabs();renderWlGrid();};
+    tabs.appendChild(all);
+    WL_CATS.forEach(function(c){
+      var btn=document.createElement('button'); btn.className='wl-cat-btn'+(wlCatFilter===c.id?' active':'');
+      btn.textContent=c.label; btn.onclick=function(){wlCatFilter=c.id;renderWlCatTabs();renderWlGrid();};
+      tabs.appendChild(btn);
+    });
+  }
+
+  function renderWlStatusFilter(){
+    var row=document.getElementById('wlStatusFilter'); if(!row) return;
+    row.innerHTML='<span class="wl-status-label">Estado:</span>';
+    var all=document.createElement('button'); all.className='wl-status-btn'+(wlStatusFilter==='all'?' active':'');
+    all.textContent='Todos'; all.onclick=function(){wlStatusFilter='all';renderWlStatusFilter();renderWlGrid();};
+    row.appendChild(all);
+    WL_STATUSES.forEach(function(s){
+      var btn=document.createElement('button'); btn.className='wl-status-btn'+(wlStatusFilter===s.id?' active':'');
+      btn.textContent=s.label; btn.onclick=function(){wlStatusFilter=s.id;renderWlStatusFilter();renderWlGrid();};
+      row.appendChild(btn);
+    });
+  }
+
+  function renderWlGrid(){
+    var grid=document.getElementById('wlGrid'); if(!grid) return;
+    grid.innerHTML='';
+    var filtered=wlItems.filter(function(it){
+      return (wlCatFilter==='all'||it.cat===wlCatFilter) && (wlStatusFilter==='all'||it.status===wlStatusFilter);
+    });
+    if(filtered.length===0){
+      var emp=document.createElement('div'); emp.className='wl-empty';
+      emp.textContent='Nada aquí todavía 🌸'; grid.appendChild(emp); return;
+    }
+    filtered.slice().reverse().forEach(function(item){
+      var cat=WL_CATS.find(function(c){return c.id===item.cat;})||WL_CATS[0];
+      var card=document.createElement('div'); card.className='wl-card';
+
+      // Delete btn
+      var delBtn=document.createElement('button'); delBtn.className='wl-card-del'; delBtn.textContent='✕';
+      delBtn.onclick=(function(id){return function(){wlDelete(id);};})(item.id);
+      card.appendChild(delBtn);
+
+      // Category
+      var catEl=document.createElement('div'); catEl.className='wl-card-cat'; catEl.textContent=cat.label;
+      card.appendChild(catEl);
+
+      // Title
+      var titleEl=document.createElement('div'); titleEl.className='wl-card-title'; titleEl.textContent=item.title;
+      card.appendChild(titleEl);
+
+      // Status select
+      var sel=document.createElement('select');
+      sel.style.cssText='font-size:.65rem;border:1px solid var(--border);border-radius:8px;padding:.15rem .3rem;background:var(--bg);color:var(--text);font-family:Nunito,sans-serif;font-weight:700;cursor:pointer';
+      WL_STATUSES.forEach(function(s){
+        var opt=document.createElement('option'); opt.value=s.id; opt.textContent=s.label;
+        if(item.status===s.id) opt.selected=true;
+        sel.appendChild(opt);
+      });
+      sel.onchange=(function(id){return function(){wlSetStatus(id,sel.value);};})(item.id);
+      card.appendChild(sel);
+
+      // Stars (solo si terminado)
+      if(item.status==='terminado'){
+        var starsEl=document.createElement('div'); starsEl.className='wl-stars';
+        for(var i=1;i<=5;i++){
+          var star=document.createElement('span'); star.className='wl-star'+(i<=(item.rating||0)?' filled':'');
+          star.textContent='★';
+          star.onclick=(function(id,n){return function(){wlSetRating(id,n);};})(item.id,i);
+          starsEl.appendChild(star);
+        }
+        card.appendChild(starsEl);
+      }
+
+      grid.appendChild(card);
+    });
+  }
+
+  window.wlSetRating=function(id,r){
+    var it=wlItems.find(function(x){return x.id===id;}); if(!it) return;
+    it.rating=r; wlSave(); renderWlGrid();
+  };
+  window.wlSetStatus=function(id,s){
+    var it=wlItems.find(function(x){return x.id===id;}); if(!it) return;
+    it.status=s; wlSave(); renderWlGrid();
+  };
+  window.wlDelete=function(id){
+    if(confirm('¿Eliminar esta entrada?')){ wlItems=wlItems.filter(function(x){return x.id!==id;}); wlSave(); renderWlGrid(); }
+  };
+
+  window.openWlModal=function(id){
+    var old=document.getElementById('wlModal'); if(old) old.remove();
+    var existing=id?wlItems.find(function(x){return x.id===id;}):null;
+    var backdrop=document.createElement('div'); backdrop.className='meta-modal-backdrop'; backdrop.id='wlModal';
+    backdrop.onclick=function(e){if(e.target===backdrop)backdrop.remove();};
+    var box=document.createElement('div'); box.className='meta-modal-box';
+    var catOpts=WL_CATS.map(function(c){return '<option value="'+c.id+'"'+(existing&&existing.cat===c.id?' selected':'')+'>'+c.label+'</option>';}).join('');
+    var stOpts=WL_STATUSES.map(function(s){return '<option value="'+s.id+'"'+(existing&&existing.status===s.id?' selected':'')+'>'+s.label+'</option>';}).join('');
+    box.innerHTML='<div class="mood-modal-title">Nueva entrada 🎬</div>'
+      +'<div class="modal-field"><label class="modal-label">Título</label>'
+      +'<input class="modal-input" id="wlTitleInput" placeholder="Ej: Attack on Titan…" value="'+(existing?existing.title.replace(/"/g,'&quot;'):'')+'" ></div>'
+      +'<div class="modal-field"><label class="modal-label">Categoría</label>'
+      +'<select class="modal-input" id="wlCatInput" style="cursor:pointer">'+catOpts+'</select></div>'
+      +'<div class="modal-field"><label class="modal-label">Estado</label>'
+      +'<select class="modal-input" id="wlStatusInput" style="cursor:pointer">'+stOpts+'</select></div>'
+      +'<div class="modal-btns" style="margin-top:.8rem">'
+      +'<button class="modal-btn-cancel" onclick="document.getElementById(&quot;wlModal&quot;).remove()">Cancelar</button>'
+      +'<button class="modal-btn-save" id="wlSaveBtn">Guardar</button></div>';
+    backdrop.appendChild(box); document.body.appendChild(backdrop);
+    document.getElementById('wlSaveBtn').onclick=function(){
+      var t=document.getElementById('wlTitleInput').value.trim(); if(!t){document.getElementById('wlTitleInput').focus();return;}
+      var c=document.getElementById('wlCatInput').value;
+      var s=document.getElementById('wlStatusInput').value;
+      if(existing){existing.title=t;existing.cat=c;existing.status=s;}
+      else{wlItems.push({id:'wl_'+Date.now(),title:t,cat:c,status:s,rating:0});}
+      wlSave(); renderWlGrid(); backdrop.remove();
+    };
+    document.getElementById('wlTitleInput').focus();
+  };
+
+  // Init
+  qlLoad(); wlLoad();
+  setTimeout(function(){ renderQlLists(); renderWlCatTabs(); renderWlStatusFilter(); renderWlGrid(); }, 150);
+})();
+</script>
+</div><!-- end page-listas -->
+
+
 
   </div><!-- end #app-content -->
   <div class="img-col img-col-right" id="imgColRight"></div>
