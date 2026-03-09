@@ -12351,13 +12351,6 @@ function cleanupMaterias() {
     sem.materias = sem.materias.filter(function(mat) {
       return mat && mat.name && mat.name.trim().length > 0;
     });
-    // Remover duplicados por nombre
-    var seen = {};
-    sem.materias = sem.materias.filter(function(mat) {
-      if (seen[mat.name]) return false;
-      seen[mat.name] = true;
-      return true;
-    });
   });
   saveUniv();
 }
@@ -12505,8 +12498,8 @@ function renderUnivMaterias() {
     body.appendChild(cal);
     card.appendChild(body);
 
-    // Click en la tarjeta abre modal de edición
-    card.onclick = function() { openUnivMateriaViewModal(idx); };
+    // Click en la tarjeta abre modal de vista
+    card.onclick = function() { openUnivMateriaViewModalById(mat.id); };
 
     grid.appendChild(card);
   });
@@ -13022,6 +13015,14 @@ function openUnivSemModal() {
     back.remove();
   };
   document.getElementById('semNombre').focus();
+}
+
+function openUnivMateriaViewModalById(matId) {
+  var sem = getActiveSem();
+  if (!sem) return;
+  var matIdx = sem.materias.findIndex(function(m) { return m.id === matId; });
+  if (matIdx === -1) return;
+  openUnivMateriaViewModal(matIdx);
 }
 
 function openUnivMateriaViewModal(matIdx) {
