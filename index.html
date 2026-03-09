@@ -1872,6 +1872,7 @@ window.kittyConfirm = function(msg, onYes, onNo) {
     gap: .7rem;
     margin-top: .3rem;
     width: 100%;
+    min-height: 450px;
   }
   .univ-materia-card {
     background: var(--card);
@@ -1881,6 +1882,9 @@ window.kittyConfirm = function(msg, onYes, onNo) {
     cursor: pointer;
     transition: transform .18s, box-shadow .18s;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    aspect-ratio: 3/4;
   }
   .univ-materia-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.1); }
   .univ-materia-card-img {
@@ -12438,10 +12442,12 @@ function renderUnivMaterias() {
     var name = document.createElement('div');
     name.className = 'univ-materia-card-name';
     name.textContent = mat.name;
+    name.style.backgroundColor = mat.color || 'var(--muted)';
 
     var cal = document.createElement('div');
     cal.className = 'univ-materia-card-cal';
     cal.textContent = mat.calificacion ? '★ ' + mat.calificacion : '★ —';
+    cal.style.backgroundColor = mat.color ? mat.color + 'BB' : 'rgba(0,0,0,.5)';
     cal.style.cursor = 'pointer';
     cal.title = 'Clic para editar calificación';
     cal.onclick = function(e) {
