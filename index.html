@@ -1871,6 +1871,23 @@ window.kittyConfirm = function(msg, onYes, onNo) {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: .7rem;
     margin-top: .3rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 10px;
+    scroll-behavior: smooth;
+  }
+  .univ-materias-grid::-webkit-scrollbar {
+    height: 8px;
+  }
+  .univ-materias-grid::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .univ-materias-grid::-webkit-scrollbar-thumb {
+    background: #c08fa8;
+    border-radius: 4px;
+  }
+  .univ-materias-grid::-webkit-scrollbar-thumb:hover {
+    background: #a8738a;
   }
   .univ-materia-card {
     background: var(--card);
@@ -12454,7 +12471,7 @@ function renderUnivMaterias() {
     card.appendChild(body);
 
     // Click en la tarjeta abre modal de edición
-    card.onclick = function() { openUnivMateriaModal(idx); };
+    card.onclick = function() { openUnivMateriaViewModal(idx); };
 
     grid.appendChild(card);
   });
@@ -12970,6 +12987,111 @@ function openUnivSemModal() {
     back.remove();
   };
   document.getElementById('semNombre').focus();
+}
+
+function openUnivMateriaViewModal(matIdx) {
+  var sem = getActiveSem();
+  if (!sem || !sem.materias[matIdx]) return;
+  var mat = sem.materias[matIdx];
+
+  var back = document.createElement('div');
+  back.className = 'rutina-modal-backdrop';
+  back.onclick = function(e) { if (e.target===back) back.remove(); };
+
+  var box = document.createElement('div');
+  box.className = 'rutina-modal-box';
+  box.style.maxWidth = '500px';
+  box.style.position = 'relative';
+
+  // Botón editar (lápiz) en la esquina superior derecha
+  var editBtn = document.createElement('button');
+  editBtn.innerHTML = '✏️';
+  editBtn.style.cssText = 'position:absolute;top:.7rem;right:.7rem;background:'+mat.color+';border:none;border-radius:50%;width:36px;height:36px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s,opacity .15s;box-shadow:0 2px 8px rgba(0,0,0,.15)';
+  editBtn.title = 'Editar materia';
+  editBtn.onmouseover = function(){ this.style.transform = 'scale(1.1)'; };
+  editBtn.onmouseout = function(){ this.style.transform = 'scale(1)'; };
+  editBtn.onclick = function(e) {
+    e.stopPropagation();
+    back.remove();
+    openUnivMateriaModal(matIdx);
+  };
+
+  var titleDiv = document.createElement('div');
+  titleDiv.className = 'rutina-modal-title';
+  titleDiv.style.paddingRight = '3rem';
+  titleDiv.innerHTML = '📚 <em>' + mat.name + '</em>';
+
+  var content = document.createElement('div');
+  content.style.marginTop = '.8rem';
+
+  // Sección de calificación
+  var calDiv = document.createElement('div');
+  calDiv.style.cssText = 'background:'+mat.color+'22;border-left:4px solid '+mat.color+';padding:.8rem;border-radius:8px;margin-bottom:1rem';
+  var calLabel = document.createElement('div');
+  calLabel.style.cssText = 'font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:.3rem';
+  calLabel.textContent = '⭐ Calificación General';
+  var calVal = document.createElement('div');
+  calVal.style.cssText = 'font-size:1.3rem;font-weight:800;color:'+mat.color;
+  calVal.textContent = mat.calificacion ? mat.calificacion : '—';
+  calDiv.appendChild(calLabel);
+  calDiv.appendChild(calVal);
+  content.appendChild(calDiv);
+
+  // Tareas pendientes de esta materia
+  var tasksDiv = document.createElement('div');
+  tasksDiv.style.marginBottom = '1rem';
+  var tasksLabel = document.createElement('div');
+  tasksLabel.style.cssText = 'font-size:.75rem;font-weight:700;color:var(--text);margin-bottom:.5rem;text-transform:uppercase';
+  tasksLabel.textContent = '📝 Tareas de ' + mat.name;
+  tasksDiv.appendChild(tasksLabel);
+
+  var tasksList = document.createElement('div');
+  tasksList.style.display = 'flex';
+  tasksList.style.flexDirection = 'column';
+  tasksList.style.gap = '.4rem';
+
+  // Buscar tareas de esta materia
+  var materiasTareas = sem.tareas ? sem.tareas.filter(function(t) { return t.materia === mat.name; }) : [];
+  if (materiasTareas.length === 0) {
+    var emptyTask = document.createElement('div');
+    emptyTask.style.cssText = 'font-size:.7rem;color:var(--muted2);font-style:italic;padding:.5rem;text-align:center';
+    emptyTask.textContent = 'Sin tareas pendientes 🎉';
+    tasksList.appendChild(emptyTask);
+  } else {
+    materiasTareas.forEach(function(task) {
+      var taskRow = document.createElement('div');
+      taskRow.style.cssText = 'display:flex;align-items:flex-start;gap:.5rem;padding:.6rem;background:var(--surface);border-radius:8px;border-left:3px solid '+mat.color;
+      
+      var taskName = document.createElement('div');
+      taskName.style.cssText = 'flex:1;font-size:.75rem;font-weight:600;color:var(--text)';
+      taskName.textContent = task.nombre || task.name || 'Tarea sin nombre';
+      
+      var taskDate = document.createElement('div');
+      taskDate.style.cssText = 'font-size:.65rem;color:var(--muted);white-space:nowrap';
+      taskDate.textContent = task.entrega || '—';
+      
+      taskRow.appendChild(taskName);
+      taskRow.appendChild(taskDate);
+      tasksList.appendChild(taskRow);
+    });
+  }
+  tasksDiv.appendChild(tasksList);
+  content.appendChild(tasksDiv);
+
+  // Cerrar botón
+  var closeBtn = document.createElement('button');
+  closeBtn.className = 'modal-btn-cancel';
+  closeBtn.textContent = 'Cerrar';
+  closeBtn.style.marginTop = '1rem';
+  closeBtn.onclick = function() { back.remove(); };
+
+  box.appendChild(editBtn);
+  box.appendChild(titleDiv);
+  box.appendChild(content);
+  box.appendChild(closeBtn);
+
+  back.appendChild(box);
+  document.body.appendChild(back);
 }
 
 function openUnivMateriaModal(editIdx) {
