@@ -104,7 +104,22 @@ window.kittyConfirm = function(msg, onYes, onNo) {
 
 
 
-  // Cola de guardado pendiente por si el usuario no está autenticado aún
+// ══ DEBOUNCE GLOBAL PARA RENDERS (definido temprano para que esté disponible) ══
+var _renderTimers = {};
+window.debouncedRender = function(key, renderFn, delay) {
+  delay = delay || 100;
+  if (_renderTimers[key]) clearTimeout(_renderTimers[key]);
+  _renderTimers[key] = setTimeout(function() {
+    try {
+      renderFn();
+    } catch(e) {
+      console.warn('debouncedRender error:', key, e);
+    }
+    delete _renderTimers[key];
+  }, delay);
+};
+
+// Cola de guardado pendiente por si el usuario no está autenticado aún
   var _pendingSaves = {};
 
   // Debounce timers para cada key
@@ -4592,24 +4607,6 @@ function todayKey() { return dateKey(new Date()); }
 </section>
 
 <script>
-// ══ DEBOUNCE GLOBAL PARA RENDERS ══
-(function() {
-  var _renderTimers = {};
-  
-  window.debouncedRender = function(key, renderFn, delay) {
-    delay = delay || 100;
-    if (_renderTimers[key]) clearTimeout(_renderTimers[key]);
-    _renderTimers[key] = setTimeout(function() {
-      try {
-        renderFn();
-      } catch(e) {
-        console.warn('debouncedRender error:', key, e);
-      }
-      delete _renderTimers[key];
-    }, delay);
-  };
-})();
-
 // ══ VISION BOARD ══
 (function(){
   var vbItems = [];
