@@ -13608,16 +13608,11 @@ document.addEventListener('DOMContentLoaded', function() {
       body.appendChild(urlOrFile);
       card.appendChild(body);
 
-      // Click abre el link o descarga el archivo
+      // Click abre el link o abre el archivo en el navegador
       card.onclick = function() {
         if (lnk.tipo === 'archivo' && lnk.archivo) {
-          // Descargar archivo
-          var link = document.createElement('a');
-          link.href = lnk.archivo;
-          link.download = lnk.nombreArchivo || 'archivo';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+          // Abrir archivo en el navegador (no descargar)
+          window.open(lnk.archivo, '_blank', 'noopener');
         } else if (lnk.url) {
           window.open(lnk.url, '_blank', 'noopener');
         }
