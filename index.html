@@ -1859,7 +1859,68 @@ window.kittyConfirm = function(msg, onYes, onNo) {
     color: var(--text);
   }
 
-  /* Materias */
+  /* Materias — tarjetas con foto */
+  .univ-materias-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: .7rem;
+    margin-top: .3rem;
+  }
+  .univ-materia-card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .18s, box-shadow .18s;
+    position: relative;
+  }
+  .univ-materia-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.1); }
+  .univ-materia-card-img {
+    width: 100%;
+    height: 90px;
+    object-fit: cover;
+    display: block;
+  }
+  .univ-materia-card-noimg {
+    width: 100%;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+  }
+  .univ-materia-card-body {
+    padding: .45rem .55rem .5rem;
+  }
+  .univ-materia-card-name {
+    font-size: .72rem;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.3;
+    margin-bottom: .25rem;
+  }
+  .univ-materia-card-cal {
+    font-size: .68rem;
+    font-weight: 700;
+    color: var(--rosa);
+  }
+  .univ-materia-card-del {
+    position: absolute;
+    top: 5px; right: 6px;
+    background: rgba(255,255,255,.85);
+    border: none;
+    border-radius: 50%;
+    width: 20px; height: 20px;
+    font-size: .6rem;
+    cursor: pointer;
+    color: var(--muted2);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+    transition: opacity .15s;
+  }
+  .univ-materia-card:hover .univ-materia-card-del { opacity: 1; }
+
   .univ-materia-row {
     display: flex;
     align-items: center;
@@ -1870,21 +1931,18 @@ window.kittyConfirm = function(msg, onYes, onNo) {
     border-radius: 10px;
     margin-bottom: .4rem;
   }
-
   .univ-materia-color {
     width: 10px; height: 10px;
     min-width: 10px;
     border-radius: 50%;
     flex-shrink: 0;
   }
-
   .univ-materia-name {
     flex: 1;
     font-size: .78rem;
     font-weight: 700;
     color: var(--text);
   }
-
   .univ-materia-cal {
     font-size: .72rem;
     font-weight: 700;
@@ -1892,7 +1950,6 @@ window.kittyConfirm = function(msg, onYes, onNo) {
     min-width: 30px;
     text-align: right;
   }
-
   .univ-materia-del {
     background: none;
     border: none;
@@ -1900,6 +1957,88 @@ window.kittyConfirm = function(msg, onYes, onNo) {
     cursor: pointer;
     font-size: .75rem;
   }
+
+  /* Links / Recursos */
+  .univ-links-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: .7rem;
+    margin-top: .3rem;
+  }
+  .univ-link-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform .18s, box-shadow .18s;
+    position: relative;
+    cursor: pointer;
+  }
+  .univ-link-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.1); }
+  .univ-link-card-thumb {
+    width: 100%;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    flex-shrink: 0;
+  }
+  .univ-link-card-body {
+    padding: .45rem .6rem .55rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: .15rem;
+  }
+  .univ-link-card-tag {
+    font-size: .55rem;
+    font-weight: 800;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    border-radius: 20px;
+    padding: .1rem .45rem;
+    display: inline-block;
+    width: fit-content;
+    margin-bottom: .1rem;
+  }
+  .univ-link-card-title {
+    font-size: .73rem;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .univ-link-card-url {
+    font-size: .6rem;
+    color: var(--muted2);
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: auto;
+    padding-top: .2rem;
+  }
+  .univ-link-card-del {
+    position: absolute;
+    top: 5px; right: 6px;
+    background: rgba(255,255,255,.9);
+    border: none;
+    border-radius: 50%;
+    width: 20px; height: 20px;
+    font-size: .6rem;
+    cursor: pointer;
+    color: var(--muted2);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+    transition: opacity .15s;
+  }
+  .univ-link-card:hover .univ-link-card-del { opacity: 1; }
 
   /* Tareas */
   .univ-tarea-row {
@@ -4902,332 +5041,6 @@ function todayKey() { return dateKey(new Date()); }
   </div>
 </section>
 
-<section class="pomodoro-section" id="sec-pomodoro" style="margin-top:1.5rem">
-<style>
-  .pomodoro-section {
-    max-width: 520px;
-    margin: 1.5rem auto 0;
-    animation: fadeUp .5s .2s ease both;
-    opacity: 0;
-    animation-fill-mode: both;
-  }
-  .pomodoro-card {
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.4rem 1.6rem;
-    text-align: center;
-  }
-  .pomodoro-label {
-    font-size: .62rem;
-    font-weight: 800;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: var(--muted2);
-    margin-bottom: .6rem;
-  }
-  .pomodoro-mode-row {
-    display: flex;
-    gap: .4rem;
-    justify-content: center;
-    margin-bottom: 1rem;
-  }
-  .pom-mode-btn {
-    padding: .25rem .8rem;
-    border-radius: 20px;
-    border: 1.5px solid var(--border);
-    background: var(--surface);
-    font-family: 'Nunito', sans-serif;
-    font-size: .7rem;
-    font-weight: 700;
-    color: var(--muted);
-    cursor: pointer;
-    transition: all .18s;
-  }
-  .pom-mode-btn.active { background: var(--rosa); border-color: var(--rosa); color: #fff; }
-  .pomodoro-display {
-    font-family: 'Playfair Display', serif;
-    font-size: 3.5rem;
-    font-weight: 700;
-    color: var(--text);
-    letter-spacing: .04em;
-    line-height: 1;
-    margin: .6rem 0 1rem;
-  }
-  .pomodoro-display.running { color: var(--rosa); }
-  .pomodoro-display.break { color: var(--verde); }
-  .pomodoro-btns {
-    display: flex;
-    gap: .6rem;
-    justify-content: center;
-    margin-bottom: .8rem;
-  }
-  .pom-btn {
-    padding: .45rem 1.3rem;
-    border-radius: 20px;
-    border: 1.5px solid var(--border);
-    background: var(--card);
-    font-family: 'Nunito', sans-serif;
-    font-size: .8rem;
-    font-weight: 800;
-    color: var(--text);
-    cursor: pointer;
-    transition: all .2s;
-  }
-  .pom-btn.primary { background: var(--rosa); border-color: var(--rosa); color: #fff; }
-  .pom-btn:hover { opacity: .85; transform: scale(1.04); }
-  .pomodoro-sessions {
-    font-size: .72rem;
-    font-weight: 700;
-    color: var(--muted);
-    display: flex;
-    gap: .3rem;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-  .pom-tomato { font-size: .9rem; }
-  .pom-tomato.done { filter: grayscale(0); }
-  .pom-tomato.pending { filter: grayscale(1); opacity: .4; }
-  .pom-gif-wrap {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: .6rem 0 .4rem;
-    min-height: 110px;
-  }
-  .pom-gif {
-    width: 110px;
-    height: 110px;
-    object-fit: contain;
-    border-radius: 16px;
-    opacity: 0;
-    transform: scale(.85);
-    transition: opacity .35s ease, transform .35s ease;
-    pointer-events: none;
-  }
-  .pom-gif.visible {
-    opacity: 1;
-    transform: scale(1);
-  }
-</style>
-  <span class="section-sub">⏱️ enfoque</span>
-  <h2 class="section-title" style="text-align:center"><em>Pomodoro</em></h2>
-  <div class="pomodoro-card">
-    <div class="pomodoro-mode-row">
-      <button class="pom-mode-btn active" onclick="pomSetMode('work')">🍅 Foco</button>
-      <button class="pom-mode-btn" onclick="pomSetMode('short')">☕ Descanso corto</button>
-      <button class="pom-mode-btn" onclick="pomSetMode('long')">🛋️ Descanso largo</button>
-    </div>
-    <div style="text-align:right;margin-top:-.3rem;margin-bottom:.2rem">
-      <button onclick="pomOpenConfig()" style="background:none;border:none;cursor:pointer;font-size:.72rem;font-weight:700;color:var(--muted2);font-family:'Nunito',sans-serif;padding:.2rem .4rem">⚙️ Configurar tiempos</button>
-    </div>
-    <div class="pomodoro-display" id="pomDisplay">25:00</div>
-    <div class="pom-gif-wrap">
-      <img class="pom-gif" id="pomGif" src="" alt="pusheen" />
-    </div>
-    <div class="pomodoro-btns">
-      <button class="pom-btn primary" id="pomStartBtn" onclick="pomToggle()">▶ Iniciar</button>
-      <button class="pom-btn" onclick="pomReset()">↺ Reset</button>
-    </div>
-    <div class="pomodoro-sessions" id="pomSessions"></div>
-  </div>
-</section>
-
-<script>
-(function(){
-  // Tiempos configurables (en minutos)
-  function pomLoadConfig() {
-    try {
-      var c = JSON.parse(localStorage.getItem('pom_config') || '{}');
-      return { work: (c.work||25)*60, short: (c.short||5)*60, long: (c.long||15)*60 };
-    } catch(e) { return { work:25*60, short:5*60, long:15*60 }; }
-  }
-  var POM_MODES = pomLoadConfig();
-  var pomMode = 'work';
-  var pomTimeLeft = POM_MODES.work;
-  var pomRunning = false;
-  var pomTimer = null;
-  var pomSessionsDone = 0;
-
-  // Gifs de Pusheen por estado
-  var POM_GIFS = {
-    work:     'https://i.pinimg.com/originals/4a/17/d8/4a17d8480232258924f366fab5ec5f4c.gif',
-    short:    'https://i.pinimg.com/originals/18/83/b1/1883b15cc4ee41c644e22fd9ea02d730.gif',
-    long:     'https://i.pinimg.com/originals/6f/47/6e/6f476ee5c0b914a49e2f088abd7fa05c.gif',
-    done:     'https://i.pinimg.com/originals/d9/e1/d0/d9e1d0562eb9b42044d3d55754b35d2d.gif'
-  };
-
-  function pomShowGif(key) {
-    var gif = document.getElementById('pomGif');
-    if (!gif) return;
-    gif.classList.remove('visible');
-    setTimeout(function() {
-      gif.src = POM_GIFS[key] || '';
-      if (POM_GIFS[key]) gif.classList.add('visible');
-    }, 120);
-  }
-
-  function pomHideGif() {
-    var gif = document.getElementById('pomGif');
-    if (gif) gif.classList.remove('visible');
-  }
-
-  function pomFmt(s) {
-    var m = Math.floor(s/60);
-    var sec = s % 60;
-    return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
-  }
-
-  function pomUpdateDisplay() {
-    var disp = document.getElementById('pomDisplay');
-    var btn = document.getElementById('pomStartBtn');
-    if (!disp) return;
-    disp.textContent = pomFmt(pomTimeLeft);
-    disp.className = 'pomodoro-display' + (pomRunning ? (pomMode==='work' ? ' running' : ' break') : '');
-    if (btn) btn.textContent = pomRunning ? '⏸ Pausar' : '▶ Iniciar';
-  }
-
-  function pomUpdateSessions() {
-    var el = document.getElementById('pomSessions');
-    if (!el) return;
-    var html = 'Sesiones: ';
-    for (var i = 0; i < 4; i++) {
-      html += '<span class="pom-tomato ' + (i < pomSessionsDone % 4 ? 'done' : 'pending') + '">🍅</span>';
-    }
-    el.innerHTML = html;
-  }
-
-  window.pomSetMode = function(mode) {
-    pomMode = mode;
-    pomRunning = false;
-    clearInterval(pomTimer);
-    pomTimeLeft = POM_MODES[mode];
-    pomHideGif();
-    document.querySelectorAll('.pom-mode-btn').forEach(function(b, i) {
-      b.classList.toggle('active', ['work','short','long'][i] === mode);
-    });
-    pomUpdateDisplay();
-  };
-
-  window.pomToggle = function() {
-    if (pomRunning) {
-      pomRunning = false;
-      clearInterval(pomTimer);
-      pomHideGif();
-      pomUpdateDisplay();
-    } else {
-      pomRunning = true;
-      pomShowGif(pomMode);
-      pomTimer = setInterval(function() {
-        pomTimeLeft--;
-        pomUpdateDisplay();
-        if (pomTimeLeft <= 0) {
-          clearInterval(pomTimer);
-          pomRunning = false;
-          pomShowGif('done');
-          if (pomMode === 'work') {
-            pomSessionsDone++;
-            pomUpdateSessions();
-            pomNotify('¡Sesión completada! 🍅 Tómate un descanso.');
-          } else {
-            pomNotify('¡Descanso terminado! Vuelve al foco 💪');
-          }
-        }
-      }, 1000);
-      pomUpdateDisplay();
-    }
-  };
-
-  window.pomOpenConfig = function() {
-    var old = document.getElementById('pomConfigModal'); if(old) old.remove();
-    var cfg = {};
-    try { cfg = JSON.parse(localStorage.getItem('pom_config')||'{}'); } catch(e){}
-
-    var backdrop = document.createElement('div');
-    backdrop.id = 'pomConfigModal';
-    backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1rem';
-    backdrop.onclick = function(e){ if(e.target===backdrop) backdrop.remove(); };
-
-    var box = document.createElement('div');
-    box.style.cssText = 'background:var(--card);border-radius:24px;padding:1.4rem;max-width:320px;width:100%;box-shadow:0 12px 48px rgba(0,0,0,.2)';
-
-    var title = document.createElement('div');
-    title.style.cssText = "font-family:'Playfair Display',serif;font-size:1rem;font-style:italic;color:var(--rosa);margin-bottom:1.1rem";
-    title.textContent = '⚙️ Configurar Pomodoro';
-    box.appendChild(title);
-
-    var fields = [
-      { key:'work',  label:'🍅 Foco (minutos)',           def: cfg.work  || 25 },
-      { key:'short', label:'☕ Descanso corto (minutos)', def: cfg.short || 5  },
-      { key:'long',  label:'🛋️ Descanso largo (minutos)', def: cfg.long  || 15 },
-    ];
-    var inputs = {};
-    fields.forEach(function(f) {
-      var fieldDiv = document.createElement('div'); fieldDiv.style.marginBottom='.8rem';
-      var lbl = document.createElement('label');
-      lbl.style.cssText = "display:block;font-size:.68rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2);margin-bottom:.3rem;font-family:'Nunito',sans-serif";
-      lbl.textContent = f.label;
-      var inp = document.createElement('input');
-      inp.type = 'number'; inp.min = '1'; inp.max = '120';
-      inp.value = f.def;
-      inp.style.cssText = "width:100%;border:1.5px solid var(--border);border-radius:12px;padding:.5rem .9rem;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:700;color:var(--text);background:var(--bg);outline:none;box-sizing:border-box";
-      inp.onfocus = function(){ this.style.borderColor='var(--rosa)'; };
-      inp.onblur  = function(){ this.style.borderColor='var(--border)'; };
-      inputs[f.key] = inp;
-      fieldDiv.appendChild(lbl); fieldDiv.appendChild(inp);
-      box.appendChild(fieldDiv);
-    });
-
-    var btns = document.createElement('div');
-    btns.style.cssText = 'display:flex;gap:.6rem;margin-top:1rem;justify-content:flex-end';
-    var cancelBtn = document.createElement('button');
-    cancelBtn.className = 'modal-btn-cancel'; cancelBtn.textContent = 'Cancelar';
-    cancelBtn.onclick = function(){ backdrop.remove(); };
-    var saveBtn = document.createElement('button');
-    saveBtn.className = 'modal-btn-save'; saveBtn.textContent = 'Guardar 🍅';
-    saveBtn.onclick = function() {
-      var w = parseInt(inputs.work.value)||25;
-      var s = parseInt(inputs.short.value)||5;
-      var l = parseInt(inputs.long.value)||15;
-      var newCfg = { work: Math.min(120,Math.max(1,w)), short: Math.min(60,Math.max(1,s)), long: Math.min(60,Math.max(1,l)) };
-      localStorage.setItem('pom_config', JSON.stringify(newCfg));
-      POM_MODES.work  = newCfg.work  * 60;
-      POM_MODES.short = newCfg.short * 60;
-      POM_MODES.long  = newCfg.long  * 60;
-      // Resetear al modo actual con nuevo tiempo
-      pomRunning = false; clearInterval(pomTimer);
-      pomTimeLeft = POM_MODES[pomMode];
-      pomUpdateDisplay();
-      backdrop.remove();
-    };
-    btns.appendChild(cancelBtn); btns.appendChild(saveBtn);
-    box.appendChild(btns);
-    backdrop.appendChild(box);
-    document.body.appendChild(backdrop);
-    inputs.work.focus();
-  };
-
-  window.pomReset = function() {
-    pomRunning = false;
-    clearInterval(pomTimer);
-    pomTimeLeft = POM_MODES[pomMode];
-    pomHideGif();
-    pomUpdateDisplay();
-  };
-
-  function pomNotify(msg) {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('kittyplan ⏱️', { body: msg });
-    } else {
-      alert(msg);
-    }
-  }
-
-  setTimeout(function(){ pomUpdateDisplay(); pomUpdateSessions(); }, 200);
-})();
-</script>
-
 </div><!-- end page-semana -->
 <div id="page-fe" class="page-section">
 <div id="sec-fe-nav" style="scroll-margin-top:60px"></div>
@@ -6681,6 +6494,7 @@ window.syncFromCloud = function() {
 
 loadRutinas();
 renderRutinas();
+}
 </script>
 
 <script>
@@ -9426,6 +9240,185 @@ function renderSparkDots(level) {
   lbl.textContent = DOT_LABELS[level] || '';
 }
 
+// ── 📌 PINES (cosas que no quiero olvidar)
+let sparkPins = [];
+function loadSparkPins() {
+  try { sparkPins = JSON.parse(localStorage.getItem('spark_pins') || '[]'); } catch(e){ sparkPins=[]; }
+  renderSparkPins();
+}
+function saveSparkPins() {
+  try { localStorage.setItem('spark_pins', JSON.stringify(sparkPins)); } catch(e){}
+  if (window.cloudSave) window.cloudSave('spark_pins', sparkPins);
+}
+function renderSparkPins() {
+  const list = document.getElementById('sparkPinList');
+  if (!list) return;
+  list.innerHTML = '';
+  sparkPins.forEach((pin, i) => {
+    const el = document.createElement('div');
+    el.className = 'idea-item';
+    el.innerHTML = '<span>📌 ' + pin + '</span><button class="idea-del" onclick="removeSparkPin(' + i + ')">✕</button>';
+    list.appendChild(el);
+  });
+}
+function addSparkPin() {
+  const inp = document.getElementById('sparkPinInput');
+  const val = inp ? inp.value.trim() : '';
+  if (!val) return;
+  sparkPins.push(val);
+  inp.value = '';
+  renderSparkPins();
+  saveSparkPins();
+}
+function removeSparkPin(i) {
+  sparkPins.splice(i, 1);
+  renderSparkPins();
+  saveSparkPins();
+}
+var _spPin = document.getElementById('sparkPinInput');
+if (_spPin) _spPin.onkeydown = function(e){ if(e.key==='Enter') addSparkPin(); };
+
+// ── ⚠️ AUTOCUIDADO
+const CARE_ITEMS = [
+  { id:'comida', label:'¿Comí bien?', emoji:'🍽️' },
+  { id:'agua',   label:'¿Tomé agua?', emoji:'💧' },
+  { id:'dormi',  label:'¿Dormí bien?', emoji:'😴' },
+  { id:'descanso', label:'¿Tomé descansos?', emoji:'🧘' },
+  { id:'sol',    label:'¿Salí/vi luz natural?', emoji:'☀️' },
+];
+function careKey(id) {
+  return 'spark_care_' + id + '_' + new Date().toISOString().slice(0,10);
+}
+function renderSparkCare() {
+  const grid = document.getElementById('sparkCareGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  CARE_ITEMS.forEach(function(item) {
+    const done = localStorage.getItem(careKey(item.id)) === '1';
+    const btn = document.createElement('button');
+    var doneBg = done ? 'var(--beige)' : 'white';
+    var doneColor = done ? 'white' : 'var(--beige)';
+    btn.style.cssText = 'display:flex;align-items:center;gap:.4rem;background:' + doneBg + ';border:1.5px solid var(--beige);border-radius:20px;padding:.3rem .75rem;font-size:.7rem;font-weight:700;color:' + doneColor + ';cursor:pointer;font-family:Nunito,sans-serif;transition:all .2s;margin:.2rem .2rem 0 0';
+    btn.innerHTML = item.emoji + ' ' + item.label + (done ? ' ✓' : '');
+    btn.onclick = function() {
+      const nowDone = localStorage.getItem(careKey(item.id)) === '1';
+      localStorage.setItem(careKey(item.id), nowDone ? '0' : '1');
+      renderSparkCare();
+    };
+    grid.appendChild(btn);
+  });
+}
+
+// ── 🕐 RASTREADOR DE TIEMPO
+let sparkTimerInterval = null;
+let sparkTimerStart = null;
+let sparkTimerRunning = false;
+let sparkTotalMinutes = 0;
+
+function loadSparkTime() {
+  try { sparkTotalMinutes = parseInt(localStorage.getItem('spark_total_minutes') || '0'); } catch(e){ sparkTotalMinutes=0; }
+  updateSparkTimeDisplay();
+}
+function saveSparkTime() {
+  try { localStorage.setItem('spark_total_minutes', sparkTotalMinutes); } catch(e){}
+  if (window.cloudSave) window.cloudSave('spark_total_minutes', sparkTotalMinutes);
+}
+function updateSparkTimeDisplay() {
+  const el = document.getElementById('sparkTimeDisplay');
+  if (!el) return;
+  const h = Math.floor(sparkTotalMinutes / 60);
+  const m = sparkTotalMinutes % 60;
+  el.textContent = h + 'h ' + m + 'm';
+}
+function toggleSparkTimer() {
+  const btn = document.getElementById('sparkTimerBtn');
+  const running = document.getElementById('sparkTimeRunning');
+  if (!sparkTimerRunning) {
+    sparkTimerStart = Date.now();
+    sparkTimerRunning = true;
+    sparkTimerInterval = setInterval(function() {
+      const elapsed = Math.floor((Date.now() - sparkTimerStart) / 60000);
+      const el = document.getElementById('sparkTimeDisplay');
+      const h = Math.floor((sparkTotalMinutes + elapsed) / 60);
+      const m = (sparkTotalMinutes + elapsed) % 60;
+      if (el) el.textContent = h + 'h ' + m + 'm';
+    }, 10000);
+    if (btn) { btn.textContent = '⏸ Pausar'; btn.style.background='var(--rosa)'; }
+    if (running) running.style.display = 'block';
+  } else {
+    const elapsed = Math.floor((Date.now() - sparkTimerStart) / 60000);
+    sparkTotalMinutes += elapsed;
+    clearInterval(sparkTimerInterval);
+    sparkTimerRunning = false;
+    sparkTimerStart = null;
+    saveSparkTime();
+    updateSparkTimeDisplay();
+    if (btn) { btn.textContent = '▶ Iniciar'; btn.style.background='var(--beige)'; }
+    if (running) running.style.display = 'none';
+  }
+}
+function addSparkTimeManual() {
+  const val = prompt('¿Cuántas horas agregar? (puedes poner decimales, ej: 1.5)');
+  if (!val) return;
+  const h = parseFloat(val);
+  if (isNaN(h) || h <= 0) return;
+  sparkTotalMinutes += Math.round(h * 60);
+  saveSparkTime();
+  updateSparkTimeDisplay();
+}
+
+// ── 🔁 HISTORIAL DE HIPERFOCOS
+let sparkHistorial = [];
+function loadSparkHistorial() {
+  try { sparkHistorial = JSON.parse(localStorage.getItem('spark_historial') || '[]'); } catch(e){ sparkHistorial=[]; }
+  renderSparkHistorial();
+}
+function saveSparkHistorial() {
+  try { localStorage.setItem('spark_historial', JSON.stringify(sparkHistorial)); } catch(e){}
+  if (window.cloudSave) window.cloudSave('spark_historial', sparkHistorial);
+}
+function renderSparkHistorial() {
+  const el = document.getElementById('sparkHistorial');
+  if (!el) return;
+  if (sparkHistorial.length === 0) {
+    el.innerHTML = '<div style="font-size:.7rem;color:var(--muted2);font-style:italic;padding:.3rem 0">Aún no tienes hiperfocos archivados ✦</div>';
+    return;
+  }
+  el.innerHTML = '';
+  sparkHistorial.slice().reverse().forEach(function(h, i) {
+    const card = document.createElement('div');
+    card.style.cssText = 'background:white;border:1.5px solid var(--border);border-radius:10px;padding:.55rem .75rem;margin-bottom:.4rem;display:flex;align-items:flex-start;gap:.5rem';
+    const hrs = Math.floor(h.minutes/60);
+    const mins = h.minutes % 60;
+    card.innerHTML =
+      '<div style="font-size:1.2rem;line-height:1">' + (h.icon||'⭐') + '</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:.75rem;font-weight:800;color:var(--text);margin-bottom:.1rem">' + (h.title || 'Sin título') + '</div>' +
+        '<div style="font-size:.62rem;color:var(--muted2);font-weight:600">' + h.date + ' · ' + hrs + 'h ' + mins + 'm</div>' +
+        (h.notes ? '<div style="font-size:.65rem;color:var(--muted);margin-top:.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + h.notes.slice(0,80) + (h.notes.length>80?'…':'') + '</div>' : '') +
+      '</div>';
+    el.appendChild(card);
+  });
+}
+function archiveCurrentSpark() {
+  const title = (document.getElementById('sparkTitle')||{}).value || '';
+  if (!title.trim()) { alert('Escribe el nombre del proyecto antes de archivar 🐱'); return; }
+  const notes = (document.getElementById('sparkNotes')||{}).value || '';
+  const icon = SPARK_ICONS[sparkIconIdx] || '⭐';
+  const date = new Date().toLocaleDateString('es-MX', {day:'numeric', month:'short', year:'numeric'});
+  sparkHistorial.push({ title: title.trim(), notes, icon, date, minutes: sparkTotalMinutes });
+  saveSparkHistorial();
+  renderSparkHistorial();
+  // Resetear tiempo y pins del proyecto actual
+  sparkTotalMinutes = 0;
+  saveSparkTime();
+  updateSparkTimeDisplay();
+  sparkPins = [];
+  saveSparkPins();
+  renderSparkPins();
+  alert('¡Hiperfoco archivado! 🎉 Puedes comenzar uno nuevo.');
+}
+
 // Override render to also re-render checkin/spark when week changes
 const _origRender = render;
 // patch nav buttons to also refresh extra sections
@@ -9436,6 +9429,10 @@ loadCheckin();
 renderCheckin();
 loadSpark();
 renderSparkDots(0);
+loadSparkPins();
+renderSparkCare();
+loadSparkTime();
+loadSparkHistorial();
 
 // ============================================================
 //  SECCIÓN 6 · AGUA & COMIDAS
@@ -9730,7 +9727,7 @@ renderTracker();
       </div>
       <div class="fin-balance-divider"></div>
       <div class="fin-balance-item fin-gasto">
-        <span class="fin-balance-label">🌹 Gastos</span>
+        <span class="fin-balance-label">🌼 Gastos</span>
         <span class="fin-balance-val" id="finTotalGastos">$0</span>
       </div>
     </div>
@@ -11270,6 +11267,15 @@ document.addEventListener('DOMContentLoaded', function() {
     <div id="univHistorialList"></div>
   </div>
 
+  <!-- Links / Recursos -->
+  <div class="univ-block" id="univLinksBlock">
+    <div class="univ-block-hdr">
+      <span class="univ-block-title">🔗 Mis recursos y links</span>
+      <button class="rutina-new-btn" id="univNewLinkBtn">＋ Agregar link</button>
+    </div>
+    <div id="univLinksList"></div>
+  </div>
+
   <!-- Calendario y Recuerdos ocultos — ver sección Historial -->
   <div id="univCalendario" style="display:none"></div>
   <div id="univRecuerdosBlock" style="display:none"><div id="univRecuerdosContent"></div></div>
@@ -12457,32 +12463,69 @@ function renderUnivMaterias() {
   if (!sem) { list.innerHTML = '<div class="univ-empty">Crea un semestre primero 🎓</div>'; return; }
   if (sem.materias.length === 0) { list.innerHTML = '<div class="univ-empty">Sin materias aún 📚</div>'; return; }
 
+  var grid = document.createElement('div');
+  grid.className = 'univ-materias-grid';
+
   sem.materias.forEach(function(mat, idx) {
-    var row = document.createElement('div');
-    row.className = 'univ-materia-row';
-    var dot = document.createElement('div');
-    dot.className = 'univ-materia-color';
-    dot.style.background = mat.color;
+    var card = document.createElement('div');
+    card.className = 'univ-materia-card';
+    card.style.borderColor = mat.color || 'var(--border)';
+
+    // Imagen o color de fondo
+    if (mat.img) {
+      var img = document.createElement('img');
+      img.className = 'univ-materia-card-img';
+      img.src = mat.img;
+      img.alt = mat.name;
+      card.appendChild(img);
+    } else {
+      var noImg = document.createElement('div');
+      noImg.className = 'univ-materia-card-noimg';
+      noImg.style.background = mat.color ? mat.color + '33' : 'var(--beige-soft)';
+      noImg.textContent = '📚';
+      card.appendChild(noImg);
+    }
+
+    // Botón eliminar (top right)
+    var del = document.createElement('button');
+    del.className = 'univ-materia-card-del';
+    del.textContent = '✕';
+    del.onclick = function(e) {
+      e.stopPropagation();
+      kittyConfirm('¿Eliminar ' + mat.name + '?', function(){ sem.materias.splice(idx,1); saveUniv(); renderUniv(); });
+    };
+    card.appendChild(del);
+
+    // Body
+    var body = document.createElement('div');
+    body.className = 'univ-materia-card-body';
+
     var name = document.createElement('div');
-    name.className = 'univ-materia-name';
+    name.className = 'univ-materia-card-name';
     name.textContent = mat.name;
+
     var cal = document.createElement('div');
-    cal.className = 'univ-materia-cal';
-    cal.textContent = mat.calificacion || '—';
+    cal.className = 'univ-materia-card-cal';
+    cal.textContent = mat.calificacion ? '★ ' + mat.calificacion : '★ —';
     cal.style.cursor = 'pointer';
-    cal.onclick = function() {
+    cal.title = 'Clic para editar calificación';
+    cal.onclick = function(e) {
+      e.stopPropagation();
       var v = prompt('Calificación de ' + mat.name + ':', mat.calificacion || '');
       if (v !== null) { sem.materias[idx].calificacion = v.trim(); saveUniv(); renderUnivMaterias(); }
     };
-    var del = document.createElement('button');
-    del.className = 'univ-materia-del';
-    del.textContent = '✕';
-    del.onclick = function() {
-      kittyConfirm('¿Eliminar ' + mat.name + '?', function(){ sem.materias.splice(idx,1); saveUniv(); renderUniv(); });
-    };
-    row.appendChild(dot); row.appendChild(name); row.appendChild(cal); row.appendChild(del);
-    list.appendChild(row);
+
+    body.appendChild(name);
+    body.appendChild(cal);
+    card.appendChild(body);
+
+    // Click en la tarjeta abre modal de edición
+    card.onclick = function() { openUnivMateriaModal(idx); };
+
+    grid.appendChild(card);
   });
+
+  list.appendChild(grid);
 }
 
 // ── Tareas
@@ -12995,41 +13038,93 @@ function openUnivSemModal() {
   document.getElementById('semNombre').focus();
 }
 
-function openUnivMateriaModal() {
+function openUnivMateriaModal(editIdx) {
   var sem = getActiveSem();
   if (!sem) { alert('Primero crea un semestre 🎓'); return; }
+  var isEdit = (typeof editIdx === 'number');
+  var existing = isEdit ? sem.materias[editIdx] : null;
+  var selImgData = existing ? (existing.img || null) : null;
+
   var back = document.createElement('div');
   back.className = 'rutina-modal-backdrop';
   back.onclick = function(e) { if (e.target===back) back.remove(); };
+
   var colOpts = COLORES_MAT.map(function(c) {
     return '<span class="univ-color-opt" data-color="'+c+'" style="background:'+c+';width:20px;height:20px;border-radius:50%;display:inline-block;cursor:pointer;border:2px solid transparent;margin:2px"></span>';
   }).join('');
+
   var box = document.createElement('div');
   box.className = 'rutina-modal-box';
-  box.innerHTML = '<div class="rutina-modal-title">📚 <em>Nueva materia</em></div>' +
+  box.innerHTML =
+    '<div class="rutina-modal-title">📚 <em>' + (isEdit ? 'Editar' : 'Nueva') + ' materia</em></div>' +
     '<div style="font-size:.65rem;color:var(--muted);font-weight:600;margin-bottom:.8rem">Semestre: ' + sem.nombre + '</div>' +
     '<div class="modal-field"><label class="modal-label">Nombre</label>' +
-    '<input class="modal-input" id="univMatNombre" placeholder="ej: Biología, Química..." style="width:100%"></div>' +
-    '<div class="modal-field" style="margin-top:.8rem"><label class="modal-label">Color</label>' +
+    '<input class="modal-input" id="univMatNombre" placeholder="ej: Biología, Química..." style="width:100%" value="'+(existing?existing.name:'')+'"></div>' +
+    '<div class="modal-field" style="margin-top:.8rem"><label class="modal-label">Color de tarjeta</label>' +
     '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px" id="univColorPicker">'+colOpts+'</div></div>' +
+    '<div class="modal-field" style="margin-top:.8rem"><label class="modal-label">Foto de la materia</label>' +
+    '<div id="univMatImgPreview" style="margin:.4rem 0;border-radius:10px;overflow:hidden;display:'+(selImgData?'block':'none')+';height:100px">' +
+      '<img id="univMatImgPreviewImg" src="'+(selImgData||'')+'" style="width:100%;height:100px;object-fit:cover">' +
+    '</div>' +
+    '<div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">' +
+    '<label style="display:inline-flex;align-items:center;gap:.4rem;background:var(--beige);color:white;border-radius:20px;padding:.3rem .8rem;font-size:.7rem;font-weight:800;cursor:pointer;font-family:Nunito,sans-serif">' +
+      '📷 Subir foto<input type="file" id="univMatImgFile" accept="image/*" style="display:none">' +
+    '</label>' +
+    '<button id="univMatImgClear" style="display:'+(selImgData?'inline-flex':'none')+';align-items:center;background:none;border:1.5px solid var(--border);border-radius:20px;padding:.3rem .7rem;font-size:.7rem;font-weight:700;color:var(--muted2);cursor:pointer;font-family:Nunito,sans-serif">✕ Quitar foto</button>' +
+    '</div></div>' +
     '<div class="modal-btns" style="margin-top:1.2rem">' +
     '<button class="modal-btn-cancel" id="univMatCancel">Cancelar</button>' +
     '<button class="modal-btn-save" id="univMatSave">Guardar 💙</button></div>';
+
   back.appendChild(box);
   document.body.appendChild(back);
-  var selColor = COLORES_MAT[0];
+
+  var selColor = existing ? (existing.color || COLORES_MAT[0]) : COLORES_MAT[0];
   box.querySelectorAll('.univ-color-opt').forEach(function(el) {
-    if (el.dataset.color===selColor) el.style.border='2px solid #333';
+    if (el.dataset.color === selColor) el.style.border = '2px solid #333';
     el.onclick = function() {
-      box.querySelectorAll('.univ-color-opt').forEach(function(o){o.style.border='2px solid transparent';});
-      el.style.border='2px solid #333'; selColor=el.dataset.color;
+      box.querySelectorAll('.univ-color-opt').forEach(function(o){ o.style.border='2px solid transparent'; });
+      el.style.border = '2px solid #333';
+      selColor = el.dataset.color;
     };
   });
+
+  // Image upload handler
+  document.getElementById('univMatImgFile').onchange = function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      selImgData = ev.target.result;
+      var preview = document.getElementById('univMatImgPreview');
+      var previewImg = document.getElementById('univMatImgPreviewImg');
+      var clearBtn = document.getElementById('univMatImgClear');
+      if (preview) { preview.style.display = 'block'; }
+      if (previewImg) previewImg.src = selImgData;
+      if (clearBtn) clearBtn.style.display = 'inline-flex';
+    };
+    reader.readAsDataURL(file);
+  };
+
+  document.getElementById('univMatImgClear').onclick = function() {
+    selImgData = null;
+    var preview = document.getElementById('univMatImgPreview');
+    var clearBtn = document.getElementById('univMatImgClear');
+    if (preview) preview.style.display = 'none';
+    this.style.display = 'none';
+  };
+
   document.getElementById('univMatCancel').onclick = function() { back.remove(); };
   document.getElementById('univMatSave').onclick = function() {
     var n = document.getElementById('univMatNombre').value.trim();
     if (!n) return;
-    sem.materias.push({id:'mat_'+Date.now(),name:n,color:selColor,calificacion:''});
+    if (isEdit) {
+      sem.materias[editIdx].name  = n;
+      sem.materias[editIdx].color = selColor;
+      sem.materias[editIdx].img   = selImgData;
+    } else {
+      sem.materias.push({ id:'mat_'+Date.now(), name:n, color:selColor, img:selImgData, calificacion:'' });
+    }
     saveUniv(); renderUniv(); back.remove();
   };
   document.getElementById('univMatNombre').focus();
@@ -13130,12 +13225,496 @@ document.addEventListener('DOMContentLoaded', function() {
   if (newSemBtn) newSemBtn.onclick = function() { openUnivSemModal(); };
   var newMatBtn = document.getElementById('univNewMateriaBtn');
   if (newMatBtn) newMatBtn.onclick = function() { openUnivMateriaModal(); };
+
+  // ── Links / Recursos
+  var univLinks = [];
+
+  var LINK_CATS = [
+    { id:'anatomia',  label:'Anatomía 3D',   emoji:'🫀', color:'#e8b4cb', bg:'#fce8f3' },
+    { id:'video',     label:'Video / YouTube',emoji:'▶️', color:'#f5a5a5', bg:'#fff0f0' },
+    { id:'articulo',  label:'Artículo / Web', emoji:'📄', color:'#a5c8f5', bg:'#eef5ff' },
+    { id:'libro',     label:'Libro / PDF',    emoji:'📖', color:'#a5e0c8', bg:'#edfff6' },
+    { id:'herramienta',label:'Herramienta',   emoji:'🔬', color:'#c8a5f5', bg:'#f5eeff' },
+    { id:'otro',      label:'Otro',           emoji:'🔗', color:'#d4d4d4', bg:'#f5f5f5' },
+  ];
+
+  function getCat(id) {
+    return LINK_CATS.find(function(c){ return c.id === id; }) || LINK_CATS[LINK_CATS.length-1];
+  }
+
+  function loadUnivLinks() {
+    try { univLinks = JSON.parse(localStorage.getItem('univ_links') || '[]'); } catch(e){ univLinks=[]; }
+    if (window._univLinks) univLinks = window._univLinks;
+    renderUnivLinks();
+  }
+
+  function saveUnivLinks() {
+    try { localStorage.setItem('univ_links', JSON.stringify(univLinks)); } catch(e){}
+    if (window.cloudSave) window.cloudSave('univ_links', univLinks);
+  }
+
+  function renderUnivLinks() {
+    var list = document.getElementById('univLinksList');
+    if (!list) return;
+    list.innerHTML = '';
+    if (univLinks.length === 0) {
+      list.innerHTML = '<div class="univ-empty">Sin recursos aún — ¡agrega tu primer link! 🔗</div>';
+      return;
+    }
+    var grid = document.createElement('div');
+    grid.className = 'univ-links-grid';
+
+    univLinks.forEach(function(lnk, idx) {
+      var cat = getCat(lnk.cat);
+      var card = document.createElement('div');
+      card.className = 'univ-link-card';
+      card.style.borderColor = cat.color;
+
+      // Thumbnail
+      var thumb = document.createElement('div');
+      thumb.className = 'univ-link-card-thumb';
+      thumb.style.background = cat.bg;
+      thumb.textContent = cat.emoji;
+      card.appendChild(thumb);
+
+      // Delete btn
+      var del = document.createElement('button');
+      del.className = 'univ-link-card-del';
+      del.textContent = '✕';
+      del.onclick = function(e) {
+        e.stopPropagation();
+        kittyConfirm('¿Eliminar "' + lnk.title + '"?', function() {
+          univLinks.splice(idx, 1);
+          saveUnivLinks();
+          renderUnivLinks();
+        });
+      };
+      card.appendChild(del);
+
+      // Body
+      var body = document.createElement('div');
+      body.className = 'univ-link-card-body';
+
+      var tag = document.createElement('span');
+      tag.className = 'univ-link-card-tag';
+      tag.style.background = cat.bg;
+      tag.style.color = cat.color.replace(')', ', .9)').replace('rgb', 'rgba');
+      tag.style.border = '1px solid ' + cat.color;
+      tag.textContent = cat.label;
+
+      var title = document.createElement('div');
+      title.className = 'univ-link-card-title';
+      title.textContent = lnk.title;
+
+      var url = document.createElement('div');
+      url.className = 'univ-link-card-url';
+      try { url.textContent = new URL(lnk.url).hostname; } catch(e) { url.textContent = lnk.url; }
+
+      body.appendChild(tag);
+      body.appendChild(title);
+      body.appendChild(url);
+      card.appendChild(body);
+
+      // Click abre el link
+      card.onclick = function() {
+        if (lnk.url) window.open(lnk.url, '_blank', 'noopener');
+      };
+
+      grid.appendChild(card);
+    });
+
+    list.appendChild(grid);
+  }
+
+  function openUnivLinkModal() {
+    var back = document.createElement('div');
+    back.className = 'rutina-modal-backdrop';
+    back.onclick = function(e) { if (e.target===back) back.remove(); };
+
+    var catOpts = LINK_CATS.map(function(c) {
+      return '<button class="univ-link-cat-btn" data-cat="'+c.id+'" style="display:inline-flex;align-items:center;gap:.3rem;padding:.3rem .7rem;border-radius:20px;border:1.5px solid '+c.color+';background:'+c.bg+';font-size:.68rem;font-weight:700;color:var(--text);cursor:pointer;font-family:Nunito,sans-serif;margin:.2rem .2rem 0 0;transition:all .15s">'+c.emoji+' '+c.label+'</button>';
+    }).join('');
+
+    var box = document.createElement('div');
+    box.className = 'rutina-modal-box';
+    box.innerHTML =
+      '<div class="rutina-modal-title">🔗 <em>Nuevo recurso</em></div>' +
+      '<div class="modal-field"><label class="modal-label">Nombre del recurso</label>' +
+      '<input class="modal-input" id="univLinkTitle" placeholder="ej: Anatomía 3D — Visible Body" style="width:100%"></div>' +
+      '<div class="modal-field" style="margin-top:.8rem"><label class="modal-label">URL</label>' +
+      '<input class="modal-input" id="univLinkUrl" placeholder="https://..." style="width:100%"></div>' +
+      '<div class="modal-field" style="margin-top:.8rem"><label class="modal-label">Categoría</label>' +
+      '<div style="display:flex;flex-wrap:wrap;margin-top:.2rem" id="univLinkCats">' + catOpts + '</div></div>' +
+      '<div class="modal-btns" style="margin-top:1.2rem">' +
+      '<button class="modal-btn-cancel" id="univLinkCancel">Cancelar</button>' +
+      '<button class="modal-btn-save" id="univLinkSave">Guardar 🔗</button></div>';
+
+    back.appendChild(box);
+    document.body.appendChild(back);
+
+    var selCat = 'otro';
+    function updateCatBtns() {
+      box.querySelectorAll('.univ-link-cat-btn').forEach(function(b) {
+        var active = b.dataset.cat === selCat;
+        var c = getCat(b.dataset.cat);
+        b.style.background  = active ? c.color : c.bg;
+        b.style.color       = active ? 'white'  : 'var(--text)';
+        b.style.fontWeight  = active ? '800'    : '700';
+      });
+    }
+    box.querySelectorAll('.univ-link-cat-btn').forEach(function(b) {
+      b.onclick = function() { selCat = b.dataset.cat; updateCatBtns(); };
+    });
+    updateCatBtns();
+
+    document.getElementById('univLinkCancel').onclick = function() { back.remove(); };
+    document.getElementById('univLinkSave').onclick = function() {
+      var t = document.getElementById('univLinkTitle').value.trim();
+      var u = document.getElementById('univLinkUrl').value.trim();
+      if (!t || !u) return;
+      if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
+      univLinks.push({ id:'lnk_'+Date.now(), title:t, url:u, cat:selCat });
+      saveUnivLinks();
+      renderUnivLinks();
+      back.remove();
+    };
+
+    // Enter en URL guarda
+    document.getElementById('univLinkUrl').onkeydown = function(e) {
+      if (e.key === 'Enter') document.getElementById('univLinkSave').click();
+    };
+    document.getElementById('univLinkTitle').focus();
+  }
+
+  var newLinkBtn = document.getElementById('univNewLinkBtn');
+  if (newLinkBtn) newLinkBtn.onclick = openUnivLinkModal;
+
+  loadUnivLinks();
   var newTarBtn = document.getElementById('univNewTareaBtn');
   if (newTarBtn) newTarBtn.onclick = function() { openUnivTareaModal(); };
   var newExBtn  = document.getElementById('univNewExamenBtn');
   if (newExBtn)  newExBtn.onclick  = function() { openUnivExamenModal(); };
 });
 </script>
+
+
+<section class="pomodoro-section" id="sec-pomodoro" style="margin-top:1.5rem">
+<style>
+  .pomodoro-section {
+    max-width: 520px;
+    margin: 1.5rem auto 0;
+    animation: fadeUp .5s .2s ease both;
+    opacity: 0;
+    animation-fill-mode: both;
+  }
+  .pomodoro-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.4rem 1.6rem;
+    text-align: center;
+  }
+  .pomodoro-label {
+    font-size: .62rem;
+    font-weight: 800;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted2);
+    margin-bottom: .6rem;
+  }
+  .pomodoro-mode-row {
+    display: flex;
+    gap: .4rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+  .pom-mode-btn {
+    padding: .25rem .8rem;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    font-family: 'Nunito', sans-serif;
+    font-size: .7rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .18s;
+  }
+  .pom-mode-btn.active { background: var(--rosa); border-color: var(--rosa); color: #fff; }
+  .pomodoro-display {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: .04em;
+    line-height: 1;
+    margin: .6rem 0 1rem;
+  }
+  .pomodoro-display.running { color: var(--rosa); }
+  .pomodoro-display.break { color: var(--verde); }
+  .pomodoro-btns {
+    display: flex;
+    gap: .6rem;
+    justify-content: center;
+    margin-bottom: .8rem;
+  }
+  .pom-btn {
+    padding: .45rem 1.3rem;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--card);
+    font-family: 'Nunito', sans-serif;
+    font-size: .8rem;
+    font-weight: 800;
+    color: var(--text);
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .pom-btn.primary { background: var(--rosa); border-color: var(--rosa); color: #fff; }
+  .pom-btn:hover { opacity: .85; transform: scale(1.04); }
+  .pomodoro-sessions {
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--muted);
+    display: flex;
+    gap: .3rem;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .pom-tomato { font-size: .9rem; }
+  .pom-tomato.done { filter: grayscale(0); }
+  .pom-tomato.pending { filter: grayscale(1); opacity: .4; }
+</style>
+  <span class="section-sub">⏱️ enfoque</span>
+  <h2 class="section-title" style="text-align:center"><em>Pomodoro</em></h2>
+  <div class="pomodoro-card">
+    <div class="pomodoro-mode-row">
+      <button class="pom-mode-btn active" onclick="pomSetMode('work')">🍅 Foco</button>
+      <button class="pom-mode-btn" onclick="pomSetMode('short')">☕ Descanso corto</button>
+      <button class="pom-mode-btn" onclick="pomSetMode('long')">🛋️ Descanso largo</button>
+    </div>
+    <div style="text-align:right;margin-top:-.3rem;margin-bottom:.2rem">
+      <button onclick="pomOpenConfig()" style="background:none;border:none;cursor:pointer;font-size:.72rem;font-weight:700;color:var(--muted2);font-family:'Nunito',sans-serif;padding:.2rem .4rem">⚙️ Configurar tiempos</button>
+    </div>
+    <div id="pomGifWrap" style="display:none;margin:.4rem 0 .6rem;text-align:center">
+      <img id="pomGif" src="" alt="pusheen" style="height:110px;border-radius:16px;opacity:0;transition:opacity .4s ease">
+    </div>
+    <div class="pomodoro-display" id="pomDisplay">25:00</div>
+    <div class="pomodoro-btns">
+      <button class="pom-btn primary" id="pomStartBtn" onclick="pomToggle()">▶ Iniciar</button>
+      <button class="pom-btn" onclick="pomReset()">↺ Reset</button>
+    </div>
+    <div class="pomodoro-sessions" id="pomSessions"></div>
+  </div>
+</section>
+
+<script>
+(function(){
+  // Tiempos configurables (en minutos)
+  function pomLoadConfig() {
+    try {
+      var c = JSON.parse(localStorage.getItem('pom_config') || '{}');
+      return { work: (c.work||25)*60, short: (c.short||5)*60, long: (c.long||15)*60 };
+    } catch(e) { return { work:25*60, short:5*60, long:15*60 }; }
+  }
+  var POM_MODES = pomLoadConfig();
+  var pomMode = 'work';
+  var pomTimeLeft = POM_MODES.work;
+  var pomRunning = false;
+  var pomTimer = null;
+  var pomSessionsDone = 0;
+
+  function pomFmt(s) {
+    var m = Math.floor(s/60);
+    var sec = s % 60;
+    return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+  }
+
+  var POM_GIFS = {
+    work:  'https://i.pinimg.com/originals/4a/17/d8/4a17d8480232258924f366fab5ec5f4c.gif',
+    short: 'https://i.pinimg.com/originals/18/83/b1/1883b15cc4ee41c644e22fd9ea02d730.gif',
+    long:  'https://i.pinimg.com/originals/6f/47/6e/6f476ee5c0b914a49e2f088abd7fa05c.gif'
+  };
+
+  function pomUpdateGif() {
+    var wrap = document.getElementById('pomGifWrap');
+    var img  = document.getElementById('pomGif');
+    if (!wrap || !img) return;
+    if (pomRunning) {
+      var newSrc = POM_GIFS[pomMode] || '';
+      if (img.src !== newSrc) {
+        img.style.opacity = '0';
+        img.src = newSrc;
+        img.onload = function() { img.style.opacity = '1'; };
+      } else {
+        img.style.opacity = '1';
+      }
+      wrap.style.display = 'block';
+    } else {
+      img.style.opacity = '0';
+      setTimeout(function() { wrap.style.display = 'none'; }, 400);
+    }
+  }
+
+  function pomUpdateDisplay() {
+    var disp = document.getElementById('pomDisplay');
+    var btn = document.getElementById('pomStartBtn');
+    if (!disp) return;
+    disp.textContent = pomFmt(pomTimeLeft);
+    disp.className = 'pomodoro-display' + (pomRunning ? (pomMode==='work' ? ' running' : ' break') : '');
+    if (btn) btn.textContent = pomRunning ? '⏸ Pausar' : '▶ Iniciar';
+    pomUpdateGif();
+  }
+
+  function pomUpdateSessions() {
+    var el = document.getElementById('pomSessions');
+    if (!el) return;
+    var html = 'Sesiones: ';
+    for (var i = 0; i < 4; i++) {
+      html += '<span class="pom-tomato ' + (i < pomSessionsDone % 4 ? 'done' : 'pending') + '">🍅</span>';
+    }
+    el.innerHTML = html;
+  }
+
+  window.pomSetMode = function(mode) {
+    pomMode = mode;
+    pomRunning = false;
+    clearInterval(pomTimer);
+    pomTimeLeft = POM_MODES[mode];
+    document.querySelectorAll('.pom-mode-btn').forEach(function(b, i) {
+      b.classList.toggle('active', ['work','short','long'][i] === mode);
+    });
+    pomUpdateDisplay();
+  };
+
+  window.pomToggle = function() {
+    if (pomRunning) {
+      pomRunning = false;
+      clearInterval(pomTimer);
+      pomUpdateDisplay();
+    } else {
+      pomRunning = true;
+      pomTimer = setInterval(function() {
+        pomTimeLeft--;
+        pomUpdateDisplay();
+        if (pomTimeLeft <= 0) {
+          clearInterval(pomTimer);
+          pomRunning = false;
+          if (pomMode === 'work') {
+            pomSessionsDone++;
+            pomUpdateSessions();
+            pomNotify('¡Sesión completada! 🍅 Tómate un descanso.');
+          } else {
+            pomNotify('¡Descanso terminado! Vuelve al foco 💪');
+          }
+          // Gif de celebración al terminar cualquier sesión
+          var wrap = document.getElementById('pomGifWrap');
+          var img  = document.getElementById('pomGif');
+          if (wrap && img) {
+            img.style.opacity = '0';
+            img.src = 'https://i.pinimg.com/originals/d9/e1/d0/d9e1d0562eb9b42044d3d55754b35d2d.gif';
+            wrap.style.display = 'block';
+            img.onload = function() { img.style.opacity = '1'; };
+            setTimeout(function() {
+              img.style.opacity = '0';
+              setTimeout(function() { wrap.style.display = 'none'; }, 400);
+            }, 4000);
+          }
+        }
+      }, 1000);
+      pomUpdateDisplay();
+    }
+  };
+
+  window.pomOpenConfig = function() {
+    var old = document.getElementById('pomConfigModal'); if(old) old.remove();
+    var cfg = {};
+    try { cfg = JSON.parse(localStorage.getItem('pom_config')||'{}'); } catch(e){}
+
+    var backdrop = document.createElement('div');
+    backdrop.id = 'pomConfigModal';
+    backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1rem';
+    backdrop.onclick = function(e){ if(e.target===backdrop) backdrop.remove(); };
+
+    var box = document.createElement('div');
+    box.style.cssText = 'background:var(--card);border-radius:24px;padding:1.4rem;max-width:320px;width:100%;box-shadow:0 12px 48px rgba(0,0,0,.2)';
+
+    var title = document.createElement('div');
+    title.style.cssText = "font-family:'Playfair Display',serif;font-size:1rem;font-style:italic;color:var(--rosa);margin-bottom:1.1rem";
+    title.textContent = '⚙️ Configurar Pomodoro';
+    box.appendChild(title);
+
+    var fields = [
+      { key:'work',  label:'🍅 Foco (minutos)',           def: cfg.work  || 25 },
+      { key:'short', label:'☕ Descanso corto (minutos)', def: cfg.short || 5  },
+      { key:'long',  label:'🛋️ Descanso largo (minutos)', def: cfg.long  || 15 },
+    ];
+    var inputs = {};
+    fields.forEach(function(f) {
+      var fieldDiv = document.createElement('div'); fieldDiv.style.marginBottom='.8rem';
+      var lbl = document.createElement('label');
+      lbl.style.cssText = "display:block;font-size:.68rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2);margin-bottom:.3rem;font-family:'Nunito',sans-serif";
+      lbl.textContent = f.label;
+      var inp = document.createElement('input');
+      inp.type = 'number'; inp.min = '1'; inp.max = '120';
+      inp.value = f.def;
+      inp.style.cssText = "width:100%;border:1.5px solid var(--border);border-radius:12px;padding:.5rem .9rem;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:700;color:var(--text);background:var(--bg);outline:none;box-sizing:border-box";
+      inp.onfocus = function(){ this.style.borderColor='var(--rosa)'; };
+      inp.onblur  = function(){ this.style.borderColor='var(--border)'; };
+      inputs[f.key] = inp;
+      fieldDiv.appendChild(lbl); fieldDiv.appendChild(inp);
+      box.appendChild(fieldDiv);
+    });
+
+    var btns = document.createElement('div');
+    btns.style.cssText = 'display:flex;gap:.6rem;margin-top:1rem;justify-content:flex-end';
+    var cancelBtn = document.createElement('button');
+    cancelBtn.className = 'modal-btn-cancel'; cancelBtn.textContent = 'Cancelar';
+    cancelBtn.onclick = function(){ backdrop.remove(); };
+    var saveBtn = document.createElement('button');
+    saveBtn.className = 'modal-btn-save'; saveBtn.textContent = 'Guardar 🍅';
+    saveBtn.onclick = function() {
+      var w = parseInt(inputs.work.value)||25;
+      var s = parseInt(inputs.short.value)||5;
+      var l = parseInt(inputs.long.value)||15;
+      var newCfg = { work: Math.min(120,Math.max(1,w)), short: Math.min(60,Math.max(1,s)), long: Math.min(60,Math.max(1,l)) };
+      localStorage.setItem('pom_config', JSON.stringify(newCfg));
+      POM_MODES.work  = newCfg.work  * 60;
+      POM_MODES.short = newCfg.short * 60;
+      POM_MODES.long  = newCfg.long  * 60;
+      // Resetear al modo actual con nuevo tiempo
+      pomRunning = false; clearInterval(pomTimer);
+      pomTimeLeft = POM_MODES[pomMode];
+      pomUpdateDisplay();
+      backdrop.remove();
+    };
+    btns.appendChild(cancelBtn); btns.appendChild(saveBtn);
+    box.appendChild(btns);
+    backdrop.appendChild(box);
+    document.body.appendChild(backdrop);
+    inputs.work.focus();
+  };
+
+  window.pomReset = function() {
+    pomRunning = false;
+    clearInterval(pomTimer);
+    pomTimeLeft = POM_MODES[pomMode];
+    pomUpdateDisplay();
+  };
+
+  function pomNotify(msg) {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('kittyplan ⏱️', { body: msg });
+    } else {
+      alert(msg);
+    }
+  }
+
+  setTimeout(function(){ pomUpdateDisplay(); pomUpdateSessions(); }, 200);
+})();
+</script>
+
 
   </div><!-- end page-univ -->
 <div id="page-intereses" class="page-section">
@@ -13180,6 +13759,43 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="spark-dots" id="sparkDots"></div>
       <span id="sparkMoodLabel" style="font-size:.65rem;color:var(--beige);font-weight:700;min-width:70px;text-align:right"></span>
     </div>
+
+    <!-- 📌 Cosas que no quiero olvidar -->
+    <div class="spark-panel" style="margin-top:.8rem">
+      <div class="spark-panel-title">📌 Cosas que NO quiero olvidar</div>
+      <div class="ideas-list" id="sparkPinList"></div>
+      <div class="add-idea-row">
+        <input class="idea-input" id="sparkPinInput" placeholder="Descubrimiento clave, momento eureka…" />
+        <button class="idea-add-btn" onclick="addSparkPin()">＋</button>
+      </div>
+    </div>
+
+    <!-- ⚠️ Autocuidado durante el hiperfoco -->
+    <div class="spark-panel" style="margin-top:.8rem">
+      <div class="spark-panel-title">⚠️ Autocuidado de hoy — ¿ya lo hiciste?</div>
+      <div class="spark-care-grid" id="sparkCareGrid"></div>
+    </div>
+
+    <!-- 🕐 Rastreador de tiempo -->
+    <div class="spark-panel" style="margin-top:.8rem">
+      <div class="spark-panel-title">🕐 Tiempo en este hiperfoco</div>
+      <div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;margin-top:.3rem">
+        <div id="sparkTimeDisplay" style="font-family:'Playfair Display',serif;font-style:italic;font-size:1.5rem;color:var(--beige);min-width:90px">0h 0m</div>
+        <button id="sparkTimerBtn" onclick="toggleSparkTimer()" style="background:var(--beige);color:white;border:none;border-radius:20px;padding:.25rem .9rem;font-size:.7rem;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer">▶ Iniciar</button>
+        <button onclick="addSparkTimeManual()" style="background:none;border:1.5px solid var(--beige);border-radius:20px;padding:.25rem .7rem;font-size:.7rem;font-weight:700;color:var(--beige);cursor:pointer;font-family:'Nunito',sans-serif">＋ Manual</button>
+      </div>
+      <div id="sparkTimeRunning" style="font-size:.62rem;color:var(--muted2);font-weight:700;margin-top:.3rem;display:none">⏱️ Cronómetro corriendo…</div>
+    </div>
+
+    <!-- 🔁 Historial de hiperfocos -->
+    <div class="spark-panel" style="margin-top:.8rem">
+      <div class="spark-panel-title" style="justify-content:space-between">
+        <span>🔁 Mis hiperfocos pasados</span>
+        <button onclick="archiveCurrentSpark()" style="background:var(--beige);color:white;border:none;border-radius:20px;padding:.15rem .6rem;font-size:.6rem;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif">Archivar actual ✦</button>
+      </div>
+      <div id="sparkHistorial" style="margin-top:.4rem"></div>
+    </div>
+
   </div>
 </section>
 
