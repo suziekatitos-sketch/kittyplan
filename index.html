@@ -33,6 +33,49 @@
 <title>Mi Semana — kittyplan 🐱</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,600&family=Nunito:wght@400;500;600;700&family=Petit+Formal+Script&display=swap" rel="stylesheet">
 <!-- Firebase SDK -->
+
+<script>
+// ══ KITTY CONFIRM — reemplaza confirm() nativo ══
+window.kittyConfirm = function(msg, onYes, onNo) {
+  var old = document.getElementById('kittyConfirmModal'); if(old) old.remove();
+  var backdrop = document.createElement('div');
+  backdrop.id = 'kittyConfirmModal';
+  backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1.5rem;animation:fadeIn .15s ease';
+
+  var box = document.createElement('div');
+  box.style.cssText = 'background:var(--card);border-radius:24px;padding:1.6rem 1.4rem 1.2rem;max-width:300px;width:100%;box-shadow:0 12px 48px rgba(0,0,0,.25);text-align:center';
+
+  var face = document.createElement('div');
+  face.style.cssText = "font-family:'Courier New',monospace;font-size:1.3rem;color:var(--text);margin-bottom:.8rem;letter-spacing:.05em";
+  face.textContent = '( ╹ -╹)?';
+
+  var msgEl = document.createElement('div');
+  msgEl.style.cssText = "font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:700;color:var(--text);margin-bottom:1.2rem;line-height:1.4";
+  msgEl.textContent = msg;
+
+  var btns = document.createElement('div');
+  btns.style.cssText = 'display:flex;gap:.6rem;justify-content:center';
+
+  var noBtn = document.createElement('button');
+  noBtn.style.cssText = "padding:.45rem 1.2rem;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:800;color:var(--muted);cursor:pointer";
+  noBtn.textContent = 'No, cancelar';
+  noBtn.onclick = function(){ backdrop.remove(); if(onNo) onNo(); };
+
+  var yesBtn = document.createElement('button');
+  yesBtn.style.cssText = "padding:.45rem 1.2rem;border-radius:20px;border:none;background:var(--rosa);font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:800;color:#fff;cursor:pointer";
+  yesBtn.textContent = 'Sí, continuar';
+  yesBtn.onclick = function(){ backdrop.remove(); if(onYes) onYes(); };
+
+  btns.appendChild(noBtn); btns.appendChild(yesBtn);
+  box.appendChild(face); box.appendChild(msgEl); box.appendChild(btns);
+  backdrop.appendChild(box);
+  document.body.appendChild(backdrop);
+  // Cerrar con Escape
+  var onKey = function(e){ if(e.key==='Escape'){ backdrop.remove(); if(onNo) onNo(); document.removeEventListener('keydown',onKey); } };
+  document.addEventListener('keydown', onKey);
+};
+</script>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -152,7 +195,7 @@
     if (btn) btn.addEventListener('click', doSignIn);
     const outBtn = document.getElementById('signout-btn');
     if (outBtn) outBtn.addEventListener('click', () => {
-      if (confirm('¿Cerrar sesión?')) doSignOut();
+      kittyConfirm('¿Cerrar sesión?', doSignOut);
     });
   });
 
@@ -4472,7 +4515,7 @@ function todayKey() { return dateKey(new Date()); }
   var vbItems = [];
 
   function vbSave(){ try{localStorage.setItem('vb_items',JSON.stringify(vbItems));}catch(e){} if(window.cloudSave) window.cloudSave('vb_items',vbItems); }
-  function vbLoad(){ if(window._vbItems){vbItems=window._vbItems;return;} try{vbItems=JSON.parse(localStorage.getItem('vb_items')||'[]');}catch(e){vbItems=[];} }
+  function vbLoad(forceCloud){ if((forceCloud||true) && window._vbItems){vbItems=window._vbItems;return;} try{vbItems=JSON.parse(localStorage.getItem('vb_items')||'[]');}catch(e){vbItems=[];} }
 
   // posX/posY: '0% 0%' = arriba-izq, '50% 50%' = centro, '100% 100%' = abajo-der
   var POS_OPTS = [
@@ -4487,7 +4530,7 @@ function todayKey() { return dateKey(new Date()); }
     {label:'↘', x:'100%', y:'100%', name:'Abajo der'},
   ];
 
-  function vbRender(){
+  window.vbRender = function vbRender(){
     var grid = document.getElementById('vbGrid'); if(!grid) return;
     grid.innerHTML = '';
     if(vbItems.length===0){
@@ -4610,10 +4653,12 @@ function todayKey() { return dateKey(new Date()); }
     try { localStorage.setItem('metas_data', JSON.stringify(metas)); } catch(e){}
     if (window.cloudSave) window.cloudSave('metas_data', metas);
   }
-  function metaLoad() {
+  function metaLoad(forceCloud) {
+    if (forceCloud && window._metasData) { metas = window._metasData; return; }
     if (window._metasData) { metas = window._metasData; return; }
     try { metas = JSON.parse(localStorage.getItem('metas_data') || '[]'); } catch(e){ metas=[]; }
   }
+  window.renderMetas = function(){ metaLoad(true); renderMetasInner(); };
 
   function metaProgress(meta) {
     if (!meta.pasos || meta.pasos.length === 0) return 0;
@@ -4621,7 +4666,7 @@ function todayKey() { return dateKey(new Date()); }
     return Math.round(done / meta.pasos.length * 100);
   }
 
-  window.renderMetas = function() {
+  function renderMetasInner() {
     var list = document.getElementById('metasList');
     if (!list) return;
     list.innerHTML = '';
@@ -4658,9 +4703,7 @@ function todayKey() { return dateKey(new Date()); }
       var actEl = document.createElement('div'); actEl.className='meta-card-actions';
       var editBtn = document.createElement('button'); editBtn.className='meta-action-btn'; editBtn.textContent='✏️ Editar';
       editBtn.onclick = (function(m){return function(){openMetaModal(m);};})(mIdx);
-      var delBtn = document.createElement('button'); delBtn.className='meta-action-btn'; delBtn.textContent='🗑️ Eliminar';
-      delBtn.onclick = (function(m){return function(){metaDelete(m);};})(mIdx);
-      actEl.appendChild(editBtn); actEl.appendChild(delBtn); card.appendChild(actEl);
+      actEl.appendChild(editBtn); card.appendChild(actEl);
       list.appendChild(card);
     });
   };
@@ -4671,9 +4714,7 @@ function todayKey() { return dateKey(new Date()); }
   };
 
   window.metaDelete = function(mIdx) {
-    if (confirm('¿Eliminar la meta "'+metas[mIdx].name+'"?')) {
-      metas.splice(mIdx,1); metaSave(); renderMetas();
-    }
+    kittyConfirm('¿Eliminar la meta "' + metas[mIdx].name + '"?', function(){ metas.splice(mIdx,1); metaSave(); renderMetas(); });
   };
 
   var META_EMOJIS = ['🎯','🌟','💪','📚','✨','🚀','🌸','💡','🏆','❤️','🎨','🌱'];
@@ -4744,6 +4785,24 @@ function todayKey() { return dateKey(new Date()); }
       }
       metaSave(); renderMetas(); backdrop.remove();
     };
+
+    // Botón eliminar solo al editar, discreto al fondo con doble confirmación
+    if (existing) {
+      var delZone = document.createElement('div');
+      delZone.style.cssText = 'margin-top:1rem;padding-top:.8rem;border-top:1px solid var(--border);text-align:center';
+      var delBtn = document.createElement('button');
+      delBtn.style.cssText = "background:none;border:none;font-family:'Nunito',sans-serif;font-size:.7rem;font-weight:700;color:var(--muted2);cursor:pointer;padding:.3rem .6rem;border-radius:8px";
+      delBtn.textContent = '🗑️ Eliminar meta';
+      delBtn.onmouseover = function(){ this.style.color='#c0392b'; };
+      delBtn.onmouseout  = function(){ this.style.color='var(--muted2)'; };
+      delBtn.onclick = function() {
+        kittyConfirm('¿Segura? Esta acción no se puede deshacer 💔', function(){
+            metas.splice(mIdx,1); metaSave(); renderMetas(); backdrop.remove();
+          });
+      };
+      delZone.appendChild(delBtn);
+      box.appendChild(delZone);
+    }
 
     document.getElementById('metaNameInput').focus();
   };
@@ -4895,6 +4954,9 @@ function todayKey() { return dateKey(new Date()); }
       <button class="pom-mode-btn" onclick="pomSetMode('short')">☕ Descanso corto</button>
       <button class="pom-mode-btn" onclick="pomSetMode('long')">🛋️ Descanso largo</button>
     </div>
+    <div style="text-align:right;margin-top:-.3rem;margin-bottom:.2rem">
+      <button onclick="pomOpenConfig()" style="background:none;border:none;cursor:pointer;font-size:.72rem;font-weight:700;color:var(--muted2);font-family:'Nunito',sans-serif;padding:.2rem .4rem">⚙️ Configurar tiempos</button>
+    </div>
     <div class="pomodoro-display" id="pomDisplay">25:00</div>
     <div class="pomodoro-btns">
       <button class="pom-btn primary" id="pomStartBtn" onclick="pomToggle()">▶ Iniciar</button>
@@ -4906,7 +4968,14 @@ function todayKey() { return dateKey(new Date()); }
 
 <script>
 (function(){
-  var POM_MODES = { work: 25*60, short: 5*60, long: 15*60 };
+  // Tiempos configurables (en minutos)
+  function pomLoadConfig() {
+    try {
+      var c = JSON.parse(localStorage.getItem('pom_config') || '{}');
+      return { work: (c.work||25)*60, short: (c.short||5)*60, long: (c.long||15)*60 };
+    } catch(e) { return { work:25*60, short:5*60, long:15*60 }; }
+  }
+  var POM_MODES = pomLoadConfig();
   var pomMode = 'work';
   var pomTimeLeft = POM_MODES.work;
   var pomRunning = false;
@@ -4973,6 +5042,75 @@ function todayKey() { return dateKey(new Date()); }
       }, 1000);
       pomUpdateDisplay();
     }
+  };
+
+  window.pomOpenConfig = function() {
+    var old = document.getElementById('pomConfigModal'); if(old) old.remove();
+    var cfg = {};
+    try { cfg = JSON.parse(localStorage.getItem('pom_config')||'{}'); } catch(e){}
+
+    var backdrop = document.createElement('div');
+    backdrop.id = 'pomConfigModal';
+    backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1rem';
+    backdrop.onclick = function(e){ if(e.target===backdrop) backdrop.remove(); };
+
+    var box = document.createElement('div');
+    box.style.cssText = 'background:var(--card);border-radius:24px;padding:1.4rem;max-width:320px;width:100%;box-shadow:0 12px 48px rgba(0,0,0,.2)';
+
+    var title = document.createElement('div');
+    title.style.cssText = "font-family:'Playfair Display',serif;font-size:1rem;font-style:italic;color:var(--rosa);margin-bottom:1.1rem";
+    title.textContent = '⚙️ Configurar Pomodoro';
+    box.appendChild(title);
+
+    var fields = [
+      { key:'work',  label:'🍅 Foco (minutos)',           def: cfg.work  || 25 },
+      { key:'short', label:'☕ Descanso corto (minutos)', def: cfg.short || 5  },
+      { key:'long',  label:'🛋️ Descanso largo (minutos)', def: cfg.long  || 15 },
+    ];
+    var inputs = {};
+    fields.forEach(function(f) {
+      var fieldDiv = document.createElement('div'); fieldDiv.style.marginBottom='.8rem';
+      var lbl = document.createElement('label');
+      lbl.style.cssText = "display:block;font-size:.68rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2);margin-bottom:.3rem;font-family:'Nunito',sans-serif";
+      lbl.textContent = f.label;
+      var inp = document.createElement('input');
+      inp.type = 'number'; inp.min = '1'; inp.max = '120';
+      inp.value = f.def;
+      inp.style.cssText = "width:100%;border:1.5px solid var(--border);border-radius:12px;padding:.5rem .9rem;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:700;color:var(--text);background:var(--bg);outline:none;box-sizing:border-box";
+      inp.onfocus = function(){ this.style.borderColor='var(--rosa)'; };
+      inp.onblur  = function(){ this.style.borderColor='var(--border)'; };
+      inputs[f.key] = inp;
+      fieldDiv.appendChild(lbl); fieldDiv.appendChild(inp);
+      box.appendChild(fieldDiv);
+    });
+
+    var btns = document.createElement('div');
+    btns.style.cssText = 'display:flex;gap:.6rem;margin-top:1rem;justify-content:flex-end';
+    var cancelBtn = document.createElement('button');
+    cancelBtn.className = 'modal-btn-cancel'; cancelBtn.textContent = 'Cancelar';
+    cancelBtn.onclick = function(){ backdrop.remove(); };
+    var saveBtn = document.createElement('button');
+    saveBtn.className = 'modal-btn-save'; saveBtn.textContent = 'Guardar 🍅';
+    saveBtn.onclick = function() {
+      var w = parseInt(inputs.work.value)||25;
+      var s = parseInt(inputs.short.value)||5;
+      var l = parseInt(inputs.long.value)||15;
+      var newCfg = { work: Math.min(120,Math.max(1,w)), short: Math.min(60,Math.max(1,s)), long: Math.min(60,Math.max(1,l)) };
+      localStorage.setItem('pom_config', JSON.stringify(newCfg));
+      POM_MODES.work  = newCfg.work  * 60;
+      POM_MODES.short = newCfg.short * 60;
+      POM_MODES.long  = newCfg.long  * 60;
+      // Resetear al modo actual con nuevo tiempo
+      pomRunning = false; clearInterval(pomTimer);
+      pomTimeLeft = POM_MODES[pomMode];
+      pomUpdateDisplay();
+      backdrop.remove();
+    };
+    btns.appendChild(cancelBtn); btns.appendChild(saveBtn);
+    box.appendChild(btns);
+    backdrop.appendChild(box);
+    document.body.appendChild(backdrop);
+    inputs.work.focus();
   };
 
   window.pomReset = function() {
@@ -6107,14 +6245,14 @@ function openRutinaModal(templateId) {
   const rutDelBtn = backdrop.querySelector('#rutDelBtn');
   if (rutDelBtn) {
     rutDelBtn.onclick = () => {
-      if (confirm('¿Eliminar la rutina "' + existing.name + '"?')) {
+      kittyConfirm('¿Eliminar la rutina "' + existing.name + '"?', function() {
         rutinaTemplates = rutinaTemplates.filter(t => t.id !== existing.id);
         Object.keys(rutinaAsignaciones).forEach(k => {
           if (rutinaAsignaciones[k] === existing.id) delete rutinaAsignaciones[k];
         });
         saveRutinas(); renderRutinas();
         backdrop.remove();
-      }
+      });
     };
   }
 
@@ -6178,10 +6316,10 @@ function renderProyectos() {
     card.querySelector('[data-edit]').onclick = (e) => { e.stopPropagation(); openProyectoModal(proy.id); };
     card.querySelector('[data-del]').onclick = (e) => {
       e.stopPropagation();
-      if (confirm('¿Eliminar "' + proy.title + '"?')) {
+      kittyConfirm('¿Eliminar "' + proy.title + '"?', function() {
         univProyectos.splice(proyIdx, 1);
         saveProyectos(); renderProyectos();
-      }
+      });
     };
     list.appendChild(card);
   });
@@ -6318,10 +6456,10 @@ function openProyectoModal(proyId) {
   const pDelBtn = box.querySelector('#pDelBtn');
   if (pDelBtn) {
     pDelBtn.onclick = () => {
-      if (confirm('¿Eliminar "' + existing.title + '"?')) {
+      kittyConfirm('¿Eliminar "' + existing.title + '"?', function() {
         univProyectos = univProyectos.filter(p => p.id !== existing.id);
         saveProyectos(); renderProyectos(); backdrop.remove();
-      }
+      });
     };
   }
   box.querySelector('#pTitle').focus();
@@ -6440,10 +6578,10 @@ function renderDesglose() {
     // Delete
     card.querySelector('[data-del]').onclick = (e) => {
       e.stopPropagation();
-      if (confirm(`¿Eliminar "${item.title}"?`)) {
+      kittyConfirm('¿Eliminar "' + item.title + '"?', function() {
         desgloseItems.splice(itemIdx, 1);
         saveDesglose(); renderDesglose();
-      }
+      });
     };
 
     list.appendChild(card);
@@ -6968,10 +7106,10 @@ function renderEjercicio() {
       moreBtn.title = 'Opciones';
       moreBtn.onclick = function(e) {
         e.stopPropagation();
-        if (confirm('¿Quitar "' + tpl.name + '" del registro de este día?')) {
+        kittyConfirm('¿Quitar "' + tpl.name + '" del registro de este día?', function() {
           ejRegistros[dk].splice(regIdx, 1);
           saveEjercicio(); renderEjercicio();
-        }
+        });
       };
       hdr.appendChild(moreBtn);
       hdr.onclick = function() {
@@ -7203,11 +7341,11 @@ function openEjModal(templateId) {
   var ejDelBtn = document.getElementById('ejDelBtn');
   if (ejDelBtn) {
     ejDelBtn.onclick = function() {
-      if (confirm('¿Eliminar "' + existing.name + '"?')) {
+      kittyConfirm('¿Eliminar "' + existing.name + '"?', function() {
         ejTemplates = ejTemplates.filter(function(t){ return t.id !== existing.id; });
         saveEjercicio(); renderEjercicio();
         back.remove();
-      }
+      });
     };
   }
 
@@ -7381,10 +7519,10 @@ function renderBelDayWrap(dk) {
       moreBelBtn.title = 'Opciones';
       moreBelBtn.onclick = function(e) {
         e.stopPropagation();
-        if (confirm('¿Quitar "' + tpl.name + '" del registro de este día?')) {
+        kittyConfirm('¿Quitar "' + tpl.name + '" del registro de este día?', function() {
           bellezaRegistros[dk].splice(regIdx, 1);
           saveBelleza(); renderBelleza();
-        }
+        });
       };
       hdr.appendChild(moreBelBtn);
       hdr.onclick = function() {
@@ -7556,11 +7694,11 @@ function openBellezaModal(editIdx) {
   var belDelBtn = document.getElementById('belDelBtn');
   if (belDelBtn) {
     belDelBtn.onclick = function() {
-      if (confirm('¿Eliminar "' + tpl.name + '"?')) {
+      kittyConfirm('¿Eliminar "' + tpl.name + '"?', function() {
         bellezaTemplates.splice(editIdx, 1);
         saveBelleza(); renderBelleza();
         back.remove();
-      }
+      });
     };
   }
   document.getElementById('belNombre').focus();
@@ -7761,18 +7899,7 @@ function renderDios() {
       textWrap.appendChild(verText);
       if (ver.referencia) textWrap.appendChild(verRef);
 
-      var delBtn = document.createElement('button');
-      delBtn.className = 'dios-ver-del';
-      delBtn.textContent = '✕';
-      (function(idx) {
-        delBtn.onclick = function() {
-          versiculos.splice(idx, 1);
-          saveDios(); renderDios();
-        };
-      })(vi);
-
       item.appendChild(textWrap);
-      item.appendChild(delBtn);
       verList.appendChild(item);
     });
   }
@@ -8056,10 +8183,12 @@ document.addEventListener('DOMContentLoaded', function() {
     try { localStorage.setItem('mood_data', JSON.stringify(moodData)); } catch(e){}
     if (window.cloudSave) window.cloudSave('mood_data', moodData);
   }
-  function moodLoad() {
+  function moodLoad(forceCloud) {
+    if (forceCloud && window._moodData) { moodData = window._moodData; return; }
     if (window._moodData) { moodData = window._moodData; return; }
     try { moodData = JSON.parse(localStorage.getItem('mood_data') || '{}'); } catch(e){ moodData={}; }
   }
+  window.renderMoodWeek = function(){ moodLoad(true); renderWeek(); };
 
   function getWeekDays() {
     var today = new Date();
@@ -8235,9 +8364,9 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 
   window.metaDelete = function(mIdx) {
-    if (confirm('¿Eliminar la meta "'+metas[mIdx].name+'"?')) {
+    kittyConfirm('¿Eliminar la meta "' + metas[mIdx].name + '"?', function(){
       metas.splice(mIdx,1); metaSave(); renderMetas();
-    }
+    });
   };
 
   var META_EMOJIS = ['🎯','🌟','💪','📚','✨','🚀','🌸','💡','🏆','❤️','🎨','🌱'];
@@ -8611,20 +8740,22 @@ function loadData() {
 }
 
 function resetWeek() {
-  if (!confirm('¿Reiniciar las tareas completadas de esta semana?')) return;
-  const dates = getWeekDates(weekOffset);
-  dates.forEach(date => {
-    recurringTasks.forEach(task => {
-      delete completions[completionKey(task.id, date)];
+  kittyConfirm('¿Reiniciar las tareas completadas de esta semana?', function() {
+    const dates = getWeekDates(weekOffset);
+    dates.forEach(date => {
+      recurringTasks.forEach(task => {
+        delete completions[completionKey(task.id, date)];
+      });
     });
+    saveData(); render();
   });
-  saveData(); render();
 }
 
 function resetAll() {
-  if (!confirm('¿Borrar todas las tareas y completados?')) return;
-  recurringTasks = []; completions = {};
-  saveData(); render();
+  kittyConfirm('¿Borrar todas las tareas y completados?', function() {
+    recurringTasks = []; completions = {};
+    saveData(); render();
+  });
 }
 
 
@@ -8742,12 +8873,12 @@ function deleteTaskFromModal() {
   if (!_modalTaskId) return;
   const task = recurringTasks.find(t => t.id === _modalTaskId);
   if (!task) return;
-  if (confirm('¿Eliminar "' + task.text + '" y todas sus repeticiones?')) {
+  kittyConfirm('¿Eliminar "' + task.text + '" y todas sus repeticiones?', function() {
     recurringTasks = recurringTasks.filter(t => t.id !== _modalTaskId);
     Object.keys(completions).forEach(k => { if (k.startsWith(_modalTaskId + '|')) delete completions[k]; });
     saveData(); updateProgress(); render();
     closeTaskModal();
-  }
+  });
 }
 
 function saveTaskModal() {
@@ -9795,10 +9926,10 @@ function openLimpiezaAreaModal(editIdx) {
     delBtn.className = 'modal-btn-delete';
     delBtn.textContent = '⋯ Eliminar';
     delBtn.onclick = function() {
-      if (confirm('¿Eliminar "' + area.nombre + '"?')) {
+      kittyConfirm('¿Eliminar "' + area.nombre + '"?', function() {
         limpiezaData.splice(editIdx, 1);
         saveLimpieza(); renderLimpieza(); back.remove();
-      }
+      });
     };
     btns.appendChild(delBtn);
   }
@@ -10217,10 +10348,10 @@ function openLimpRutinaModal(editIdx) {
   if (editing) {
     var delBtn = document.createElement('button'); delBtn.className='modal-btn-delete'; delBtn.textContent='⋯ Eliminar';
     delBtn.onclick = function(){
-      if (confirm('¿Eliminar "'+limpRutinas[editIdx].nombre+'"?')){
+      kittyConfirm('¿Eliminar "' + limpRutinas[editIdx].nombre + '"?', function() {
         limpRutinas.splice(editIdx,1);
         saveLimpRutinas(); renderLimpRutinas(); back.remove();
-      }
+      });
     };
     btns.appendChild(delBtn);
   }
@@ -10534,10 +10665,10 @@ function openFinCatModal(editIdx) {
   document.getElementById('finCatCancel').onclick = function() { back.remove(); };
   var delBtn = document.getElementById('finCatDel');
   if (delBtn) delBtn.onclick = function() {
-    if (confirm('¿Eliminar categoría "' + cat.nombre + '"?')) {
+    kittyConfirm('¿Eliminar categoría "' + cat.nombre + '"?', function() {
       finCategorias.splice(editIdx,1);
       saveFinanzas(); renderFinanzas(); back.remove();
-    }
+    });
   };
   document.getElementById('finCatSave').onclick = function() {
     var nombre = document.getElementById('finCatNombre').value.trim();
@@ -10798,11 +10929,11 @@ function openRecetaViewModal(recetaId) {
   document.getElementById('recViewClose').onclick = function() { back.remove(); };
   document.getElementById('recViewEdit').onclick = function() { back.remove(); openRecetaEditModal(r.id); };
   document.getElementById('recViewDel').onclick = function() {
-    if (confirm('¿Eliminar "' + r.nombre + '"?')) {
+    kittyConfirm('¿Eliminar "' + r.nombre + '"?', function() {
       recetas = recetas.filter(function(x){ return x.id !== recetaId; });
       if (recSugIdx >= recetas.length) recSugIdx = 0;
       saveRecetario(); renderRecetario(); back.remove();
-    }
+    });
   };
 }
 
@@ -11460,10 +11591,10 @@ function renderMens() {
   drop.textContent = '🩸';
   drop.title = 'Click para marcar hoy como inicio de periodo';
   drop.onclick = () => {
-    if (confirm('¿Marcar hoy como inicio de tu periodo?')) {
+    kittyConfirm('¿Marcar hoy como inicio de tu periodo?', function() {
       mensData.lastDate = dateKey(today);
       saveMens(); renderMens();
-    }
+    });
   };
 
   const info = document.createElement('div');
@@ -11510,10 +11641,10 @@ function renderMens() {
     clearBtn.className = 'mens-clear-btn';
     clearBtn.textContent = 'Borrar registro';
     clearBtn.onclick = () => {
-      if (confirm('¿Borrar el registro del periodo?')) {
+      kittyConfirm('¿Borrar el registro del periodo?', function() {
         mensData.lastDate = null;
         saveMens(); renderMens();
-      }
+      });
     };
     card.appendChild(clearBtn);
   }
@@ -12186,7 +12317,7 @@ function renderUnivMaterias() {
     del.className = 'univ-materia-del';
     del.textContent = '✕';
     del.onclick = function() {
-      if (confirm('Eliminar ' + mat.name + '?')) { sem.materias.splice(idx,1); saveUniv(); renderUniv(); }
+      kittyConfirm('¿Eliminar ' + mat.name + '?', function(){ sem.materias.splice(idx,1); saveUniv(); renderUniv(); });
     };
     row.appendChild(dot); row.appendChild(name); row.appendChild(cal); row.appendChild(del);
     list.appendChild(row);
@@ -12368,14 +12499,14 @@ function renderUnivHistorial() {
     del.textContent = '✕';
     del.title = 'Archivar semestre';
     del.onclick = function() {
-      if (confirm('¿Archivar "' + sem.nombre + '"? Los datos se conservan.')) {
+      kittyConfirm('¿Archivar "' + sem.nombre + '"? Los datos se conservan.', function() {
         // Just deactivate, never delete
         univData.semestres[idx].activo = false;
         // if was active, activate first one
         var hasActive = univData.semestres.some(function(s){return s.activo;});
         if (!hasActive && univData.semestres.length > 0) univData.semestres[0].activo = true;
         saveUniv(); renderUniv();
-      }
+      });
     };
 
     hdr.appendChild(title);
@@ -13838,12 +13969,12 @@ document.addEventListener('DOMContentLoaded', function() {
       delBtn.textContent = '✕';
       delBtn.title = 'Borrar nota';
       delBtn.onclick = function() {
-        if (confirm('¿Borrar esta nota?')) {
+        kittyConfirm('¿Borrar esta nota?', function() {
           bdNotes = bdNotes.filter(function(n){ return n.ts !== note.ts; });
           bdSave();
           bdRenderGrid();
           bdRenderFilters();
-        }
+        });
       };
 
       card.appendChild(delBtn);
@@ -13880,8 +14011,18 @@ document.addEventListener('DOMContentLoaded', function() {
   var _origSyncBD = window.syncFromCloud;
   window.syncFromCloud = function() {
     if (_origSyncBD) _origSyncBD();
-    if (window._braindumpNotes) bdNotes = window._braindumpNotes;
-    bdRenderGrid();
+    // Braindump
+    if (window._braindumpNotes) { bdNotes = window._braindumpNotes; bdRenderGrid(); }
+    // Mood tracker
+    if (window._moodData && typeof renderMoodWeek === 'function') renderMoodWeek();
+    // Metas
+    if (window._metasData && typeof renderMetas === 'function') renderMetas();
+    // Vision Board
+    if (window._vbItems && typeof vbRender === 'function') vbRender();
+    // Listas rápidas
+    if (window._qlLists && typeof renderQlLists === 'function') renderQlLists();
+    // Watchlist
+    if (window._wlItems && typeof renderWlGrid === 'function') renderWlGrid();
   };
 
   function bdInit() {
@@ -14009,9 +14150,9 @@ document.addEventListener('DOMContentLoaded', function() {
   var listasTab = 'rapidas';
 
   function qlSave(){ try{localStorage.setItem('ql_lists',JSON.stringify(qlLists));}catch(e){} if(window.cloudSave) window.cloudSave('ql_lists',qlLists); }
-  function qlLoad(){ if(window._qlLists){qlLists=window._qlLists;return;} try{qlLists=JSON.parse(localStorage.getItem('ql_lists')||'[]');}catch(e){qlLists=[];} }
+  function qlLoad(){ if(window._qlLists){qlLists=window._qlLists;} else { try{qlLists=JSON.parse(localStorage.getItem('ql_lists')||'[]');}catch(e){qlLists=[];} } }
   function wlSave(){ try{localStorage.setItem('wl_items',JSON.stringify(wlItems));}catch(e){} if(window.cloudSave) window.cloudSave('wl_items',wlItems); }
-  function wlLoad(){ if(window._wlItems){wlItems=window._wlItems;return;} try{wlItems=JSON.parse(localStorage.getItem('wl_items')||'[]');}catch(e){wlItems=[];} }
+  function wlLoad(){ if(window._wlItems){wlItems=window._wlItems;} else { try{wlItems=JSON.parse(localStorage.getItem('wl_items')||'[]');}catch(e){wlItems=[];} } }
 
   window.listasSetTab = function(tab) {
     listasTab = tab;
@@ -14075,7 +14216,7 @@ document.addEventListener('DOMContentLoaded', function() {
   window.qlInputKey=function(e,lIdx){ if(e.key==='Enter') window.qlAddItem(lIdx); };
   window.qlToggleItem=function(lIdx,iIdx){ qlLists[lIdx].items[iIdx].done=!qlLists[lIdx].items[iIdx].done; qlSave(); renderQlLists(); };
   window.qlDeleteItem=function(lIdx,iIdx){ qlLists[lIdx].items.splice(iIdx,1); qlSave(); renderQlLists(); };
-  window.qlDeleteList=function(lIdx){ if(confirm('¿Eliminar la lista "'+qlLists[lIdx].name+'"?')){ qlLists.splice(lIdx,1); qlSave(); renderQlLists(); } };
+  window.qlDeleteList=function(lIdx){ kittyConfirm('¿Eliminar la lista "' + qlLists[lIdx].name + '"?', function(){ qlLists.splice(lIdx,1); qlSave(); renderQlLists(); }); };
   window.qlAddItem=function(lIdx){ var inp=document.getElementById('qlInput_'+lIdx); if(!inp||!inp.value.trim()) return; qlLists[lIdx].items.push({text:inp.value.trim(),done:false}); inp.value=''; qlSave(); renderQlLists(); };
 
   var QL_EMOJIS=['📋','🛒','📌','💡','🎯','🌸','📦','🧴','🍕','✈️'];
@@ -14198,7 +14339,7 @@ document.addEventListener('DOMContentLoaded', function() {
     it.status=s; wlSave(); renderWlGrid();
   };
   window.wlDelete=function(id){
-    if(confirm('¿Eliminar esta entrada?')){ wlItems=wlItems.filter(function(x){return x.id!==id;}); wlSave(); renderWlGrid(); }
+    kittyConfirm('¿Eliminar esta entrada?', function(){ wlItems=wlItems.filter(function(x){return x.id!==id;}); wlSave(); renderWlGrid(); });
   };
 
   window.openWlModal=function(id){
@@ -14386,7 +14527,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <!-- Cuenta -->
   <div class="config-block">
     <div class="config-block-title">🔐 Cuenta</div>
-    <button class="config-signout-btn" onclick="if(confirm('¿Cerrar sesión?')) window.signOutUser()">
+    <button class="config-signout-btn" onclick="kittyConfirm('¿Cerrar sesión?', window.signOutUser)">
       🚪 Cerrar sesión
     </button>
   </div>
