@@ -659,7 +659,7 @@
   .login-card {
     position: relative;
     z-index: 3;
-    background: rgba(255,255,255,0.75);
+    background: color-mix(in srgb, var(--card) 97%, transparent);
     border: 2px solid rgba(216,180,254,.4);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -4176,7 +4176,7 @@
     top: 0; right: 0; bottom: 0;
     width: 220px;
     z-index: 350;
-    background: rgba(253,240,248,0.97);
+    background: var(--card);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-left: 1.5px solid var(--border);
@@ -4346,14 +4346,44 @@ function todayKey() { return dateKey(new Date()); }
     border: 1.5px solid var(--border);
     background: var(--card);
     overflow: hidden;
-    aspect-ratio: 4/3;
+    aspect-ratio: 3/4;
     position: relative;
     cursor: pointer;
     transition: box-shadow .2s, transform .2s;
     display: flex; align-items: center; justify-content: center;
   }
   .vb-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,.12); transform: scale(1.02); }
-  .vb-card img { width:100%; height:100%; object-fit:cover; display:block; }
+  .vb-card img {
+    width:100%; height:100%;
+    object-fit:cover; display:block;
+    object-position: var(--vb-pos-x, 50%) var(--vb-pos-y, 50%);
+    transition: object-position .2s;
+  }
+  /* Modal visionboard */
+  .vb-modal-backdrop { position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1rem; }
+  .vb-modal-box { background:var(--card);border-radius:24px;padding:1.4rem;max-width:420px;width:100%;box-shadow:0 12px 48px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto; }
+  .vb-modal-title { font-family:'Playfair Display',serif;font-size:1rem;font-style:italic;color:var(--rosa);margin-bottom:1rem; }
+  .vb-preview-wrap {
+    width:100%; aspect-ratio:3/4; border-radius:12px; overflow:hidden;
+    border:1.5px solid var(--border); margin-bottom:1rem; position:relative;
+    background:var(--surface);
+  }
+  .vb-preview-img {
+    width:100%; height:100%; object-fit:cover;
+    object-position: 50% 50%;
+    display:block;
+  }
+  .vb-focus-hint { font-size:.68rem;color:var(--muted2);font-weight:600;text-align:center;margin-bottom:.8rem; }
+  .vb-pos-grid {
+    display:grid; grid-template-columns:repeat(3,1fr); gap:.4rem; margin-bottom:1rem;
+  }
+  .vb-pos-btn {
+    padding:.4rem; border-radius:10px; border:1.5px solid var(--border);
+    background:var(--surface); font-size:.9rem; cursor:pointer; transition:all .15s;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .vb-pos-btn:hover { border-color:var(--rosa); }
+  .vb-pos-btn.selected { background:var(--rosa); border-color:var(--rosa); }
   .vb-card-label {
     position: absolute; bottom:0; left:0; right:0;
     background: linear-gradient(transparent, rgba(0,0,0,.45));
@@ -4444,6 +4474,19 @@ function todayKey() { return dateKey(new Date()); }
   function vbSave(){ try{localStorage.setItem('vb_items',JSON.stringify(vbItems));}catch(e){} if(window.cloudSave) window.cloudSave('vb_items',vbItems); }
   function vbLoad(){ if(window._vbItems){vbItems=window._vbItems;return;} try{vbItems=JSON.parse(localStorage.getItem('vb_items')||'[]');}catch(e){vbItems=[];} }
 
+  // posX/posY: '0% 0%' = arriba-izq, '50% 50%' = centro, '100% 100%' = abajo-der
+  var POS_OPTS = [
+    {label:'↖', x:'0%',   y:'0%',   name:'Arriba izq'},
+    {label:'⬆', x:'50%',  y:'0%',   name:'Arriba centro'},
+    {label:'↗', x:'100%', y:'0%',   name:'Arriba der'},
+    {label:'⬅', x:'0%',   y:'50%',  name:'Centro izq'},
+    {label:'⊙', x:'50%',  y:'50%',  name:'Centro'},
+    {label:'➡', x:'100%', y:'50%',  name:'Centro der'},
+    {label:'↙', x:'0%',   y:'100%', name:'Abajo izq'},
+    {label:'⬇', x:'50%',  y:'100%', name:'Abajo centro'},
+    {label:'↘', x:'100%', y:'100%', name:'Abajo der'},
+  ];
+
   function vbRender(){
     var grid = document.getElementById('vbGrid'); if(!grid) return;
     grid.innerHTML = '';
@@ -4457,6 +4500,8 @@ function todayKey() { return dateKey(new Date()); }
     vbItems.forEach(function(item, idx){
       var card = document.createElement('div'); card.className='vb-card';
       var img = document.createElement('img'); img.src=item.url; img.alt=item.label||'';
+      var px = item.posX||'50%'; var py = item.posY||'50%';
+      img.style.objectPosition = px+' '+py;
       img.onerror=function(){ card.style.background='var(--surface)'; img.style.display='none'; };
       card.appendChild(img);
       if(item.label){
@@ -4466,14 +4511,83 @@ function todayKey() { return dateKey(new Date()); }
       var del=document.createElement('button'); del.className='vb-card-del'; del.textContent='✕';
       del.onclick=(function(i){return function(e){e.stopPropagation();vbDelete(i);};})(idx);
       card.appendChild(del);
+      card.onclick=(function(i){return function(e){ if(e.target===del) return; vbOpenEdit(i); };})(idx);
       grid.appendChild(card);
     });
   }
 
+  window.vbOpenEdit = function(idx) {
+    var old = document.getElementById('vbEditModal'); if(old) old.remove();
+    var item = vbItems[idx];
+    var selX = item.posX||'50%'; var selY = item.posY||'50%';
+
+    var backdrop = document.createElement('div');
+    backdrop.className='vb-modal-backdrop'; backdrop.id='vbEditModal';
+    backdrop.onclick=function(e){if(e.target===backdrop)backdrop.remove();};
+
+    var box = document.createElement('div'); box.className='vb-modal-box';
+
+    // Título
+    var title = document.createElement('div'); title.className='vb-modal-title';
+    title.textContent='✨ Editar imagen';
+    box.appendChild(title);
+
+    // Preview
+    var prevWrap = document.createElement('div'); prevWrap.className='vb-preview-wrap';
+    var prevImg = document.createElement('img'); prevImg.className='vb-preview-img';
+    prevImg.src=item.url; prevImg.style.objectPosition=selX+' '+selY;
+    prevWrap.appendChild(prevImg); box.appendChild(prevWrap);
+
+    // Hint
+    var hint = document.createElement('div'); hint.className='vb-focus-hint';
+    hint.textContent='Elige el área que quieres mostrar en la tarjeta 👇';
+    box.appendChild(hint);
+
+    // Grid de posiciones
+    var posGrid = document.createElement('div'); posGrid.className='vb-pos-grid';
+    POS_OPTS.forEach(function(opt){
+      var btn = document.createElement('button'); btn.className='vb-pos-btn';
+      if(opt.x===selX && opt.y===selY) btn.classList.add('selected');
+      btn.textContent=opt.label; btn.title=opt.name;
+      btn.onclick=function(){
+        selX=opt.x; selY=opt.y;
+        prevImg.style.objectPosition=selX+' '+selY;
+        posGrid.querySelectorAll('.vb-pos-btn').forEach(function(b){b.classList.remove('selected');});
+        btn.classList.add('selected');
+      };
+      posGrid.appendChild(btn);
+    });
+    box.appendChild(posGrid);
+
+    // Campo etiqueta
+    var lblField = document.createElement('div'); lblField.className='config-field';
+    var lblLabel = document.createElement('label'); lblLabel.className='config-label'; lblLabel.textContent='Etiqueta';
+    var lblInp = document.createElement('input'); lblInp.className='config-input';
+    lblInp.value=item.label||''; lblInp.placeholder='Ej: mis metas, viajes, amor propio…';
+    lblField.appendChild(lblLabel); lblField.appendChild(lblInp); box.appendChild(lblField);
+
+    // Botones
+    var btns = document.createElement('div'); btns.className='modal-btns'; btns.style.marginTop='.8rem';
+    var cancelBtn = document.createElement('button'); cancelBtn.className='modal-btn-cancel';
+    cancelBtn.textContent='Cancelar'; cancelBtn.onclick=function(){backdrop.remove();};
+    var saveBtn = document.createElement('button'); saveBtn.className='modal-btn-save';
+    saveBtn.textContent='Guardar 🌸';
+    saveBtn.onclick=function(){
+      vbItems[idx].posX=selX; vbItems[idx].posY=selY;
+      vbItems[idx].label=lblInp.value.trim();
+      vbSave(); vbRender(); backdrop.remove();
+    };
+    btns.appendChild(cancelBtn); btns.appendChild(saveBtn);
+    box.appendChild(btns);
+
+    backdrop.appendChild(box);
+    document.body.appendChild(backdrop);
+  };
+
   window.vbAdd = function(){
     var url=document.getElementById('vbUrlInput'); var lbl=document.getElementById('vbLabelInput');
     if(!url||!url.value.trim()) return;
-    vbItems.push({url:url.value.trim(), label:lbl.value.trim()});
+    vbItems.push({url:url.value.trim(), label:lbl.value.trim(), posX:'50%', posY:'50%'});
     url.value=''; lbl.value='';
     vbSave(); vbRender();
   };
@@ -14287,16 +14401,23 @@ document.addEventListener('DOMContentLoaded', function() {
     { id:'melocoton',label:'Durazno 🍑',vars:{ '--bg':'#fff5f0','--surface':'#fce8e0','--card':'#fffaf7','--border':'#f0d4c0','--rosa':'#e8906a','--rosa-soft':'#fce8e0','--text':'#5a2d1a','--muted':'#b07050','--muted2':'#d4b0a0' }},
     { id:'azul',    label:'Azul 🩵',  vars:{ '--bg':'#f0f5ff','--surface':'#e0eafc','--card':'#f7faff','--border':'#c0d4f0','--rosa':'#6a9fe8','--rosa-soft':'#e0eafc','--text':'#1a2d5a','--muted':'#5070a0','--muted2':'#a0b8d8' }},
     { id:'neutro',  label:'Neutro 🤍',vars:{ '--bg':'#fafafa','--surface':'#f0f0f0','--card':'#ffffff','--border':'#e0e0e0','--rosa':'#9e9e9e','--rosa-soft':'#f0f0f0','--text':'#2a2a2a','--muted':'#707070','--muted2':'#b0b0b0' }},
-    { id:'noche',   label:'Noche 🌙', vars:{ '--bg':'#1a1a2e','--surface':'#16213e','--card':'#0f3460','--border':'#2a2a4a','--rosa':'#e94560','--rosa-soft':'#2a1a2e','--text':'#e0e0e0','--muted':'#a0a0c0','--muted2':'#606080' }},
+    { id:'noche',   label:'Noche 🌙', vars:{ '--bg':'#12121e','--surface':'#1a1a2e','--card':'#1e1e30','--border':'#2e2e48','--rosa':'#a78bfa','--rosa-soft':'#2a1f4a','--verde':'#c4b5fd','--verde-soft':'#2a1f4a','--text':'#f0f0ff','--muted':'#a0a0c8','--muted2':'#606088' }},
     { id:'candy',   label:'Candy 🍬', vars:{ '--bg':'#fff0fb','--surface':'#fce4f8','--card':'#fff7fe','--border':'#f0c0e8','--rosa':'#e060c0','--rosa-soft':'#fce4f8','--text':'#5a0a4a','--muted':'#b040a0','--muted2':'#d890c8' }},
   ];
 
   var currentTheme = localStorage.getItem('config_theme') || 'rosa';
 
+  // Valores base de las variables para resetear al cambiar tema
+  var BASE_VARS = { '--verde':'#b39ddb','--verde-soft':'#ede7f6' };
+
   function applyTheme(themeId) {
     var t = THEMES.find(function(x){ return x.id===themeId; });
     if (!t) return;
     var root = document.documentElement;
+    // Resetear vars base primero por si el tema anterior sobreescribió algo
+    Object.keys(BASE_VARS).forEach(function(k){
+      if (!t.vars[k]) root.style.setProperty(k, BASE_VARS[k]);
+    });
     Object.keys(t.vars).forEach(function(k){ root.style.setProperty(k, t.vars[k]); });
     currentTheme = themeId;
     localStorage.setItem('config_theme', themeId);
