@@ -102,70 +102,14 @@ window.kittyConfirm = function(msg, onYes, onNo) {
     return doc(db, "kittyplan", uid);
   }
 
-  function subscribeToUserDoc(uid) {
-    if (unsubSnapshot) unsubSnapshot();
-    unsubSnapshot = onSnapshot(getUserDoc(uid), (snap) => {
-      if (!snap.exists()) return;
-      const raw = snap.data();
-      try {
-        if (raw.sem_data)     { window._data        = JSON.parse(raw.sem_data);     }
-        if (raw.sem_custom)   { window._customTasks  = JSON.parse(raw.sem_custom);   }
-        if (raw.recurring_tasks)    { window._recurringTasks    = JSON.parse(raw.recurring_tasks);    }
-        if (raw.completions)         { window._completions        = JSON.parse(raw.completions);         }
-        if (raw.rutina_templates)    { window._rutinaTemplates    = JSON.parse(raw.rutina_templates);    }
-        if (raw.rutina_asignaciones) { window._rutinaAsignaciones = JSON.parse(raw.rutina_asignaciones); }
-        if (raw.rutina_completions)  { window._rutinaCompletions  = JSON.parse(raw.rutina_completions);  }
-        if (raw.desglose_items)      { window._desgloseItems      = JSON.parse(raw.desglose_items);      }
-        if (raw.gratitud_data)       { window._gratitudData       = JSON.parse(raw.gratitud_data);       }
-        if (raw.sueno_data)          { window._suenoData          = JSON.parse(raw.sueno_data);          }
-        if (raw.mens_data)           { window._mensData           = JSON.parse(raw.mens_data);           }
-        if (raw.deco_imgs)           { window._decoImgs           = JSON.parse(raw.deco_imgs);           }
-        if (raw.deco_interval)       { window._decoInterval       = raw.deco_interval;                            }
-        if (raw.ej_templates)        { window._ejTemplates        = JSON.parse(raw.ej_templates);        }
-        if (raw.ej_registros)        { window._ejRegistros        = JSON.parse(raw.ej_registros);        }
-        if (raw.dios_data)           { window._diosData           = JSON.parse(raw.dios_data);           }
-        if (raw.versiculos)          { window._versiculos         = JSON.parse(raw.versiculos);           }
-        if (raw.univ_data)           { window._univData           = JSON.parse(raw.univ_data);           }
-        if (raw.belleza_templates)   { window._bellezaTemplates   = JSON.parse(raw.belleza_templates);   }
-        if (raw.belleza_registros)   { window._bellezaRegistros   = JSON.parse(raw.belleza_registros);   }
-        if (raw.braindump_notes)    { window._braindumpNotes    = JSON.parse(raw.braindump_notes);    }
-        if (raw.vb_items)         { window._vbItems         = JSON.parse(raw.vb_items);         }
-        if (raw.metas_data)       { window._metasData       = JSON.parse(raw.metas_data);       }
-        if (raw.mood_data)        { window._moodData        = JSON.parse(raw.mood_data);        }
-        if (raw.metas_data)       { window._metasData       = JSON.parse(raw.metas_data);       }
-        if (raw.ql_lists)         { window._qlLists         = JSON.parse(raw.ql_lists);         }
-        if (raw.wl_items)         { window._wlItems         = JSON.parse(raw.wl_items);         }
-        // Mirror Firebase → localStorage para todas las keys conocidas
-        const mirrorKeys = ['sem_data','sem_custom','recurring_tasks','completions',
-          'rutina_templates','rutina_asignaciones','rutina_completions','desglose_items',
-          'gratitud_data','sueno_data','mens_data','deco_imgs','ej_templates','ej_registros',
-          'dios_data','versiculos','univ_data','belleza_templates','belleza_registros',
-          'braindump_notes','vb_items','metas_data','mood_data','ql_lists','wl_items',
-          'ci_state','nd_state','calm_tools','water_goal','water_state','food_state',
-          'logros_data','fortalezas','cambio_state','cambio_custom'];
-        mirrorKeys.forEach(function(k) {
-          if (raw[k] !== undefined) {
-            try { localStorage.setItem(k, raw[k]); } catch(e) {}
-          }
-        });
-        if (raw.ci_state)     { window._checkinState = JSON.parse(raw.ci_state);     }
-        if (raw.nd_state)     { window._needsState   = JSON.parse(raw.nd_state);     }
-        if (raw.calm_tools)   { window._calmTools    = JSON.parse(raw.calm_tools);   }
-        if (raw.water_goal)   { window._waterGoal    = parseInt(raw.water_goal);     }
-        if (raw.water_state)  { window._waterState   = JSON.parse(raw.water_state);  }
-        if (raw.food_state)   { window._foodState    = JSON.parse(raw.food_state);   }
-        if (raw.logros_data)  { window._logrosData   = JSON.parse(raw.logros_data);  }
-        if (raw.fortalezas)   { window._fortalezas   = JSON.parse(raw.fortalezas);   }
-        if (raw.cambio_state) { window._cambioState  = JSON.parse(raw.cambio_state); }
-        if (raw.cambio_custom){ window._cambioCustom = JSON.parse(raw.cambio_custom);}
-        if (typeof window.syncFromCloud === 'function') window.syncFromCloud();
-      } catch(e) { console.warn("sync parse error", e); }
-    });
-  }
+
 
   // Cola de guardado pendiente por si el usuario no está autenticado aún
   var _pendingSaves = {};
 
+  // Debounce timers para cada key
+  var _saveTimers = {};
+  
   window.cloudSave = async function(key, value) {
     // Guardar siempre en la cola local por si falla
     _pendingSaves[key] = value;
@@ -173,10 +117,18 @@ window.kittyConfirm = function(msg, onYes, onNo) {
       console.log('cloudSave: sin usuario, guardado en cola →', key);
       return;
     }
-    try {
-      await setDoc(getUserDoc(currentUID), { [key]: JSON.stringify(value) }, { merge: true });
-      delete _pendingSaves[key]; // éxito, quitar de cola
-    } catch(e) { console.warn("cloudSave error", e); }
+    
+    // Cancelar el timer anterior si existe
+    if (_saveTimers[key]) clearTimeout(_saveTimers[key]);
+    
+    // Debounce: esperar 500ms antes de guardar para agrupar cambios
+    _saveTimers[key] = setTimeout(async () => {
+      try {
+        await setDoc(getUserDoc(currentUID), { [key]: JSON.stringify(_pendingSaves[key]) }, { merge: true });
+        delete _pendingSaves[key]; // éxito, quitar de cola
+      } catch(e) { console.warn("cloudSave error", e); }
+      delete _saveTimers[key];
+    }, 500);
   };
 
   // Cuando el usuario se autentica, enviar todo lo que estaba en cola
@@ -199,6 +151,100 @@ window.kittyConfirm = function(msg, onYes, onNo) {
       return snap.exists() ? snap.data() : {};
     } catch(e) { console.warn("cloudLoad error", e); return {}; }
   };
+
+  function subscribeToUserDoc(uid) {
+    if (unsubSnapshot) unsubSnapshot();
+    unsubSnapshot = onSnapshot(getUserDoc(uid), (snap) => {
+      if (!snap.exists()) return;
+      const raw = snap.data();
+      try {
+        const changedKeys = Object.keys(raw).filter(k => raw[k] !== undefined);
+        
+        const keyMap = {
+          'sem_data': '_data',
+          'sem_custom': '_customTasks',
+          'recurring_tasks': '_recurringTasks',
+          'completions': '_completions',
+          'rutina_templates': '_rutinaTemplates',
+          'rutina_asignaciones': '_rutinaAsignaciones',
+          'rutina_completions': '_rutinaCompletions',
+          'desglose_items': '_desgloseItems',
+          'gratitud_data': '_gratitudData',
+          'sueno_data': '_suenoData',
+          'mens_data': '_mensData',
+          'deco_imgs': '_decoImgs',
+          'ej_templates': '_ejTemplates',
+          'ej_registros': '_ejRegistros',
+          'dios_data': '_diosData',
+          'versiculos': '_versiculos',
+          'univ_data': '_univData',
+          'belleza_templates': '_bellezaTemplates',
+          'belleza_registros': '_bellezaRegistros',
+          'braindump_notes': '_braindumpNotes',
+          'vb_items': '_vbItems',
+          'metas_data': '_metasData',
+          'mood_data': '_moodData',
+          'ql_lists': '_qlLists',
+          'wl_items': '_wlItems',
+          'ci_state': '_checkinState',
+          'nd_state': '_needsState',
+          'calm_tools': '_calmTools',
+          'water_state': '_waterState',
+          'food_state': '_foodState',
+          'logros_data': '_logrosData',
+          'fortalezas': '_fortalezas',
+          'cambio_state': '_cambioState',
+          'cambio_custom': '_cambioCustom'
+        };
+        
+        changedKeys.forEach(function(k) {
+          try {
+            if (keyMap[k]) {
+              window[keyMap[k]] = JSON.parse(raw[k]);
+            }
+            localStorage.setItem(k, raw[k]);
+          } catch(e) { console.warn('parse error for key:', k, e); }
+        });
+        
+        if (raw.deco_interval !== undefined) window._decoInterval = raw.deco_interval;
+        if (raw.water_goal !== undefined) window._waterGoal = parseInt(raw.water_goal);
+        
+        const hasRutinaChanges = changedKeys.some(k => k.includes('rutina'));
+        const hasMetaChanges = changedKeys.some(k => k.includes('meta'));
+        const hasEjChanges = changedKeys.some(k => k.includes('ej_'));
+        const hasBellezaChanges = changedKeys.some(k => k.includes('belleza'));
+        const hasUnivChanges = changedKeys.some(k => k.includes('univ'));
+        const hasMoodChanges = changedKeys.some(k => k.includes('mood'));
+        const hasVbChanges = changedKeys.some(k => k.includes('vb_'));
+        
+        if (hasRutinaChanges && window.renderRutinas) {
+          window.debouncedRender('rutinas', window.renderRutinas, 150);
+        }
+        if (hasMetaChanges && window.renderMetas) {
+          window.debouncedRender('metas', window.renderMetas, 150);
+        }
+        if (hasEjChanges && window.renderEj) {
+          window.debouncedRender('ejercicios', window.renderEj, 150);
+        }
+        if (hasBellezaChanges && window.renderBelleza) {
+          window.debouncedRender('belleza', window.renderBelleza, 150);
+        }
+        if (hasUnivChanges && window.renderUniv) {
+          window.debouncedRender('universidad', window.renderUniv, 150);
+        }
+        if (hasMoodChanges && window.renderMood) {
+          window.debouncedRender('mood', window.renderMood, 150);
+        }
+        if (hasVbChanges && window.vbRender) {
+          window.debouncedRender('vb', window.vbRender, 150);
+        }
+        
+        if (typeof window.syncFromCloud === 'function') {
+          window.debouncedRender('sync_fallback', window.syncFromCloud, 200);
+        }
+      } catch(e) { console.warn("sync parse error", e); }
+    });
+  }
 
   async function doSignIn() {
     const btn = document.getElementById('login-btn');
@@ -4546,11 +4592,29 @@ function todayKey() { return dateKey(new Date()); }
 </section>
 
 <script>
+// ══ DEBOUNCE GLOBAL PARA RENDERS ══
+(function() {
+  var _renderTimers = {};
+  
+  window.debouncedRender = function(key, renderFn, delay) {
+    delay = delay || 100;
+    if (_renderTimers[key]) clearTimeout(_renderTimers[key]);
+    _renderTimers[key] = setTimeout(function() {
+      try {
+        renderFn();
+      } catch(e) {
+        console.warn('debouncedRender error:', key, e);
+      }
+      delete _renderTimers[key];
+    }, delay);
+  };
+})();
+
 // ══ VISION BOARD ══
 (function(){
   var vbItems = [];
 
-  function vbSave(){ try{localStorage.setItem('vb_items',JSON.stringify(vbItems));}catch(e){} if(window.cloudSave) window.cloudSave('vb_items',vbItems); }
+  function vbSave(){ try{localStorage.setItem('vb_items',JSON.stringify(vbItems));}catch(e){} if(window.cloudSave) window.cloudSave('vb_items',vbItems); if(window.debouncedRender && window.vbRender) window.debouncedRender('vb_save', window.vbRender, 100); }
   function vbLoad(forceCloud){ if((forceCloud||true) && window._vbItems){vbItems=window._vbItems;return;} try{vbItems=JSON.parse(localStorage.getItem('vb_items')||'[]');}catch(e){vbItems=[];} }
 
   // posX/posY: '0% 0%' = arriba-izq, '50% 50%' = centro, '100% 100%' = abajo-der
@@ -4688,6 +4752,9 @@ function todayKey() { return dateKey(new Date()); }
   function metaSave() {
     try { localStorage.setItem('metas_data', JSON.stringify(metas)); } catch(e){}
     if (window.cloudSave) window.cloudSave('metas_data', metas);
+    if (window.debouncedRender && window.renderMetas) {
+      window.debouncedRender('metas_save', window.renderMetas, 150);
+    }
   }
   function metaLoad(forceCloud) {
     if (forceCloud && window._metasData) { metas = window._metasData; return; }
@@ -5812,9 +5879,14 @@ function saveRutinas() {
   try { localStorage.setItem('rutina_asignaciones', JSON.stringify(rutinaAsignaciones)); } catch(e){}
   try { localStorage.setItem('rutina_completions',  JSON.stringify(rutinaCompletions));  } catch(e){}
   if (window.cloudSave) {
+    // Guardar los tres en paralelo con debounce (cloudSave ya tiene su propio debounce)
     window.cloudSave('rutina_templates',    rutinaTemplates);
     window.cloudSave('rutina_asignaciones', rutinaAsignaciones);
     window.cloudSave('rutina_completions',  rutinaCompletions);
+  }
+  // Renderizar con debounce para evitar múltiples renders
+  if (window.debouncedRender && window.renderRutinas) {
+    window.debouncedRender('rutinas_save', renderRutinas, 150);
   }
 }
 
@@ -6512,7 +6584,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // Nav buttons
 var _rutPrev = document.getElementById('rutPrevDay'); if(_rutPrev) _rutPrev.onclick = () => { rutinaDateOffset--; renderRutinas(); };
 var _rutNext = document.getElementById('rutNextDay'); if(_rutNext) _rutNext.onclick = () => { rutinaDateOffset++; renderRutinas(); };
-var _rutNew = document.getElementById('rutNewBtn'); if(_rutNew) _rutNew.onclick = () => openRutinaModal(null);
+var _rutNew = document.getElementById('rutNewBtn'); if(_rutNew) _rutNew.onclick = () => { 
+  const id = 'tpl_' + Date.now();
+  const template = { id, emoji: '🌸', name: '', pasos: { m:[], t:[], n:[] } };
+  rutinaTemplates.push(template);
+  openRutinaModal(id);
+};
 
 // Patch cloud sync
 const _origSync = window.syncFromCloud;
@@ -8218,6 +8295,9 @@ document.addEventListener('DOMContentLoaded', function() {
   function moodSave() {
     try { localStorage.setItem('mood_data', JSON.stringify(moodData)); } catch(e){}
     if (window.cloudSave) window.cloudSave('mood_data', moodData);
+    if (window.debouncedRender && window.renderWeek) {
+      window.debouncedRender('mood_save', window.renderWeek, 150);
+    }
   }
   function moodLoad(forceCloud) {
     if (forceCloud && window._moodData) { moodData = window._moodData; return; }
@@ -13931,6 +14011,9 @@ document.addEventListener('DOMContentLoaded', function() {
   function bdSave() {
     try { localStorage.setItem('braindump_notes', JSON.stringify(bdNotes)); } catch(e){}
     if (window.cloudSave) window.cloudSave('braindump_notes', bdNotes);
+    if (window.debouncedRender && window.bdRender) {
+      window.debouncedRender('bd_save', window.bdRender, 150);
+    }
   }
 
   function bdLoad() {
@@ -14191,9 +14274,9 @@ document.addEventListener('DOMContentLoaded', function() {
   var wlStatusFilter = 'all';
   var listasTab = 'rapidas';
 
-  function qlSave(){ try{localStorage.setItem('ql_lists',JSON.stringify(qlLists));}catch(e){} if(window.cloudSave) window.cloudSave('ql_lists',qlLists); }
+  function qlSave(){ try{localStorage.setItem('ql_lists',JSON.stringify(qlLists));}catch(e){} if(window.cloudSave) window.cloudSave('ql_lists',qlLists); if(window.debouncedRender && window.renderQlLists) window.debouncedRender('ql_save', window.renderQlLists, 100); }
   function qlLoad(){ if(window._qlLists){qlLists=window._qlLists;} else { try{qlLists=JSON.parse(localStorage.getItem('ql_lists')||'[]');}catch(e){qlLists=[];} } }
-  function wlSave(){ try{localStorage.setItem('wl_items',JSON.stringify(wlItems));}catch(e){} if(window.cloudSave) window.cloudSave('wl_items',wlItems); }
+  function wlSave(){ try{localStorage.setItem('wl_items',JSON.stringify(wlItems));}catch(e){} if(window.cloudSave) window.cloudSave('wl_items',wlItems); if(window.debouncedRender && window.renderWlGrid) window.debouncedRender('wl_save', window.renderWlGrid, 100); }
   function wlLoad(){ if(window._wlItems){wlItems=window._wlItems;} else { try{wlItems=JSON.parse(localStorage.getItem('wl_items')||'[]');}catch(e){wlItems=[];} } }
 
   window.listasSetTab = function(tab) {
