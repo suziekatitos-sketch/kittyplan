@@ -1871,18 +1871,26 @@ window.kittyConfirm = function(msg, onYes, onNo) {
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     gap: .7rem;
     margin-top: .3rem;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: .8rem;
+    scroll-behavior: smooth;
   }
-  .univ-materia-card {
-    background: var(--card);
-    border: 2px solid var(--border);
-    border-radius: 14px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform .18s, box-shadow .18s;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    aspect-ratio: 3/4;
+  .univ-materias-grid::-webkit-scrollbar {
+    height: 8px;
+  }
+  .univ-materias-grid::-webkit-scrollbar-track {
+    background: var(--surface);
+    border-radius: 10px;
+  }
+  .univ-materias-grid::-webkit-scrollbar-thumb {
+    background: var(--rosa);
+    border-radius: 10px;
+  }
+  .univ-materias-grid::-webkit-scrollbar-thumb:hover {
+    background: var(--rosa);
+    opacity: 0.8;
   }
   @media (min-width: 768px) {
     .univ-materias-grid {
