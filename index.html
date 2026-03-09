@@ -1184,6 +1184,10 @@
   /* Hide columns on mobile */
   @media (max-width: 900px) {
     .img-col { display: none; }
+  }
+
+  /* Hide image button only on actual mobile devices (touch), not on PC with narrow window */
+  @media (max-width: 900px) and (hover: none) and (pointer: coarse) {
     .img-manage-btn { display: none; }
   }
 
@@ -6407,24 +6411,53 @@ function renderEjPlantillas() {
   ejTemplates.forEach(function(tpl, idx) {
     var card = document.createElement('div');
     card.className = 'ejercicio-plantilla-card';
+    card.style.cursor = 'pointer';
     card.innerHTML = '<span style="font-size:1.3rem">' + tpl.emoji + '</span>' +
       '<div class="ejercicio-plantilla-info">' +
         '<div class="ejercicio-plantilla-name">' + tpl.name + '</div>' +
-        '<div class="ejercicio-plantilla-meta">' + tpl.pasos.length + ' ejercicios</div>' +
-      '</div>' +
-      '<div class="rutina-template-actions">' +
-        '<button class="rut-action-btn" data-edit="' + idx + '">✏️</button>' +
       '</div>';
-
-    card.querySelectorAll('.rut-action-btn').forEach(function(btn) {
-      if (btn.dataset.edit !== undefined) {
-        btn.onclick = function(e) { e.stopPropagation(); openEjModal(tpl.id); };
-      }
-    });
-
-    card.onclick = function() { openEjModal(tpl.id); };
+    card.onclick = function() { openEjViewModal(tpl.id); };
     list.appendChild(card);
   });
+}
+
+
+function openEjViewModal(templateId) {
+  var tpl = ejTemplates.find(function(t) { return t.id === templateId; });
+  if (!tpl) return;
+  var old = document.getElementById('ejViewModal');
+  if (old) old.remove();
+  var back = document.createElement('div');
+  back.className = 'rutina-modal-backdrop';
+  back.id = 'ejViewModal';
+  back.onclick = function(e) { if (e.target === back) back.remove(); };
+  var box = document.createElement('div');
+  box.className = 'rutina-modal-box';
+  box.style.position = 'relative';
+
+  var editBtn = document.createElement('button');
+  editBtn.title = 'Editar rutina';
+  editBtn.textContent = '✏️';
+  editBtn.style.cssText = 'position:absolute;top:.7rem;right:.7rem;background:var(--pink-light,#fde8f0);border:none;border-radius:50%;width:32px;height:32px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;';
+  editBtn.onclick = function() { back.remove(); openEjModal(templateId); };
+
+  var pasosHtml = '';
+  (tpl.pasos || []).forEach(function(p, i) {
+    pasosHtml += '<div style="display:flex;align-items:center;gap:.5rem;padding:.35rem .5rem;border-radius:8px;background:var(--bg);border:1.5px solid var(--border);margin-bottom:.3rem">' +
+      '<span style="font-size:.65rem;font-weight:700;color:var(--muted2);min-width:16px">' + (i+1) + '.</span>' +
+      '<span style="font-size:.8rem;color:var(--text);font-weight:500">' + p + '</span></div>';
+  });
+
+  var inner = document.createElement('div');
+  inner.innerHTML = '<div class="rutina-modal-title" style="padding-right:2.5rem">' + tpl.emoji + ' <em>' + tpl.name + '</em></div>' +
+    '<div style="margin-top:.6rem">' + (pasosHtml || '<div style="color:var(--muted2);font-size:.8rem">Sin ejercicios registrados.</div>') + '</div>' +
+    '<div class="modal-btns" style="margin-top:1rem"><button class="modal-btn-cancel" id="ejViewClose">Cerrar</button></div>';
+
+  box.appendChild(editBtn);
+  box.appendChild(inner);
+  inner.querySelector('#ejViewClose').onclick = function() { back.remove(); };
+  back.appendChild(box);
+  document.body.appendChild(back);
 }
 
 function openEjModal(templateId) {
@@ -6705,16 +6738,50 @@ function renderBelPlantillas() {
   bellezaTemplates.forEach(function(tpl, tplIdx) {
     var row = document.createElement('div');
     row.className = 'ejercicio-plantilla-row';
+    row.style.cursor = 'pointer';
     row.innerHTML = '<span class="ejercicio-plantilla-emoji">' + tpl.emoji + '</span>' +
-      '<span class="ejercicio-plantilla-name">' + tpl.name + '</span>' +
-      '<span class="ejercicio-plantilla-pasos">' + tpl.pasos.length + ' pasos</span>';
-    var editBtn = document.createElement('button');
-    editBtn.className = 'rut-action-btn';
-    editBtn.textContent = '✏️';
-    editBtn.onclick = function() { openBellezaModal(tplIdx); };
-    row.appendChild(editBtn);
+      '<span class="ejercicio-plantilla-name">' + tpl.name + '</span>';
+    row.onclick = function() { openBelViewModal(tplIdx); };
     list.appendChild(row);
   });
+}
+
+function openBelViewModal(tplIdx) {
+  var tpl = bellezaTemplates[tplIdx];
+  if (!tpl) return;
+  var old = document.getElementById('belViewModal');
+  if (old) old.remove();
+  var back = document.createElement('div');
+  back.className = 'rutina-modal-backdrop';
+  back.id = 'belViewModal';
+  back.onclick = function(e) { if (e.target === back) back.remove(); };
+  var box = document.createElement('div');
+  box.className = 'rutina-modal-box';
+  box.style.position = 'relative';
+
+  var editBtn = document.createElement('button');
+  editBtn.title = 'Editar rutina';
+  editBtn.textContent = '✏️';
+  editBtn.style.cssText = 'position:absolute;top:.7rem;right:.7rem;background:var(--pink-light,#fde8f0);border:none;border-radius:50%;width:32px;height:32px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;';
+  editBtn.onclick = function() { back.remove(); openBellezaModal(tplIdx); };
+
+  var pasosHtml = '';
+  (tpl.pasos || []).forEach(function(p, i) {
+    pasosHtml += '<div style="display:flex;align-items:center;gap:.5rem;padding:.35rem .5rem;border-radius:8px;background:var(--bg);border:1.5px solid var(--border);margin-bottom:.3rem">' +
+      '<span style="font-size:.65rem;font-weight:700;color:var(--muted2);min-width:16px">' + (i+1) + '.</span>' +
+      '<span style="font-size:.8rem;color:var(--text);font-weight:500">' + p + '</span></div>';
+  });
+
+  var inner = document.createElement('div');
+  inner.innerHTML = '<div class="rutina-modal-title" style="padding-right:2.5rem">' + tpl.emoji + ' <em>' + tpl.name + '</em></div>' +
+    '<div style="margin-top:.6rem">' + (pasosHtml || '<div style="color:var(--muted2);font-size:.8rem">Sin pasos registrados.</div>') + '</div>' +
+    '<div class="modal-btns" style="margin-top:1rem"><button class="modal-btn-cancel" id="belViewClose">Cerrar</button></div>';
+
+  box.appendChild(editBtn);
+  box.appendChild(inner);
+  inner.querySelector('#belViewClose').onclick = function() { back.remove(); };
+  back.appendChild(box);
+  document.body.appendChild(back);
 }
 
 function openBellezaModal(editIdx) {
