@@ -180,33 +180,33 @@
 </script>
 <style>
   :root {
-    --bg:       #fdf0f8;
-    --surface:  #f5e8ff;
-    --card:     #fff8fd;
-    --border:   #e8d0f0;
+    --bg:       #fff0f5;
+    --surface:  #fce4ee;
+    --card:     #fff7fa;
+    --border:   #f0c8d8;
 
-    --rosa:     #c084fc;
-    --rosa-soft:#f3e8ff;
-    --verde:    #f472b6;
-    --verde-soft:#fce7f3;
-    --beige:    #a78bbc;
-    --beige-soft:#f0e4ff;
+    --rosa:     #f4a7c0;
+    --rosa-soft:#fde8f0;
+    --verde:    #b39ddb;
+    --verde-soft:#ede7f6;
+    --beige:    #81d4e8;
+    --beige-soft:#e1f5fb;
 
-    --text:     #3b1f5e;
-    --muted:    #9b6bb5;
-    --muted2:   #c4a0d8;
+    --text:     #5a2d4a;
+    --muted:    #b07090;
+    --muted2:   #d4a0b8;
 
-    --manana-bg:   #fef3e8;
-    --manana-border:#e8b87a;
-    --manana-icon: #d4944a;
+    --manana-bg:   #fff4e6;
+    --manana-border:#f9c580;
+    --manana-icon: #e8a04a;
 
-    --tarde-bg:    #fde8ee;
-    --tarde-border:#e895ad;
-    --tarde-icon:  #d4748a;
+    --tarde-bg:    #fde8f0;
+    --tarde-border:#f4a7c0;
+    --tarde-icon:  #e07898;
 
-    --noche-bg:    #eaf2e8;
-    --noche-border:#8fc07e;
-    --noche-icon:  #5a8a4e;
+    --noche-bg:    #eef0fb;
+    --noche-border:#b0b8e8;
+    --noche-icon:  #7880c8;
 
     --cell-size: 36px;
     --radius: 12px;
@@ -2417,6 +2417,35 @@
     transition: all .2s;
   }
   .limpieza-add-area-btn:hover { border-color: var(--rosa); color: var(--rosa); }
+
+  /* ── Rutinas Recurrentes de Limpieza ── */
+  .limp-rut-card { background: var(--card); border: 1.5px solid var(--border); border-radius: 16px; margin-bottom: .9rem; overflow: hidden; transition: box-shadow .2s; }
+  .limp-rut-card:hover { box-shadow: 0 4px 18px rgba(244,167,192,.15); }
+  .limp-rut-hdr { display: flex; align-items: center; gap: .6rem; padding: .75rem 1rem; cursor: pointer; user-select: none; background: var(--surface); }
+  .limp-rut-emoji { font-size: 1.3rem; }
+  .limp-rut-info { flex: 1; min-width: 0; }
+  .limp-rut-name { font-size: .85rem; font-weight: 800; color: var(--text); margin-bottom: .15rem; }
+  .limp-rut-meta { display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; }
+  .limp-rut-freq-badge { font-size: .65rem; font-weight: 700; padding: .15rem .5rem; border-radius: 20px; background: var(--rosa-soft); color: var(--rosa); border: 1px solid var(--rosa); }
+  .limp-rut-due { font-size: .62rem; color: var(--muted); font-weight: 600; }
+  .limp-rut-due.overdue { color: #e07898; }
+  .limp-rut-due.today-due { color: var(--rosa); font-weight: 800; }
+  .limp-rut-actions { display: flex; gap: .4rem; align-items: center; }
+  .limp-rut-progress { font-size: .7rem; font-weight: 700; color: var(--muted); background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: .1rem .45rem; }
+  .limp-rut-body { padding: .5rem 1rem .8rem; display: none; }
+  .limp-rut-body.open { display: block; }
+  .limp-rut-step-row { display: flex; align-items: flex-start; gap: .6rem; padding: .45rem 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+  .limp-rut-step-row:last-of-type { border-bottom: none; }
+  .limp-rut-step-num { min-width: 22px; height: 22px; border-radius: 50%; background: var(--surface); border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: .6rem; font-weight: 800; color: var(--muted); flex-shrink: 0; margin-top: .05rem; transition: all .2s; }
+  .limp-rut-step-num.done { background: var(--rosa); border-color: var(--rosa); color: #fff; }
+  .limp-rut-step-name { font-size: .8rem; color: var(--text); font-weight: 600; flex: 1; transition: color .2s; }
+  .limp-rut-step-name.done { text-decoration: line-through; color: var(--muted2); }
+  .limp-rut-step-note { font-size: .65rem; color: var(--muted); margin-top: .1rem; font-weight: 500; }
+  .limp-rut-complete-btn { width: 100%; margin-top: .8rem; padding: .5rem; border-radius: 12px; border: 2px dashed var(--rosa); background: var(--rosa-soft); color: var(--rosa); font-size: .78rem; font-weight: 800; cursor: pointer; transition: all .2s; }
+  .limp-rut-complete-btn:hover { background: var(--rosa); color: #fff; border-style: solid; }
+  .limp-rut-complete-btn:disabled { opacity: .5; cursor: default; }
+  .limp-rut-bar-wrap { height: 5px; background: var(--border); border-radius: 99px; margin: .4rem 0 .1rem; overflow: hidden; }
+  .limp-rut-bar { height: 100%; background: linear-gradient(90deg, var(--rosa), var(--verde)); border-radius: 99px; transition: width .3s ease; }
 
   /* ── FINANZAS ── */
   .finanzas-section {
@@ -7320,6 +7349,7 @@ window.syncFromCloud = function() {
   if (typeof loadDesglose     === 'function') { loadDesglose();   renderDesglose();   }
   if (typeof loadUniv         === 'function') { loadUniv();       renderUniv();       }
   if (typeof loadLimpieza     === 'function') { loadLimpieza();   renderLimpieza();   }
+  if (typeof loadLimpRutinas  === 'function') { loadLimpRutinas(); renderLimpRutinas(); }
   if (typeof loadFinanzas     === 'function') { loadFinanzas();   renderFinanzas();   }
   if (typeof loadRecetario    === 'function') { loadRecetario();  renderRecetario();  }
 };
@@ -7365,6 +7395,7 @@ async function initApp() {
       if (raw.desglose_items)      window._desgloseItems    = JSON.parse(raw.desglose_items);
       if (raw.univ_data)           window._univData         = JSON.parse(raw.univ_data);
       if (raw.limpieza_data)      window._limpiezaData     = JSON.parse(raw.limpieza_data);
+      if (raw.limp_rutinas)        window._limpRutinas      = JSON.parse(raw.limp_rutinas);
       if (raw.finanzas_data)      window._finanzasData     = JSON.parse(raw.finanzas_data);
       if (raw.recetario_data)     window._recetarioData    = JSON.parse(raw.recetario_data);
     } catch(e) { console.warn('Cloud load failed, using localStorage', e); }
@@ -7903,6 +7934,17 @@ renderTracker();
   <div id="limpiezaAreas"></div>
   <button class="limpieza-add-area-btn" id="limpiezaAddAreaBtn">＋ Nueva área</button>
 </section>
+
+<!-- ── RUTINAS RECURRENTES ── -->
+<section class="limpieza-section" id="sec-limp-rutinas" style="margin-top:1.5rem">
+  <span class="section-sub">🔁 rutinas recurrentes</span>
+  <h2 class="section-title"><em>Rutinas</em> del hogar</h2>
+  <p style="font-size:.75rem;color:var(--muted);margin-bottom:1.2rem;font-weight:600">
+    Crea rutinas con pasos en orden que se repiten automáticamente 📋
+  </p>
+  <div id="limpRutinasWrap"></div>
+  <button class="limpieza-add-area-btn" id="limpRutinaAddBtn">＋ Nueva rutina recurrente</button>
+</section>
 </div><!-- end page-limpieza -->
 <!-- ══════════════════════════════════════════
      PÁGINA · FINANZAS
@@ -8345,6 +8387,417 @@ document.addEventListener('DOMContentLoaded', function() {
   var addBtn = document.getElementById('limpiezaAddAreaBtn');
   if (addBtn) addBtn.onclick = function() { openLimpiezaAreaModal(null); };
   renderLimpieza();
+});
+</script>
+
+<script>
+// ============================================================
+//  RUTINAS RECURRENTES DE LIMPIEZA
+// ============================================================
+// Estructura: [{ id, nombre, emoji, freq:{tipo,dias?,cadaN?,unidad?,diasMes?},
+//               pasos:[{id,nombre,nota}], sesiones:[{fecha,pasosDone:[ids]}],
+//               ultimaCompletada:null|fecha }]
+
+var limpRutinas = [];
+
+var DIAS_LIMP_RUT = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+function saveLimpRutinas() {
+  try { localStorage.setItem('limp_rutinas', JSON.stringify(limpRutinas)); } catch(e){}
+  if (window.cloudSave) window.cloudSave('limp_rutinas', limpRutinas);
+}
+
+function loadLimpRutinas() {
+  limpRutinas = (window._limpRutinas) || JSON.parse(localStorage.getItem('limp_rutinas') || '[]');
+  if (limpRutinas.length === 0) {
+    limpRutinas = [
+      { id:'lr1', nombre:'Limpiar refrigerador', emoji:'🧊',
+        freq:{ tipo:'personalizada', cadaN:2, unidad:'semanas' },
+        pasos:[
+          { id:'p1', nombre:'Sacar todos los alimentos', nota:'' },
+          { id:'p2', nombre:'Retirar cajones y repisas', nota:'Lavar con agua y jabón' },
+          { id:'p3', nombre:'Limpiar interior con vinagre', nota:'Mezcla 1:1 con agua' },
+          { id:'p4', nombre:'Limpiar exterior y manijas', nota:'' },
+          { id:'p5', nombre:'Reorganizar alimentos', nota:'Verificar fechas de caducidad' },
+        ],
+        sesiones:[], ultimaCompletada:null
+      }
+    ];
+  }
+}
+
+function limpRutFreqLabel(freq) {
+  if (!freq) return '';
+  if (freq.tipo === 'diaria') return '🌅 Diaria';
+  if (freq.tipo === 'semanal') return '📅 Semanal';
+  if (freq.tipo === 'mensual') return '🗓️ Mensual';
+  if (freq.tipo === 'dias') {
+    if (!freq.dias || !freq.dias.length) return '📆 Días específicos';
+    return '📆 ' + freq.dias.map(function(d){ return DIAS_LIMP_RUT[d]; }).join(', ');
+  }
+  if (freq.tipo === 'personalizada') return '🔁 Cada ' + freq.cadaN + ' ' + (freq.unidad || 'días');
+  return '';
+}
+
+function limpRutNextDue(rut) {
+  var freq = rut.freq;
+  var ultima = rut.ultimaCompletada ? new Date(rut.ultimaCompletada) : null;
+  var hoy = new Date(); hoy.setHours(0,0,0,0);
+
+  if (!ultima) return hoy; // nunca hecha → due hoy
+
+  var sig = new Date(ultima); sig.setHours(0,0,0,0);
+
+  if (freq.tipo === 'diaria') { sig.setDate(sig.getDate()+1); }
+  else if (freq.tipo === 'semanal') { sig.setDate(sig.getDate()+7); }
+  else if (freq.tipo === 'mensual') { sig.setMonth(sig.getMonth()+1); }
+  else if (freq.tipo === 'personalizada') {
+    var n = parseInt(freq.cadaN) || 1;
+    if (freq.unidad === 'días' || freq.unidad === 'dias') sig.setDate(sig.getDate()+n);
+    else if (freq.unidad === 'semanas') sig.setDate(sig.getDate()+n*7);
+    else if (freq.unidad === 'meses') sig.setMonth(sig.getMonth()+n);
+  } else if (freq.tipo === 'dias') {
+    // próximo día de la semana permitido
+    sig.setDate(sig.getDate()+1);
+    var dias = freq.dias || [];
+    for (var i=0; i<8; i++) {
+      if (dias.indexOf(sig.getDay()) !== -1) break;
+      sig.setDate(sig.getDate()+1);
+    }
+  }
+  return sig;
+}
+
+function limpRutDueLabel(rut) {
+  var due = limpRutNextDue(rut);
+  var hoy = new Date(); hoy.setHours(0,0,0,0);
+  var diff = Math.round((due - hoy) / 86400000);
+  if (diff < 0) return { label: 'Vencida hace ' + Math.abs(diff) + ' día' + (Math.abs(diff)>1?'s':''), cls:'overdue' };
+  if (diff === 0) return { label: '¡Toca hoy! 🌟', cls:'today-due' };
+  if (diff === 1) return { label: 'Mañana', cls:'' };
+  return { label: 'En ' + diff + ' días', cls:'' };
+}
+
+function getTodaySesion(rut) {
+  var today = dateKey(new Date());
+  return rut.sesiones.find(function(s){ return s.fecha === today; }) || null;
+}
+
+function getOrCreateTodaySesion(rut) {
+  var today = dateKey(new Date());
+  var ses = rut.sesiones.find(function(s){ return s.fecha === today; });
+  if (!ses) {
+    ses = { fecha: today, pasosDone: [] };
+    rut.sesiones.push(ses);
+  }
+  return ses;
+}
+
+function renderLimpRutinas() {
+  var wrap = document.getElementById('limpRutinasWrap');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+
+  if (limpRutinas.length === 0) {
+    wrap.innerHTML = '<p style="font-size:.75rem;color:var(--muted);text-align:center;padding:1.2rem 0;">Aún no tienes rutinas. ¡Crea la primera! 🧹</p>';
+    return;
+  }
+
+  limpRutinas.forEach(function(rut, rIdx) {
+    var sesHoy = getTodaySesion(rut);
+    var doneCount = sesHoy ? sesHoy.pasosDone.length : 0;
+    var totalPasos = rut.pasos.length;
+    var pct = totalPasos > 0 ? Math.round((doneCount/totalPasos)*100) : 0;
+    var dueInfo = limpRutDueLabel(rut);
+
+    var card = document.createElement('div');
+    card.className = 'limp-rut-card';
+
+    // Header
+    var hdr = document.createElement('div');
+    hdr.className = 'limp-rut-hdr';
+    hdr.innerHTML =
+      '<span class="limp-rut-emoji">' + rut.emoji + '</span>' +
+      '<div class="limp-rut-info">' +
+        '<div class="limp-rut-name">' + rut.nombre + '</div>' +
+        '<div class="limp-rut-meta">' +
+          '<span class="limp-rut-freq-badge">' + limpRutFreqLabel(rut.freq) + '</span>' +
+          '<span class="limp-rut-due ' + dueInfo.cls + '">' + dueInfo.label + '</span>' +
+        '</div>' +
+        '<div class="limp-rut-bar-wrap"><div class="limp-rut-bar" style="width:' + pct + '%"></div></div>' +
+      '</div>' +
+      '<div class="limp-rut-actions">' +
+        (doneCount > 0 ? '<span class="limp-rut-progress">' + doneCount + '/' + totalPasos + '</span>' : '') +
+        '<button class="rut-action-btn" style="font-size:.65rem" data-edit="' + rIdx + '">✏️</button>' +
+        '<span style="font-size:.75rem;color:var(--muted);transition:transform .2s" class="limp-rut-chevron">▾</span>' +
+      '</div>';
+    card.appendChild(hdr);
+
+    // Body con pasos
+    var body = document.createElement('div');
+    body.className = 'limp-rut-body';
+
+    rut.pasos.forEach(function(paso, pIdx) {
+      var isDone = sesHoy && sesHoy.pasosDone.indexOf(paso.id) !== -1;
+      var row = document.createElement('div');
+      row.className = 'limp-rut-step-row';
+      row.innerHTML =
+        '<div class="limp-rut-step-num' + (isDone?' done':'') + '">' + (isDone ? '✓' : (pIdx+1)) + '</div>' +
+        '<div style="flex:1">' +
+          '<div class="limp-rut-step-name' + (isDone?' done':'') + '">' + paso.nombre + '</div>' +
+          (paso.nota ? '<div class="limp-rut-step-note">💡 ' + paso.nota + '</div>' : '') +
+        '</div>';
+      row.onclick = function() {
+        var ses = getOrCreateTodaySesion(rut);
+        var idx = ses.pasosDone.indexOf(paso.id);
+        if (idx === -1) ses.pasosDone.push(paso.id);
+        else ses.pasosDone.splice(idx, 1);
+        saveLimpRutinas(); renderLimpRutinas();
+        // re-open this card
+        setTimeout(function(){
+          var cards = document.querySelectorAll('.limp-rut-card');
+          if (cards[rIdx]) {
+            var b = cards[rIdx].querySelector('.limp-rut-body');
+            if (b) { b.classList.add('open'); cards[rIdx].querySelector('.limp-rut-chevron').style.transform='rotate(180deg)'; }
+          }
+        }, 30);
+      };
+      body.appendChild(row);
+    });
+
+    // Botón completar rutina
+    var allDone = sesHoy && sesHoy.pasosDone.length >= totalPasos && totalPasos > 0;
+    var complBtn = document.createElement('button');
+    complBtn.className = 'limp-rut-complete-btn';
+    complBtn.textContent = allDone ? '✅ ¡Rutina completada hoy!' : '🎉 Marcar rutina como completada';
+    complBtn.disabled = allDone;
+    if (!allDone) {
+      complBtn.onclick = function(e) {
+        e.stopPropagation();
+        var ses = getOrCreateTodaySesion(rut);
+        rut.pasos.forEach(function(p){ if (ses.pasosDone.indexOf(p.id)===-1) ses.pasosDone.push(p.id); });
+        rut.ultimaCompletada = dateKey(new Date());
+        saveLimpRutinas(); renderLimpRutinas();
+        setTimeout(function(){
+          var cards = document.querySelectorAll('.limp-rut-card');
+          if (cards[rIdx]) {
+            var b = cards[rIdx].querySelector('.limp-rut-body');
+            if (b) { b.classList.add('open'); cards[rIdx].querySelector('.limp-rut-chevron').style.transform='rotate(180deg)'; }
+          }
+        }, 30);
+      };
+    }
+    body.appendChild(complBtn);
+    card.appendChild(body);
+
+    // Toggle body
+    hdr.onclick = function(e) {
+      if (e.target.closest('[data-edit]')) return;
+      body.classList.toggle('open');
+      var ch = hdr.querySelector('.limp-rut-chevron');
+      ch.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+    };
+
+    // Edit button
+    hdr.querySelector('[data-edit]').onclick = function(e) {
+      e.stopPropagation();
+      openLimpRutinaModal(rIdx);
+    };
+
+    wrap.appendChild(card);
+  });
+}
+
+// ── Modal crear/editar rutina recurrente ──
+function openLimpRutinaModal(editIdx) {
+  var editing = editIdx !== null && editIdx !== undefined;
+  var rut = editing
+    ? JSON.parse(JSON.stringify(limpRutinas[editIdx]))
+    : { id:'lr_'+Date.now(), nombre:'', emoji:'🧹', freq:{tipo:'semanal'}, pasos:[], sesiones:[], ultimaCompletada:null };
+
+  var back = document.createElement('div');
+  back.className = 'rutina-modal-backdrop';
+  back.onclick = function(e){ if (e.target===back) back.remove(); };
+
+  var box = document.createElement('div');
+  box.className = 'rutina-modal-box';
+  box.style.cssText = 'max-height:90vh;overflow-y:auto;';
+
+  box.innerHTML = '<div class="rutina-modal-title">' + (editing?'✏️':'🧹') + ' <em>' + (editing?'Editar':'Nueva') + ' rutina</em></div>';
+
+  // Emoji + Nombre
+  var f1 = document.createElement('div'); f1.className = 'modal-field';
+  f1.innerHTML = '<label class="modal-label">Emoji</label><input class="modal-input" id="lrEmoji" value="'+rut.emoji+'" style="width:70px;text-align:center;font-size:1.2rem">';
+  box.appendChild(f1);
+
+  var f2 = document.createElement('div'); f2.className = 'modal-field'; f2.style.marginTop='.7rem';
+  f2.innerHTML = '<label class="modal-label">Nombre de la rutina</label><input class="modal-input" id="lrNombre" value="'+rut.nombre+'" placeholder="ej: Limpiar refrigerador..." style="width:100%">';
+  box.appendChild(f2);
+
+  // Frecuencia
+  var fFreq = document.createElement('div'); fFreq.className = 'modal-field'; fFreq.style.marginTop='.9rem';
+  fFreq.innerHTML = '<label class="modal-label">¿Con qué frecuencia?</label>';
+
+  var freqOpts = [
+    {val:'diaria',label:'🌅 Todos los días'},
+    {val:'semanal',label:'📅 Cada semana'},
+    {val:'mensual',label:'🗓️ Cada mes'},
+    {val:'dias',label:'📆 Días específicos de la semana'},
+    {val:'personalizada',label:'✏️ Personalizada (cada N días/semanas/meses)'},
+  ];
+  var selFreq = document.createElement('select');
+  selFreq.className = 'modal-input'; selFreq.id = 'lrFreqTipo';
+  selFreq.style.cssText = 'width:100%;font-size:.78rem';
+  freqOpts.forEach(function(o){
+    var opt = document.createElement('option'); opt.value=o.val; opt.textContent=o.label;
+    if (rut.freq.tipo===o.val) opt.selected=true;
+    selFreq.appendChild(opt);
+  });
+  fFreq.appendChild(selFreq);
+
+  // Días específicos
+  var diasWrap = document.createElement('div');
+  diasWrap.style.cssText = 'display:'+(rut.freq.tipo==='dias'?'flex':'none')+';flex-wrap:wrap;gap:.3rem;margin-top:.5rem;';
+  DIAS_LIMP_RUT.forEach(function(d,i){
+    var lbl = document.createElement('label');
+    lbl.style.cssText='display:flex;align-items:center;gap:.2rem;font-size:.68rem;font-weight:700;cursor:pointer;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.25rem .5rem';
+    var cb = document.createElement('input'); cb.type='checkbox'; cb.value=i; cb.className='lr-dia-cb';
+    if (rut.freq.dias && rut.freq.dias.indexOf(i)!==-1) cb.checked=true;
+    lbl.appendChild(cb); lbl.appendChild(document.createTextNode(d));
+    diasWrap.appendChild(lbl);
+  });
+  fFreq.appendChild(diasWrap);
+
+  // Personalizada
+  var customWrap = document.createElement('div');
+  customWrap.style.cssText = 'display:'+(rut.freq.tipo==='personalizada'?'flex':'none')+';gap:.4rem;align-items:center;margin-top:.5rem;';
+  customWrap.innerHTML = '<span style="font-size:.75rem;font-weight:700;color:var(--muted)">Cada</span>';
+  var nInp = document.createElement('input');
+  nInp.type='number'; nInp.min='1'; nInp.value=rut.freq.cadaN||2;
+  nInp.className='modal-input'; nInp.id='lrCadaN';
+  nInp.style.cssText='width:60px;font-size:.78rem';
+  var unidadSel = document.createElement('select');
+  unidadSel.className='modal-input'; unidadSel.id='lrUnidad';
+  unidadSel.style.cssText='font-size:.75rem';
+  ['días','semanas','meses'].forEach(function(u){
+    var o=document.createElement('option'); o.value=u; o.textContent=u;
+    if ((rut.freq.unidad||'semanas')===u) o.selected=true;
+    unidadSel.appendChild(o);
+  });
+  customWrap.appendChild(nInp); customWrap.appendChild(unidadSel);
+  fFreq.appendChild(customWrap);
+
+  selFreq.onchange = function(){
+    diasWrap.style.display = selFreq.value==='dias'?'flex':'none';
+    customWrap.style.display = selFreq.value==='personalizada'?'flex':'none';
+  };
+  box.appendChild(fFreq);
+
+  // Pasos
+  var fPasos = document.createElement('div'); fPasos.className='modal-field'; fPasos.style.marginTop='.9rem';
+  fPasos.innerHTML = '<label class="modal-label">Pasos en orden 📋</label><p style="font-size:.68rem;color:var(--muted);margin-bottom:.5rem">Agrega cada paso que hay que hacer. El orden importa.</p>';
+  var pasosList = document.createElement('div'); pasosList.id='lrPasosList';
+  fPasos.appendChild(pasosList);
+
+  function makePasoRow(p) {
+    p = p || { id:'p_'+Date.now()+Math.random(), nombre:'', nota:'' };
+    var row = document.createElement('div');
+    row.style.cssText='display:flex;gap:.4rem;align-items:flex-start;margin-bottom:.5rem;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.5rem .6rem';
+    row.innerHTML =
+      '<div style="display:flex;flex-direction:column;gap:.3rem;flex:1">' +
+        '<input class="modal-input lr-paso-nombre" value="'+p.nombre+'" placeholder="Nombre del paso..." style="font-size:.78rem">' +
+        '<input class="modal-input lr-paso-nota" value="'+(p.nota||'')+'" placeholder="Nota opcional (tip, ingrediente, etc)..." style="font-size:.7rem;color:var(--muted)">' +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:.25rem">' +
+        '<button class="univ-materia-del lr-paso-del" style="color:#c77;font-size:.7rem" title="Eliminar">✕</button>' +
+        '<button class="univ-materia-del lr-paso-up" style="font-size:.7rem" title="Subir">▲</button>' +
+        '<button class="univ-materia-del lr-paso-dn" style="font-size:.7rem" title="Bajar">▼</button>' +
+      '</div>';
+    row._pasoId = p.id;
+    row.querySelector('.lr-paso-del').onclick = function(){ row.remove(); };
+    row.querySelector('.lr-paso-up').onclick = function(){
+      var prev = row.previousElementSibling;
+      if (prev) pasosList.insertBefore(row, prev);
+    };
+    row.querySelector('.lr-paso-dn').onclick = function(){
+      var next = row.nextElementSibling;
+      if (next) pasosList.insertBefore(next, row);
+    };
+    return row;
+  }
+  rut.pasos.forEach(function(p){ pasosList.appendChild(makePasoRow(p)); });
+
+  var addPasoBtn = document.createElement('button');
+  addPasoBtn.className='belleza-reset-btn'; addPasoBtn.style.marginTop='.4rem';
+  addPasoBtn.textContent='＋ Agregar paso';
+  addPasoBtn.onclick = function(){
+    var r = makePasoRow(null);
+    pasosList.appendChild(r);
+    r.querySelector('.lr-paso-nombre').focus();
+  };
+  fPasos.appendChild(addPasoBtn);
+  box.appendChild(fPasos);
+
+  // Botones
+  var btns = document.createElement('div'); btns.className='modal-btns'; btns.style.marginTop='1.2rem';
+  if (editing) {
+    var delBtn = document.createElement('button'); delBtn.className='modal-btn-delete'; delBtn.textContent='⋯ Eliminar';
+    delBtn.onclick = function(){
+      if (confirm('¿Eliminar "'+limpRutinas[editIdx].nombre+'"?')){
+        limpRutinas.splice(editIdx,1);
+        saveLimpRutinas(); renderLimpRutinas(); back.remove();
+      }
+    };
+    btns.appendChild(delBtn);
+  }
+  var cancelBtn = document.createElement('button'); cancelBtn.className='modal-btn-cancel'; cancelBtn.textContent='Cancelar';
+  cancelBtn.onclick = function(){ back.remove(); };
+  var saveBtn = document.createElement('button'); saveBtn.className='modal-btn-save'; saveBtn.textContent='Guardar 🧹';
+  saveBtn.onclick = function(){
+    var nombre = document.getElementById('lrNombre').value.trim();
+    if (!nombre) { document.getElementById('lrNombre').focus(); return; }
+    var emoji = document.getElementById('lrEmoji').value.trim() || '🧹';
+    // Freq
+    var tipoFreq = selFreq.value;
+    var freq = { tipo: tipoFreq };
+    if (tipoFreq === 'dias') {
+      var dias = [];
+      box.querySelectorAll('.lr-dia-cb:checked').forEach(function(cb){ dias.push(parseInt(cb.value)); });
+      freq.dias = dias;
+    } else if (tipoFreq === 'personalizada') {
+      freq.cadaN = parseInt(document.getElementById('lrCadaN').value)||2;
+      freq.unidad = document.getElementById('lrUnidad').value;
+    }
+    // Pasos
+    var pasos = [];
+    box.querySelectorAll('#lrPasosList > div').forEach(function(row){
+      var n = row.querySelector('.lr-paso-nombre').value.trim();
+      if (n) pasos.push({ id: row._pasoId || ('p_'+Date.now()+Math.random()), nombre:n, nota: row.querySelector('.lr-paso-nota').value.trim() });
+    });
+    if (editing) {
+      limpRutinas[editIdx].nombre = nombre;
+      limpRutinas[editIdx].emoji = emoji;
+      limpRutinas[editIdx].freq = freq;
+      limpRutinas[editIdx].pasos = pasos;
+    } else {
+      rut.nombre=nombre; rut.emoji=emoji; rut.freq=freq; rut.pasos=pasos;
+      limpRutinas.push(rut);
+    }
+    saveLimpRutinas(); renderLimpRutinas(); back.remove();
+  };
+  btns.appendChild(cancelBtn); btns.appendChild(saveBtn);
+  box.appendChild(btns);
+
+  back.appendChild(box);
+  document.body.appendChild(back);
+  document.getElementById('lrNombre').focus();
+}
+
+loadLimpRutinas();
+document.addEventListener('DOMContentLoaded', function(){
+  var addBtn = document.getElementById('limpRutinaAddBtn');
+  if (addBtn) addBtn.onclick = function(){ openLimpRutinaModal(null); };
+  renderLimpRutinas();
 });
 </script>
 
