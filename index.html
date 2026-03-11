@@ -5233,7 +5233,7 @@ function todayKey() { return dateKey(new Date()); }
         'Hábitos',
         done + '/' + total,
         total === 0 ? 'Crea un hábito' : (done === total && total > 0 ? '¡Todos hechos! 🌟' : (total - done) + ' restante' + (total-done!==1?'s':'')),
-        pct, 'page-salud', accent
+        pct, 'page-habitos', accent
       ));
     })();
 
@@ -5318,6 +5318,9 @@ function todayKey() { return dateKey(new Date()); }
     if (pageId === 'page-calma') setTimeout(function(){
       eventoRender();
       recuperInit();
+    }, 200);
+    if (pageId === 'page-concentro') setTimeout(function(){
+      utSetModo('escribir');
     }, 200);
   };
 
@@ -8869,45 +8872,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-<!-- ── UNA SOLA TAREA ── -->
-<section class="rutinas-section" id="sec-una-tarea" style="margin-top:1.5rem">
-  <span class="section-sub">🎯 enfoque</span>
-  <h2 class="section-title"><em>Una Sola</em> Tarea</h2>
-  <p style="font-size:.75rem;color:var(--muted);font-weight:600;line-height:1.6;margin-bottom:1rem">A veces la mejor estrategia es hacerle zoom a una sola cosa 🌸</p>
-
-  <div id="unaTareaBox" style="background:var(--card);border-radius:18px;padding:1.4rem;border:1px solid var(--border)">
-
-    <!-- Selector modo -->
-    <div style="display:flex;gap:.5rem;margin-bottom:1.1rem">
-      <button id="utModoEscribir" onclick="utSetModo('escribir')" style="flex:1;padding:.45rem;border-radius:10px;border:1.5px solid var(--rosa);background:var(--rosa);color:#fff;font-family:var(--font-body);font-size:.75rem;font-weight:800;cursor:pointer">✏️ Escribir tarea</button>
-      <button id="utModoLista" onclick="utSetModo('lista')" style="flex:1;padding:.45rem;border-radius:10px;border:1.5px solid var(--border);background:none;color:var(--muted);font-family:var(--font-body);font-size:.75rem;font-weight:800;cursor:pointer">📋 De mi lista</button>
-    </div>
-
-    <!-- Modo escribir -->
-    <div id="utPanelEscribir">
-      <input id="utInputEscribir" placeholder="¿Qué vas a hacer ahora?" style="width:100%;box-sizing:border-box;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:.7rem .9rem;font-family:var(--font-body);font-size:.88rem;font-weight:600;color:var(--text);outline:none;margin-bottom:.7rem">
-      <button onclick="utIniciar()" style="width:100%;padding:.65rem;border-radius:12px;border:none;background:var(--rosa);color:#fff;font-family:var(--font-body);font-size:.85rem;font-weight:800;cursor:pointer">Enfocarme en esto →</button>
-    </div>
-
-    <!-- Modo lista -->
-    <div id="utPanelLista" style="display:none">
-      <div id="utListaTareas" style="display:flex;flex-direction:column;gap:.4rem;max-height:200px;overflow-y:auto;margin-bottom:.7rem"></div>
-    </div>
-
-    <!-- Pantalla enfoque -->
-    <div id="utPantallaEnfoque" style="display:none;text-align:center;padding:.5rem 0">
-      <div style="font-size:3rem;margin-bottom:.6rem">🎯</div>
-      <p style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem">ahora mismo</p>
-      <p id="utTareaActual" style="font-size:1.15rem;font-weight:800;color:var(--text);line-height:1.4;margin-bottom:1.2rem;padding:0 .5rem"></p>
-      <div style="display:flex;gap:.6rem;justify-content:center">
-        <button onclick="utCompletar()" style="padding:.6rem 1.2rem;border-radius:12px;border:none;background:var(--rosa);color:#fff;font-family:var(--font-body);font-size:.82rem;font-weight:800;cursor:pointer">✓ ¡Lista!</button>
-        <button onclick="utCancelar()" style="padding:.6rem 1rem;border-radius:12px;border:1.5px solid var(--border);background:none;color:var(--muted);font-family:var(--font-body);font-size:.82rem;font-weight:700;cursor:pointer">Cambiar</button>
-      </div>
-    </div>
-
-  </div>
-</section>
-
 <!-- ── PREPARACIÓN PARA EVENTOS ── -->
 <section class="rutinas-section" id="sec-prep-eventos" style="margin-top:1.5rem">
   <span class="section-sub">📅 anticipación</span>
@@ -9026,6 +8990,38 @@ document.addEventListener('DOMContentLoaded', function() {
 </section>
 
 </div><!-- end page-rutinas -->
+
+<div id="page-concentro" class="page-section">
+<div id="sec-concentro-nav" style="scroll-margin-top:60px"></div>
+<section class="rutinas-section" id="sec-una-tarea-page" style="margin-top:1rem">
+  <span class="section-sub">🎯 enfoque</span>
+  <h2 class="section-title"><em>Una Sola</em> Tarea</h2>
+  <p style="font-size:.75rem;color:var(--muted);font-weight:600;line-height:1.6;margin-bottom:1rem">A veces la mejor estrategia es hacerle zoom a una sola cosa 🌸</p>
+
+  <div id="unaTareaBox" style="background:var(--card);border-radius:18px;padding:1.4rem;border:1px solid var(--border)">
+    <div style="display:flex;gap:.5rem;margin-bottom:1.1rem">
+      <button id="utModoEscribir" onclick="utSetModo('escribir')" style="flex:1;padding:.45rem;border-radius:10px;border:1.5px solid var(--rosa);background:var(--rosa);color:#fff;font-family:var(--font-body);font-size:.75rem;font-weight:800;cursor:pointer">✏️ Escribir tarea</button>
+      <button id="utModoLista" onclick="utSetModo('lista')" style="flex:1;padding:.45rem;border-radius:10px;border:1.5px solid var(--border);background:none;color:var(--muted);font-family:var(--font-body);font-size:.75rem;font-weight:800;cursor:pointer">📋 De mi lista</button>
+    </div>
+    <div id="utPanelEscribir">
+      <input id="utInputEscribir" placeholder="¿Qué vas a hacer ahora?" style="width:100%;box-sizing:border-box;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:.7rem .9rem;font-family:var(--font-body);font-size:.88rem;font-weight:600;color:var(--text);outline:none;margin-bottom:.7rem">
+      <button onclick="utIniciar()" style="width:100%;padding:.65rem;border-radius:12px;border:none;background:var(--rosa);color:#fff;font-family:var(--font-body);font-size:.85rem;font-weight:800;cursor:pointer">Enfocarme en esto →</button>
+    </div>
+    <div id="utPanelLista" style="display:none">
+      <div id="utListaTareas" style="display:flex;flex-direction:column;gap:.4rem;max-height:200px;overflow-y:auto;margin-bottom:.7rem"></div>
+    </div>
+    <div id="utPantallaEnfoque" style="display:none;text-align:center;padding:.5rem 0">
+      <div style="font-size:3rem;margin-bottom:.6rem">🎯</div>
+      <p style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem">ahora mismo</p>
+      <p id="utTareaActual" style="font-size:1.15rem;font-weight:800;color:var(--text);line-height:1.4;margin-bottom:1.2rem;padding:0 .5rem"></p>
+      <div style="display:flex;gap:.6rem;justify-content:center">
+        <button onclick="utCompletar()" style="padding:.6rem 1.2rem;border-radius:12px;border:none;background:var(--rosa);color:#fff;font-family:var(--font-body);font-size:.82rem;font-weight:800;cursor:pointer">✓ ¡Lista!</button>
+        <button onclick="utCancelar()" style="padding:.6rem 1rem;border-radius:12px;border:1.5px solid var(--border);background:none;color:var(--muted);font-family:var(--font-body);font-size:.82rem;font-weight:700;cursor:pointer">Cambiar</button>
+      </div>
+    </div>
+  </div>
+</section>
+</div><!-- end page-concentro -->
 <div id="page-journal" class="page-section">
 <div id="sec-journal-nav" style="scroll-margin-top:60px"></div>
 
@@ -10865,6 +10861,10 @@ renderTracker();
   </div>
 </section>
 
+</div><!-- end page-salud -->
+
+<div id="page-habitos" class="page-section">
+<div id="sec-habitos-nav" style="scroll-margin-top:60px"></div>
 <!-- SECCIÓN · HÁBITOS -->
 <section class="habitos-section" id="sec-habitos">
   <span class="section-sub">🔥 constancia</span>
@@ -10874,8 +10874,7 @@ renderTracker();
   </div>
   <div id="habitosList"></div>
 </section>
-
-</div><!-- end page-salud -->
+</div><!-- end page-habitos -->
 <div id="page-recetario" class="page-section">
 <div id="sec-recetario-nav" style="scroll-margin-top:60px"></div>
 <section class="recetario-section" id="sec-recetario">
@@ -12520,8 +12519,8 @@ document.addEventListener('DOMContentLoaded', function() {
 <style>
   /* ── AGRADECIMIENTO ── */
   /* ── HÁBITOS ── */
-  .habitos-section { margin-bottom: 2rem; }
-  .habitos-toolbar { display:flex; justify-content:flex-end; margin-bottom:1rem; }
+  .habitos-section { margin-bottom: 2rem; max-width: 680px; }
+  .habitos-toolbar { display:flex; justify-content:flex-start; margin-bottom:1rem; }
   .habito-card {
     background: var(--card); border: 1.5px solid var(--border);
     border-radius: var(--radius); padding: .9rem 1rem;
@@ -14141,6 +14140,7 @@ const DRAWER_STRUCTURE = {
       { icon:'', label:'Salud',    page:'page-salud'    },
       { icon:'', label:'Selfcare', page:'page-selfcare' },
       { icon:'', label:'Calma',    page:'page-calma'    },
+      { icon:'', label:'Hábitos',  page:'page-habitos'  },
     ]},
     { id:'hogar', icon:'⭐', label:'Hogar', items: [
       { icon:'', label:'Recetario', page:'page-recetario' },
@@ -14151,6 +14151,7 @@ const DRAWER_STRUCTURE = {
     { id:'organizacion', icon:'📌', label:'Organización', items: [
       { icon:'', label:'Tareas',  page:'page-tareas'  },
       { icon:'', label:'Rutinas', page:'page-rutinas' },
+      { icon:'', label:'Me concentro', page:'page-concentro' },
     ]},
   ],
   bottom: [
@@ -15628,6 +15629,76 @@ document.addEventListener('DOMContentLoaded', function() {
   .pom-tomato { font-size: .9rem; }
   .pom-tomato.done { filter: grayscale(0); }
   .pom-tomato.pending { filter: grayscale(1); opacity: .4; }
+
+  /* ── Gatito CSS animado ── */
+  .pom-cat-wrap { display:inline-block; position:relative; width:90px; height:90px; }
+  .pom-cat { position:relative; width:90px; height:90px; }
+
+  /* Cuerpo */
+  .cat-body {
+    position:absolute; bottom:8px; left:50%; transform:translateX(-50%);
+    width:54px; height:44px; background:var(--rosa); border-radius:50% 50% 45% 45%;
+  }
+  /* Cabeza */
+  .cat-head {
+    position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:46px; height:42px; background:var(--rosa); border-radius:50%;
+  }
+  /* Orejas */
+  .cat-ear-l, .cat-ear-r {
+    position:absolute; top:-10px; width:0; height:0;
+    border-left:9px solid transparent; border-right:9px solid transparent;
+    border-bottom:18px solid var(--rosa);
+  }
+  .cat-ear-l { left:4px; transform:rotate(-15deg); }
+  .cat-ear-r { right:4px; transform:rotate(15deg); }
+  /* Ojos */
+  .cat-eye-l, .cat-eye-r {
+    position:absolute; top:14px; width:7px; height:7px;
+    background:#fff; border-radius:50%;
+  }
+  .cat-eye-l { left:9px; } .cat-eye-r { right:9px; }
+  .cat-eye-l::after, .cat-eye-r::after {
+    content:''; position:absolute; top:1px; left:1px;
+    width:4px; height:4px; background:#2a1040; border-radius:50%;
+  }
+  /* Nariz */
+  .cat-nose {
+    position:absolute; top:22px; left:50%; transform:translateX(-50%);
+    width:5px; height:4px; background:#f48fb1; border-radius:50%;
+  }
+  /* Bigotes */
+  .cat-wl, .cat-wr {
+    position:absolute; top:24px; height:1.5px; width:14px; background:rgba(255,255,255,.7); border-radius:2px;
+  }
+  .cat-wl { left:-2px; transform:rotate(-10deg); }
+  .cat-wr { right:-2px; transform:rotate(10deg); }
+  /* Cola */
+  .cat-tail {
+    position:absolute; bottom:10px; right:-12px;
+    width:14px; height:32px;
+    border-right:6px solid var(--rosa); border-radius:0 20px 20px 0;
+    transform-origin:bottom right;
+  }
+
+  /* Modos de animación */
+  .pom-cat-wrap.mode-work .cat-tail { animation:tailWag .6s ease-in-out infinite alternate; }
+  .pom-cat-wrap.mode-work .cat-head { animation:headBob .8s ease-in-out infinite alternate; }
+  .pom-cat-wrap.mode-short .cat-body { animation:bodyBounce 1.2s ease-in-out infinite; }
+  .pom-cat-wrap.mode-short .cat-tail { animation:tailCurl 1.5s ease-in-out infinite alternate; }
+  .pom-cat-wrap.mode-long .cat-head { animation:sleepNod 2s ease-in-out infinite alternate; }
+  .pom-cat-wrap.mode-long .cat-eye-l,
+  .pom-cat-wrap.mode-long .cat-eye-r { animation:blink 3s ease-in-out infinite; }
+  .pom-cat-wrap.mode-celebrate .cat-body { animation:celebrate .4s ease-in-out infinite alternate; }
+  .pom-cat-wrap.mode-celebrate .cat-tail { animation:tailWag .3s ease-in-out infinite alternate; }
+
+  @keyframes tailWag { from { transform:rotate(-20deg); } to { transform:rotate(20deg); } }
+  @keyframes headBob { from { transform:translateX(-50%) translateY(0); } to { transform:translateX(-50%) translateY(-3px); } }
+  @keyframes bodyBounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-5px)} }
+  @keyframes tailCurl { from { transform:rotate(0deg) scaleX(1); } to { transform:rotate(30deg) scaleX(.8); } }
+  @keyframes sleepNod { from { transform:translateX(-50%) rotate(-5deg); } to { transform:translateX(-50%) rotate(5deg); } }
+  @keyframes blink { 0%,90%,100%{transform:scaleY(1)} 95%{transform:scaleY(.1)} }
+  @keyframes celebrate { from { transform:translateX(-50%) scale(1); } to { transform:translateX(-50%) scale(1.12) translateY(-4px); } }
 </style>
   <span class="section-sub">⏱️ enfoque</span>
   <h2 class="section-title" style="text-align:center"><em>Pomodoro</em></h2>
@@ -15641,7 +15712,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <button onclick="pomOpenConfig()" style="background:none;border:none;cursor:pointer;font-size:.72rem;font-weight:700;color:var(--muted2);font-family:var(--font-body);padding:.2rem .4rem">⚙️ Configurar tiempos</button>
     </div>
     <div id="pomGifWrap" style="display:none;margin:.4rem 0 .6rem;text-align:center">
-      <img id="pomGif" src="" alt="pusheen" style="height:110px;border-radius:16px;opacity:0;transition:opacity .4s ease">
+      <div id="pomCat" class="pom-cat-wrap"></div>
     </div>
     <div class="pomodoro-display" id="pomDisplay">25:00</div>
     <div class="pomodoro-btns">
@@ -15674,29 +15745,41 @@ document.addEventListener('DOMContentLoaded', function() {
     return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
   }
 
-  var POM_GIFS = {
-    work:  'https://i.pinimg.com/originals/4a/17/d8/4a17d8480232258924f366fab5ec5f4c.gif',
-    short: 'https://i.pinimg.com/originals/18/83/b1/1883b15cc4ee41c644e22fd9ea02d730.gif',
-    long:  'https://i.pinimg.com/originals/6f/47/6e/6f476ee5c0b914a49e2f088abd7fa05c.gif'
-  };
+  function pomSetCatMode(mode) {
+    var cat = document.getElementById('pomCat');
+    if (!cat) return;
+    cat.className = 'pom-cat-wrap mode-' + mode;
+  }
+
+  function pomBuildCat() {
+    var cat = document.getElementById('pomCat');
+    if (!cat || cat.querySelector('.cat-body')) return;
+    cat.innerHTML =
+      '<div class="pom-cat">' +
+        '<div class="cat-head">' +
+          '<div class="cat-ear-l"></div>' +
+          '<div class="cat-ear-r"></div>' +
+          '<div class="cat-eye-l"></div>' +
+          '<div class="cat-eye-r"></div>' +
+          '<div class="cat-nose"></div>' +
+          '<div class="cat-wl"></div>' +
+          '<div class="cat-wr"></div>' +
+        '</div>' +
+        '<div class="cat-body">' +
+          '<div class="cat-tail"></div>' +
+        '</div>' +
+      '</div>';
+  }
 
   function pomUpdateGif() {
     var wrap = document.getElementById('pomGifWrap');
-    var img  = document.getElementById('pomGif');
-    if (!wrap || !img) return;
+    if (!wrap) return;
+    pomBuildCat();
     if (pomRunning) {
-      var newSrc = POM_GIFS[pomMode] || '';
-      if (img.src !== newSrc) {
-        img.style.opacity = '0';
-        img.src = newSrc;
-        img.onload = function() { img.style.opacity = '1'; };
-      } else {
-        img.style.opacity = '1';
-      }
+      pomSetCatMode(pomMode);
       wrap.style.display = 'block';
     } else {
-      img.style.opacity = '0';
-      setTimeout(function() { wrap.style.display = 'none'; }, 400);
+      wrap.style.display = 'none';
     }
   }
 
@@ -15751,18 +15834,13 @@ document.addEventListener('DOMContentLoaded', function() {
           } else {
             pomNotify('¡Descanso terminado! Vuelve al foco 💪');
           }
-          // Gif de celebración al terminar cualquier sesión
+          // Gatito de celebración al terminar
           var wrap = document.getElementById('pomGifWrap');
-          var img  = document.getElementById('pomGif');
-          if (wrap && img) {
-            img.style.opacity = '0';
-            img.src = 'https://i.pinimg.com/originals/d9/e1/d0/d9e1d0562eb9b42044d3d55754b35d2d.gif';
+          if (wrap) {
+            pomBuildCat();
+            pomSetCatMode('celebrate');
             wrap.style.display = 'block';
-            img.onload = function() { img.style.opacity = '1'; };
-            setTimeout(function() {
-              img.style.opacity = '0';
-              setTimeout(function() { wrap.style.display = 'none'; }, 400);
-            }, 4000);
+            setTimeout(function() { wrap.style.display = 'none'; }, 3500);
           }
         }
       }, 1000);
@@ -17899,6 +17977,18 @@ document.addEventListener('DOMContentLoaded', function() {
       <button class="config-save-btn" style="margin-top:.5rem;width:auto;padding:.35rem .9rem;font-size:.75rem" onclick="notifSaveHabitoHora()">Guardar</button>
       <span class="config-save-ok" id="notifHabitoOk">✓ Guardado</span>
     </div>
+
+    <!-- Recordatorios personalizados -->
+    <div style="margin-top:1.1rem;border-top:1px solid var(--border);padding-top:1rem">
+      <label class="config-label">💌 Recordatorios personalizados</label>
+      <p style="font-size:.68rem;color:var(--muted2);font-weight:600;margin-bottom:.7rem;line-height:1.4">Escribe lo que quieres recordar y a qué hora te avisamos</p>
+      <div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:.7rem" id="customNotifList"></div>
+      <div style="display:flex;gap:.5rem;align-items:flex-start;flex-wrap:wrap">
+        <input id="customNotifText" placeholder="Ej: Tomar agua, llamar a mamá…" style="flex:1;min-width:140px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.5rem .75rem;font-family:var(--font-body);font-size:.8rem;color:var(--text);outline:none">
+        <input type="time" id="customNotifTime" style="background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.5rem .6rem;font-family:var(--font-body);font-size:.8rem;color:var(--text);outline:none">
+        <button onclick="customNotifAdd()" style="padding:.5rem .9rem;border-radius:10px;border:none;background:var(--rosa);color:#fff;font-family:var(--font-body);font-size:.8rem;font-weight:800;cursor:pointer">＋</button>
+      </div>
+    </div>
   </div>
 
   <!-- Tema de color -->
@@ -17952,6 +18042,22 @@ document.addEventListener('DOMContentLoaded', function() {
     </button>
   </div>
 
+
+  <!-- Contacto -->
+  <div class="config-block" style="text-align:center">
+    <div class="config-block-title">💌 Contacto</div>
+    <p style="font-size:.78rem;font-weight:600;color:var(--muted);line-height:1.7;margin-bottom:.5rem">
+      ¿Tienes alguna sugerencia o comentario? Me encantaría escucharte. Puedes escribirme a
+    </p>
+    <a href="mailto:liabxx0@gmail.com" style="font-size:.82rem;font-weight:800;color:var(--rosa);text-decoration:none">liabxx0@gmail.com</a>
+    <p style="font-size:.78rem;font-weight:600;color:var(--muted);line-height:1.7;margin-top:.5rem">
+      — leo todos los mensajes con mucho cariño 🌸
+    </p>
+    <p style="font-size:.78rem;font-weight:600;color:var(--muted);line-height:1.7;margin-top:.7rem">
+      Y si te gustaría recibir estudios bíblicos, también puedes escribirme al mismo correo con el asunto <span style="color:var(--text);font-weight:700">"Estudios bíblicos"</span> y con gusto te comparto ( ˘͈ ᵕ ˘͈♡)
+    </p>
+  </div>
+
   <!-- Cuenta -->
   <div class="config-block">
     <div class="config-block-title">🔐 Cuenta</div>
@@ -17991,6 +18097,7 @@ document.addEventListener('DOMContentLoaded', function() {
     Object.keys(t.vars).forEach(function(k){ root.style.setProperty(k, t.vars[k]); });
     currentTheme = themeId;
     localStorage.setItem('config_theme', themeId);
+    document.body.setAttribute('data-theme', themeId);
     renderThemeGrid();
   }
 
@@ -18089,6 +18196,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Aplicar tema guardado al cargar
   if (currentTheme !== 'rosa') applyTheme(currentTheme);
+  else document.body.setAttribute('data-theme', 'rosa');
   setTimeout(function(){ renderThemeGrid(); configLoadProfile(); }, 300);
 })();
 </script>
@@ -18155,6 +18263,93 @@ window.notifSaveHabitoHora = function() {
   localStorage.setItem('notif_habito_hora', val);
   var ok = document.getElementById('notifHabitoOk');
   if (ok) { ok.classList.add('show'); setTimeout(function(){ ok.classList.remove('show'); }, 2000); }
+};
+
+// ── Recordatorios personalizados ─────────────────────────
+function customNotifLoad() {
+  try { return JSON.parse(localStorage.getItem('custom_notifs') || '[]'); } catch(e) { return []; }
+}
+function customNotifSave(data) {
+  localStorage.setItem('custom_notifs', JSON.stringify(data));
+}
+
+window.customNotifAdd = function() {
+  var text = (document.getElementById('customNotifText') || {}).value || '';
+  var time = (document.getElementById('customNotifTime') || {}).value || '';
+  text = text.trim();
+  if (!text || !time) return;
+  var data = customNotifLoad();
+  data.push({ id: Date.now().toString(), text: text, time: time, active: true });
+  customNotifSave(data);
+  document.getElementById('customNotifText').value = '';
+  document.getElementById('customNotifTime').value = '';
+  customNotifRender();
+};
+
+window.customNotifDelete = function(id) {
+  customNotifSave(customNotifLoad().filter(function(n) { return n.id !== id; }));
+  customNotifRender();
+};
+
+window.customNotifToggle = function(id) {
+  var data = customNotifLoad().map(function(n) {
+    return n.id === id ? Object.assign({}, n, { active: !n.active }) : n;
+  });
+  customNotifSave(data);
+  customNotifRender();
+};
+
+function customNotifRender() {
+  var cont = document.getElementById('customNotifList');
+  if (!cont) return;
+  var data = customNotifLoad();
+  if (!data.length) {
+    cont.innerHTML = '<p style="font-size:.72rem;color:var(--muted2);font-weight:600">Aún no tienes recordatorios personalizados 🌸</p>';
+    return;
+  }
+  cont.innerHTML = data.map(function(n) {
+    return '<div style="display:flex;align-items:center;gap:.5rem;background:var(--surface);border-radius:10px;padding:.5rem .7rem;border:1px solid var(--border)">' +
+      '<span style="font-size:.8rem;font-weight:800;color:var(--rosa)">' + n.time + '</span>' +
+      '<span style="flex:1;font-size:.78rem;font-weight:600;color:' + (n.active ? 'var(--text)' : 'var(--muted2)') + ';text-decoration:' + (n.active ? 'none' : 'line-through') + '">' + n.text + '</span>' +
+      '<button onclick="customNotifToggle(\'' + n.id + '\')" style="background:none;border:none;cursor:pointer;font-size:.75rem;color:var(--muted);padding:.1rem .3rem" title="' + (n.active ? 'Desactivar' : 'Activar') + '">' + (n.active ? '🔔' : '🔕') + '</button>' +
+      '<button onclick="customNotifDelete(\'' + n.id + '\')" style="background:none;border:none;cursor:pointer;font-size:.75rem;color:var(--muted2);padding:.1rem .3rem">✕</button>' +
+    '</div>';
+  }).join('');
+}
+
+// Integrar con el setInterval de notificaciones existente
+var _origNotifCheck = window._notifCheck;
+window._customNotifFiredToday = window._customNotifFiredToday || {};
+
+function checkCustomNotifs() {
+  if (notifPermission() !== 'granted') return;
+  var now = new Date();
+  var hh = String(now.getHours()).padStart(2,'0');
+  var mm = String(now.getMinutes()).padStart(2,'0');
+  var nowStr = hh + ':' + mm;
+  var data = customNotifLoad();
+  data.forEach(function(n) {
+    if (!n.active) return;
+    if (n.time !== nowStr) return;
+    var tag = 'custom_' + n.id + '_' + nowStr;
+    if (_customNotifFiredToday[tag]) return;
+    _customNotifFiredToday[tag] = true;
+    try { new Notification('🌸 Yuki — Recordatorio', { body: n.text, tag: tag }); } catch(e) {}
+  });
+}
+
+// Hook al setInterval existente
+var _customNotifInterval = setInterval(checkCustomNotifs, 60000);
+
+// Render al cargar config
+document.addEventListener('DOMContentLoaded', function() {
+  customNotifRender();
+});
+// También render cuando se abre la página de config
+var _origShowForNotif = window.showPage;
+window.showPage = function(pageId) {
+  if (_origShowForNotif) _origShowForNotif(pageId);
+  if (pageId === 'page-config') setTimeout(customNotifRender, 200);
 };
 
 function notifFire(title, body, tag) {
@@ -18324,6 +18519,30 @@ function pdfOpenWindow(title, htmlContent) {
   @media print {
     body { padding:1.5rem 2rem; }
     button { display:none !important; }
+  }
+
+  /* ── Tema Minimal: sin cursivas, títulos en negrita ── */
+  [data-theme="minimal"] .section-title,
+  [data-theme="minimal"] .section-title em {
+    font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: -.02em;
+  }
+  [data-theme="minimal"] .section-title em {
+    font-weight: 800;
+  }
+  [data-theme="minimal"] h1,
+  [data-theme="minimal"] h2,
+  [data-theme="minimal"] h3 {
+    font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    font-style: normal;
+  }
+  [data-theme="minimal"] .drawer-kittyplan,
+  [data-theme="minimal"] .page-title,
+  [data-theme="minimal"] .config-block-title {
+    font-style: normal;
+    font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif;
   }
 </style>
 </head>
@@ -18864,6 +19083,13 @@ function openWelcomeModal() {
             <p style="font-size:.72rem;font-weight:600;color:var(--muted);line-height:1.5">Dos capitanes peleándose JSJS — la sección Rutinas te deja crear variedad de rutinas para que el autismo tenga estructura y el TDAH tenga novedad :3</p>
           </div>
         </div>
+      </div>
+
+      <!-- Mensaje de fe -->
+      <div style="text-align:center;padding:.8rem .5rem;margin-bottom:1rem">
+        <p style="font-size:.8rem;font-weight:600;color:var(--muted);line-height:1.7;font-style:italic">
+          Seas como seas, Dios te ama y te creó a su imagen, tu existencia tiene un propósito (づ ᴗ _ᴗ)づ♡
+        </p>
       </div>
 
       <!-- Botón -->
