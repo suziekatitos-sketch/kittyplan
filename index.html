@@ -11478,7 +11478,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <section class="univ-section" id="sec-univ">
   <span class="section-sub">💙 mi camino</span>
-  <h2 class="section-title"><em>Medicina</em> &amp; Universidad</h2>
+  <h2 class="section-title"><em>Universidad</em></h2>
 
   <!-- Motivación -->
   <div class="univ-motiv-card" id="univMotivCard"></div>
@@ -12677,7 +12677,7 @@ function renderUnivMotiv() {
   card.innerHTML = '';
   var label = document.createElement('span');
   label.className = 'univ-motiv-label';
-  label.textContent = '💙 ¿Por qué quiero ser médico?';
+  label.textContent = '💙 ¿Por qué quiero seguir en este camino?';
   var text = document.createElement('div');
   text.className = 'univ-motiv-text';
   text.textContent = univData.motivacion || 'Toca el ✏️ para escribir tu motivación...';
@@ -12686,7 +12686,7 @@ function renderUnivMotiv() {
   editBtn.className = 'univ-motiv-edit';
   editBtn.textContent = '✏️';
   editBtn.onclick = function() {
-    var val = prompt('¿Por qué quieres ser médico?', univData.motivacion || '');
+    var val = prompt('¿Por qué quieres seguir en este camino?', univData.motivacion || '');
     if (val !== null) { univData.motivacion = val; saveUniv(); renderUnivMotiv(); }
   };
   card.appendChild(label);
