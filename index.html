@@ -136,6 +136,7 @@ window.kittyConfirm = function(msg, onYes, onNo) {
         if (raw.metas_data)       { window._metasData       = JSON.parse(raw.metas_data);       }
         if (raw.ql_lists)         { window._qlLists         = JSON.parse(raw.ql_lists);         }
         if (raw.wl_items)         { window._wlItems         = JSON.parse(raw.wl_items);         }
+        if (raw.wishlist_items)   { window._wishlistItems   = JSON.parse(raw.wishlist_items);   }
       if (raw.beauty_tips)      { window._beautyTips      = JSON.parse(raw.beauty_tips);        }
         if (raw.beauty_tips)      { window._beautyTips      = JSON.parse(raw.beauty_tips);        }
         if (raw.univ_links)          { window._univLinks          = JSON.parse(raw.univ_links);          }
@@ -148,7 +149,7 @@ window.kittyConfirm = function(msg, onYes, onNo) {
           'rutina_templates','rutina_asignaciones','rutina_completions','desglose_items',
           'gratitud_data','sueno_data','mens_data','deco_imgs','ej_templates','ej_registros','habitos_data','prompt_data',
           'dios_data','versiculos','univ_data','belleza_templates','belleza_registros',
-          'braindump_notes','vb_items','metas_data','mood_data','ql_lists','wl_items','beauty_tips',
+          'braindump_notes','vb_items','metas_data','mood_data','ql_lists','wl_items','wishlist_items','beauty_tips',
           'ci_state','nd_state','calm_tools','water_goal','water_state','food_state',
           'logros_data','fortalezas','cambio_state','cambio_custom',
           'univ_links','univ_proyectos','spark_pins','spark_historial','spark_total_minutes'];
@@ -6331,6 +6332,40 @@ function loadRutinas() {
   rutinaCompletions  = window._rutinaCompletions  || JSON.parse(localStorage.getItem('rutina_completions')  || '{}');
 }
 
+function shuffleArray(arr) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+  }
+  return a;
+}
+
+function shuffleRutina(templateId) {
+  const tpl = rutinaTemplates.find(t => t.id === templateId);
+  if (!tpl || !tpl.pasos) return;
+  // Solo barajar tarde y noche — la mañana se mantiene igual 🌅
+  ['t','n'].forEach(function(f) {
+    if (tpl.pasos[f] && tpl.pasos[f].length > 1) {
+      tpl.pasos[f] = shuffleArray(tpl.pasos[f]);
+    }
+  });
+  // Limpiar completions del día para que los checks correspondan al nuevo orden
+  const dk = dateKey(getRutinaDate());
+  Object.keys(rutinaCompletions).forEach(function(k) {
+    if (k.startsWith(templateId + '|' + dk + '|')) {
+      delete rutinaCompletions[k];
+    }
+  });
+  saveRutinas();
+  renderRutinas();
+  // Mini feedback visual
+  if (window.starBurst) {
+    var el = document.getElementById('rutAssigned');
+    if (el) starBurst(el);
+  }
+}
+
 function renderRutinas() {
   const date = getRutinaDate();
   const dk   = dateKey(date);
@@ -6369,6 +6404,33 @@ function renderRutinas() {
       saveRutinas(); renderRutinas();
     };
     assignedEl.appendChild(clearBtn);
+
+    // Shuffle button
+    const shuffleBtn = document.createElement('button');
+    shuffleBtn.className = 'rut-action-btn';
+    shuffleBtn.title = 'Modo Shuffle — mezcla tarde y noche, la mañana se mantiene igual 🌅🔀';
+    shuffleBtn.innerHTML = '🔀';
+    shuffleBtn.style.cssText = 'font-size:.9rem;transition:transform .3s';
+    shuffleBtn.onclick = () => {
+      shuffleBtn.style.transform = 'rotate(360deg)';
+      setTimeout(() => shuffleBtn.style.transform = '', 350);
+      shuffleRutina(assigned.id);
+    };
+    assignedEl.appendChild(shuffleBtn);
+
+    // Colchón toggle
+    var colchonActive = localStorage.getItem('rutina_colchon') === '1';
+    const colchonBtn = document.createElement('button');
+    colchonBtn.className = 'rut-action-btn';
+    colchonBtn.title = 'Tiempo de Colchón — pausa suave entre tareas';
+    colchonBtn.innerHTML = colchonActive ? '🌿 Colchón ✓' : '🌿 Colchón';
+    colchonBtn.style.cssText = colchonActive ? 'color:var(--rosa);border-color:var(--rosa);font-size:.72rem' : 'font-size:.72rem';
+    colchonBtn.onclick = () => {
+      var now = localStorage.getItem('rutina_colchon') === '1';
+      localStorage.setItem('rutina_colchon', now ? '0' : '1');
+      renderRutinas();
+    };
+    assignedEl.appendChild(colchonBtn);
   } else {
     const chip = document.createElement('div');
     chip.className = 'rutina-assign-chip';
@@ -6399,6 +6461,7 @@ function renderRutinas() {
       empty.textContent = assigned ? 'Sin pasos' : 'Sin rutina asignada';
       col.appendChild(empty);
     } else {
+      const colchonOn = localStorage.getItem('rutina_colchon') === '1';
       pasos.forEach((paso, idx) => {
         const cKey = `${assignedId}|${dk}|${franja.id}|${idx}`;
         const done = !!rutinaCompletions[cKey];
@@ -6424,6 +6487,30 @@ function renderRutinas() {
           saveRutinas(); renderRutinas();
         };
         col.appendChild(row);
+
+        // Colchón entre tareas (no después de la última)
+        if (colchonOn && idx < pasos.length - 1) {
+          const cColchonKey = `${assignedId}|${dk}|${franja.id}|colchon|${idx}`;
+          const cDone = !!rutinaCompletions[cColchonKey];
+          const colchon = document.createElement('div');
+          colchon.style.cssText = [
+            'display:flex;align-items:center;gap:.5rem;',
+            'padding:.35rem .6rem;margin:.1rem 0;',
+            'border-radius:10px;cursor:pointer;',
+            'background:' + (cDone ? 'var(--rosa-soft)' : 'transparent') + ';',
+            'border:1px dashed ' + (cDone ? 'var(--rosa)' : 'var(--border)') + ';',
+            'opacity:' + (cDone ? '.6' : '1') + ';',
+            'transition:all .2s'
+          ].join('');
+          colchon.innerHTML = '<span style="font-size:.75rem">' + (cDone ? '✓' : '🌿') + '</span>' +
+            '<span style="font-size:.72rem;font-weight:600;color:var(--muted);font-style:italic">' +
+            'Respira. Tómate un momento antes de continuar. (ꈍᴗꈍ) ♡</span>';
+          colchon.onclick = () => {
+            rutinaCompletions[cColchonKey] = !cDone;
+            saveRutinas(); renderRutinas();
+          };
+          col.appendChild(colchon);
+        }
       });
     }
 
@@ -8883,8 +8970,8 @@ document.addEventListener('DOMContentLoaded', function() {
   <div id="eventosList" style="display:flex;flex-direction:column;gap:.8rem"></div>
 
   <!-- Modal nuevo evento -->
-  <div id="eventoModal" style="display:none;position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:1rem">
-    <div style="background:var(--card);border-radius:20px;padding:1.5rem;max-width:460px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+  <div id="eventoModal" style="display:none;position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.55);align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto" onclick="if(event.target===this)eventoModalCerrar()">
+    <div style="background:var(--card);border-radius:20px;padding:1.5rem;max-width:460px;width:100%;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)" onclick="event.stopPropagation()">
       <h3 style="font-family:var(--font-title);font-size:1.1rem;color:var(--rosa);margin-bottom:1.1rem">📅 Nuevo evento</h3>
 
       <label style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Nombre del evento</label>
@@ -8954,6 +9041,24 @@ document.addEventListener('DOMContentLoaded', function() {
   <button class="rutina-new-btn" id="desgloseNewBtn" style="margin-top:.8rem">＋ Nueva tarea compleja</button>
 </section>
 
+<!-- ── CESTO DE PENDIENTES OLVIDADOS ── -->
+<section class="rutinas-section" id="sec-cesto" style="margin-top:2rem;margin-bottom:2rem">
+  <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:.3rem" onclick="cestoToggle()">
+    <div>
+      <span class="section-sub">🧺 sin prisa</span>
+      <h2 class="section-title" style="margin-bottom:0"><em>Cesto de</em> Pendientes</h2>
+    </div>
+    <span id="cestoArrow" style="font-size:1rem;color:var(--muted);transition:transform .2s;display:inline-block">▼</span>
+  </div>
+  <p style="font-size:.75rem;color:var(--muted);font-weight:600;line-height:1.6;margin-bottom:.9rem">
+    Aquí viven las tareas que llevan más de 3 días esperando. Sin culpa, sin juicio — cuando puedas, cuando quieras 🌸
+  </p>
+  <div id="cestoBox" style="display:none">
+    <div id="cestoList" style="display:flex;flex-direction:column;gap:.5rem"></div>
+  </div>
+  <div id="cestoBadge" style="display:none;margin-top:.3rem"></div>
+</section>
+
 </div><!-- end page-tareas -->
 <div id="page-rutinas" class="page-section">
 <div id="sec-rutinas-nav" style="scroll-margin-top:60px"></div>
@@ -9011,17 +9116,90 @@ document.addEventListener('DOMContentLoaded', function() {
       <div id="utListaTareas" style="display:flex;flex-direction:column;gap:.4rem;max-height:200px;overflow-y:auto;margin-bottom:.7rem"></div>
     </div>
     <div id="utPantallaEnfoque" style="display:none;text-align:center;padding:.5rem 0">
-      <div style="font-size:3rem;margin-bottom:.6rem">🎯</div>
-      <p style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem">ahora mismo</p>
-      <p id="utTareaActual" style="font-size:1.15rem;font-weight:800;color:var(--text);line-height:1.4;margin-bottom:1.2rem;padding:0 .5rem"></p>
-      <div style="display:flex;gap:.6rem;justify-content:center">
-        <button onclick="utCompletar()" style="padding:.6rem 1.2rem;border-radius:12px;border:none;background:var(--rosa);color:#fff;font-family:var(--font-body);font-size:.82rem;font-weight:800;cursor:pointer">✓ ¡Lista!</button>
-        <button onclick="utCancelar()" style="padding:.6rem 1rem;border-radius:12px;border:1.5px solid var(--border);background:none;color:var(--muted);font-family:var(--font-body);font-size:.82rem;font-weight:700;cursor:pointer">Cambiar</button>
+      <p style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem">ahora mismo</p>
+      <p id="utTareaActual" style="font-size:1.05rem;font-weight:800;color:var(--text);line-height:1.4;margin-bottom:1.2rem;padding:0 .5rem"></p>
+
+      <!-- Time Timer circle -->
+      <div style="position:relative;display:inline-block;margin-bottom:1rem">
+        <svg id="utTimerSvg" width="200" height="200" viewBox="0 0 200 200" style="transform:rotate(-90deg)">
+          <!-- Fondo gris -->
+          <circle cx="100" cy="100" r="88" fill="none" stroke="var(--border)" stroke-width="16"/>
+          <!-- Arco de color que se vacía -->
+          <circle id="utTimerArc" cx="100" cy="100" r="88" fill="none"
+            stroke="var(--rosa)" stroke-width="16"
+            stroke-linecap="round"
+            stroke-dasharray="552.9" stroke-dashoffset="0"
+            style="transition:stroke-dashoffset .9s linear, stroke .5s"/>
+        </svg>
+        <!-- Texto central (tiempo restante) -->
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+          <span id="utTimerDisplay" style="font-size:2rem;font-weight:800;color:var(--text);letter-spacing:.02em;font-family:var(--font-body)">25:00</span>
+          <span id="utTimerStatus" style="font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:.15rem">listo</span>
+        </div>
       </div>
+
+      <!-- Selector de minutos -->
+      <div id="utTimerSetup" style="margin-bottom:.9rem">
+        <p style="font-size:.7rem;color:var(--muted);font-weight:700;margin-bottom:.5rem">¿Cuánto tiempo?</p>
+        <div style="display:flex;gap:.4rem;justify-content:center;flex-wrap:wrap">
+          <button onclick="utSetMinutes(5)"  class="ut-min-btn">5 min</button>
+          <button onclick="utSetMinutes(10)" class="ut-min-btn">10 min</button>
+          <button onclick="utSetMinutes(25)" class="ut-min-btn active">25 min</button>
+          <button onclick="utSetMinutes(45)" class="ut-min-btn">45 min</button>
+          <button onclick="utSetMinutes(60)" class="ut-min-btn">60 min</button>
+        </div>
+      </div>
+
+      <!-- Botones control -->
+      <div style="display:flex;gap:.6rem;justify-content:center;margin-bottom:.8rem">
+        <button id="utTimerPlayBtn" onclick="utTimerToggle()" style="padding:.6rem 1.4rem;border-radius:12px;border:none;background:var(--rosa);color:#fff;font-family:var(--font-body);font-size:.85rem;font-weight:800;cursor:pointer">▶ Iniciar</button>
+        <button onclick="utTimerReset()" style="padding:.6rem 1rem;border-radius:12px;border:1.5px solid var(--border);background:none;color:var(--muted);font-family:var(--font-body);font-size:.82rem;font-weight:700;cursor:pointer">↺</button>
+        <button onclick="utCompletar()" style="padding:.6rem 1.2rem;border-radius:12px;border:none;background:var(--surface);color:var(--rosa);border:1.5px solid var(--rosa);font-family:var(--font-body);font-size:.82rem;font-weight:800;cursor:pointer">✓ ¡Lista!</button>
+      </div>
+      <button onclick="utCancelar()" style="background:none;border:none;color:var(--muted2);font-family:var(--font-body);font-size:.75rem;font-weight:700;cursor:pointer">← cambiar tarea</button>
     </div>
   </div>
 </section>
 </div><!-- end page-concentro -->
+
+<div id="page-transiciones" class="page-section">
+<div id="sec-transiciones-nav" style="scroll-margin-top:60px"></div>
+<section class="rutinas-section" id="sec-transiciones" style="margin-top:1rem;margin-bottom:2rem">
+  <span class="section-sub">🔄 cambio de actividad</span>
+  <h2 class="section-title"><em>Transiciones</em></h2>
+  <p style="font-size:.75rem;color:var(--muted);font-weight:600;line-height:1.6;margin-bottom:1.2rem">Tu cerebro necesita tiempo para prepararse para el cambio. Aquí te avisamos con 10 minutos de anticipación para que no sea una sorpresa 🧩</p>
+
+  <button onclick="transNueva()" style="width:100%;padding:.65rem;border-radius:12px;border:1.5px dashed var(--rosa);background:none;color:var(--rosa);font-family:var(--font-body);font-size:.82rem;font-weight:800;cursor:pointer;margin-bottom:1.1rem">＋ Nueva transición de hoy</button>
+
+  <div id="transList" style="display:flex;flex-direction:column;gap:.7rem"></div>
+
+  <!-- Modal nueva transición -->
+  <div id="transModal" style="display:none;position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.5);align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto" onclick="if(event.target===this)transModalCerrar()">
+    <div style="background:var(--card);border-radius:20px;padding:1.5rem;max-width:420px;width:100%;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)" onclick="event.stopPropagation()">
+      <h3 style="font-family:var(--font-title);font-size:1.05rem;color:var(--rosa);margin-bottom:1.1rem;font-style:italic">🔄 Nueva transición</h3>
+
+      <label style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Actividad actual</label>
+      <input id="transActual" placeholder="Ej: Leer, estudiar, ver series…" style="width:100%;box-sizing:border-box;margin:.3rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none">
+
+      <label style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Actividad siguiente</label>
+      <input id="transSiguiente" placeholder="Ej: Cocinar, estudiar, dormir…" style="width:100%;box-sizing:border-box;margin:.3rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none">
+
+      <label style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Hora del cambio</label>
+      <input id="transHora" type="time" style="width:100%;box-sizing:border-box;margin:.3rem 0 1.1rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none">
+
+      <div style="background:var(--rosa-soft);border-radius:10px;padding:.7rem .9rem;margin-bottom:1.1rem">
+        <p style="font-size:.72rem;font-weight:700;color:var(--rosa);margin-bottom:.2rem">🔔 Recibirás un aviso:</p>
+        <p id="transPreview" style="font-size:.76rem;font-weight:600;color:var(--muted);line-height:1.5">— completa los campos para ver el aviso —</p>
+      </div>
+
+      <div style="display:flex;gap:.6rem">
+        <button onclick="transGuardar()" style="flex:1;padding:.65rem;border-radius:12px;border:none;background:var(--rosa);color:#fff;font-family:var(--font-body);font-size:.84rem;font-weight:800;cursor:pointer">Guardar</button>
+        <button onclick="transModalCerrar()" style="padding:.65rem 1rem;border-radius:12px;border:1.5px solid var(--border);background:none;color:var(--muted);font-family:var(--font-body);font-size:.84rem;font-weight:700;cursor:pointer">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</section>
+</div><!-- end page-transiciones -->
 <div id="page-journal" class="page-section">
 <div id="sec-journal-nav" style="scroll-margin-top:60px"></div>
 
@@ -10378,11 +10556,8 @@ function loadSpark() {
     renderIdeas();
     renderSparkDots(raw.dotLevel || 0);
 
-    // Mostrar rango de fechas actual en el label
-    const dates = getWeekDates(weekOffset);
-    const fmt = d => d.toLocaleDateString('es-MX', {day:'numeric', month:'short'});
     const lbl = document.getElementById('sparkRangeLabel');
-    if (lbl) lbl.textContent = `Mi proyecto / interés especial · ${fmt(dates[0])} - ${fmt(dates[2])}`;
+    if (lbl) lbl.textContent = 'Mi proyecto / interés especial actual';
   } catch(e) {}
 }
 
@@ -10604,37 +10779,210 @@ function renderSparkHistorial() {
   el.innerHTML = '';
   sparkHistorial.slice().reverse().forEach(function(h, i) {
     const card = document.createElement('div');
-    card.style.cssText = 'background: var(--card);border:1.5px solid var(--border);border-radius:10px;padding:.55rem .75rem;margin-bottom:.4rem;display:flex;align-items:flex-start;gap:.5rem';
-    const hrs = Math.floor(h.minutes/60);
-    const mins = h.minutes % 60;
+    card.style.cssText = 'background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:.7rem .85rem;margin-bottom:.55rem';
+    const hrs  = Math.floor((h.minutes||0)/60);
+    const mins = (h.minutes||0) % 60;
+
+    // Rango de fechas legible
+    var fechaStr = h.date || '';
+    if (h.fechaInicio && h.fechaFin) {
+      var fmt = function(s){ var d=new Date(s+'T12:00:00'); return d.toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'}); };
+      fechaStr = h.fechaInicio===h.fechaFin ? fmt(h.fechaInicio) : fmt(h.fechaInicio)+' → '+fmt(h.fechaFin);
+    }
+
+    var photosHtml = '';
+    if (h.photos && h.photos.length) {
+      photosHtml = '<div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.5rem">' +
+        h.photos.map(function(src){
+          return '<img src="'+src+'" style="width:52px;height:52px;object-fit:cover;border-radius:8px;border:1.5px solid var(--border);cursor:pointer" onclick="sparkOpenPhoto(\''+src+'\')">';
+        }).join('') +
+      '</div>';
+    }
+
     card.innerHTML =
-      '<div style="font-size:1.2rem;line-height:1">' + (h.icon||'⭐') + '</div>' +
-      '<div style="flex:1;min-width:0">' +
-        '<div style="font-size:.75rem;font-weight:800;color:var(--text);margin-bottom:.1rem">' + (h.title || 'Sin título') + '</div>' +
-        '<div style="font-size:.62rem;color:var(--muted2);font-weight:600">' + h.date + ' · ' + hrs + 'h ' + mins + 'm</div>' +
-        (h.notes ? '<div style="font-size:.65rem;color:var(--muted);margin-top:.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + h.notes.slice(0,80) + (h.notes.length>80?'…':'') + '</div>' : '') +
+      '<div style="display:flex;align-items:flex-start;gap:.5rem">' +
+        '<div style="font-size:1.2rem;line-height:1;margin-top:.1rem">'+(h.icon||'⭐')+'</div>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div style="font-size:.78rem;font-weight:800;color:var(--text);margin-bottom:.15rem">'+(h.title||'Sin título')+'</div>'+
+          '<div style="font-size:.63rem;color:var(--muted2);font-weight:600">'+fechaStr+(hrs||mins?' · '+hrs+'h '+mins+'m':'')+'</div>'+
+          (h.notes ? '<div style="font-size:.66rem;color:var(--muted);margin-top:.25rem;line-height:1.4">'+(h.notes.length>100?h.notes.slice(0,100)+'…':h.notes)+'</div>' : '')+
+          (h.notaCierre ? '<div style="font-size:.66rem;color:var(--rosa);margin-top:.25rem;font-style:italic;line-height:1.4">💬 '+h.notaCierre+'</div>' : '')+
+          photosHtml+
+        '</div>'+
       '</div>';
     el.appendChild(card);
   });
 }
+
+window.sparkOpenPhoto = function(src) {
+  var ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:1rem';
+  ov.onclick = function(){ ov.remove(); };
+  var img = document.createElement('img');
+  img.src = src;
+  img.style.cssText = 'max-width:100%;max-height:90vh;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.5)';
+  ov.appendChild(img);
+  document.body.appendChild(ov);
+};
 function archiveCurrentSpark() {
   const title = (document.getElementById('sparkTitle')||{}).value || '';
   if (!title.trim()) { alert('Escribe el nombre del proyecto antes de archivar 🐱'); return; }
-  const notes = (document.getElementById('sparkNotes')||{}).value || '';
-  const icon = SPARK_ICONS[sparkIconIdx] || '⭐';
-  const date = new Date().toLocaleDateString('es-MX', {day:'numeric', month:'short', year:'numeric'});
-  sparkHistorial.push({ title: title.trim(), notes, icon, date, minutes: sparkTotalMinutes });
+
+  // Inyectar estilos del modal una sola vez
+  if (!document.getElementById('sparkArchiveStyles')) {
+    var st = document.createElement('style');
+    st.id = 'sparkArchiveStyles';
+    st.textContent = [
+      '.spark-arch-modal{position:fixed;inset:0;z-index:7000;background:rgba(0,0,0,.55);display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto}',
+      '.spark-arch-box{background:var(--card);border-radius:22px;padding:1.6rem;max-width:420px;width:100%;margin:auto;box-shadow:0 24px 60px rgba(0,0,0,.3);animation:emergFadeIn .35s ease both}',
+      '.spark-arch-label{font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:.35rem}',
+      '.spark-arch-input{width:100%;box-sizing:border-box;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none;margin-bottom:.9rem}',
+      '.spark-arch-input:focus{border-color:var(--rosa)}',
+      '.spark-photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:.9rem}',
+      '.spark-photo-thumb{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:1.5px solid var(--border)}',
+      '.spark-photo-add{width:100%;aspect-ratio:1;border-radius:10px;border:1.5px dashed var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.3rem;color:var(--muted2);transition:border-color .15s}',
+      '.spark-photo-add:hover{border-color:var(--rosa)}',
+      '.spark-photo-wrap{position:relative}',
+      '.spark-photo-del{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.6);border:none;color:#fff;font-size:.6rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}',
+    ].join('');
+    document.head.appendChild(st);
+  }
+
+  // Fotos temporales en memoria
+  var archivePhotos = [];
+
+  var today = new Date().toISOString().slice(0,10);
+
+  var m = document.createElement('div');
+  m.className = 'spark-arch-modal';
+  m.onclick = function(e){ if(e.target===m) m.remove(); };
+
+  m.innerHTML = [
+    '<div class="spark-arch-box" onclick="event.stopPropagation()">',
+      '<h3 style="font-family:var(--font-title);font-size:1.1rem;color:var(--rosa);font-style:italic;margin-bottom:1.2rem">✦ Archivar hiperfoco</h3>',
+
+      // Título (readonly)
+      '<label class="spark-arch-label">Interés / proyecto</label>',
+      '<div style="background:var(--surface);border-radius:10px;padding:.6rem .8rem;font-size:.86rem;font-weight:700;color:var(--text);margin-bottom:.9rem;border:1.5px solid var(--border)">',
+        '<span id="archTitlePreview"></span>',
+      '</div>',
+
+      // Fechas
+      '<label class="spark-arch-label">¿De cuándo a cuándo?</label>',
+      '<div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.9rem">',
+        '<input type="date" id="archFechaInicio" class="spark-arch-input" style="margin-bottom:0;flex:1" value="'+today+'">',
+        '<span style="color:var(--muted);font-weight:700;font-size:.8rem">→</span>',
+        '<input type="date" id="archFechaFin" class="spark-arch-input" style="margin-bottom:0;flex:1" value="'+today+'">',
+      '</div>',
+
+      // Fotos
+      '<label class="spark-arch-label">Fotos / recuerdos (opcional)</label>',
+      '<div class="spark-photo-grid" id="archPhotoGrid">',
+        '<label class="spark-photo-add" title="Agregar foto">',
+          '<input type="file" accept="image/*" multiple style="display:none" onchange="archHandlePhotos(this)">',
+          '📷',
+        '</label>',
+      '</div>',
+
+      // Nota cierre
+      '<label class="spark-arch-label">Nota de cierre (opcional)</label>',
+      '<textarea id="archNotaCierre" class="spark-arch-input" rows="2" placeholder="¿Qué aprendiste? ¿Cómo te fue? ¿Lo retomás? 🌸" style="resize:vertical;margin-bottom:1.1rem"></textarea>',
+
+      // Botones
+      '<div style="display:flex;gap:.6rem">',
+        '<button onclick="archiveConfirmar()" style="flex:1;padding:.65rem;border-radius:12px;border:none;background:var(--rosa);color:#fff;font-family:var(--font-body);font-size:.84rem;font-weight:800;cursor:pointer">Archivar ✦</button>',
+        '<button onclick="document.querySelector(\'.spark-arch-modal\').remove()" style="padding:.65rem 1rem;border-radius:12px;border:1.5px solid var(--border);background:none;color:var(--muted);font-family:var(--font-body);font-size:.84rem;font-weight:700;cursor:pointer">Cancelar</button>',
+      '</div>',
+    '</div>',
+  ].join('');
+
+  document.body.appendChild(m);
+  var prev = document.getElementById('archTitlePreview');
+  if (prev) prev.textContent = title.trim();
+}
+
+window.archHandlePhotos = function(input) {
+  var files = Array.from(input.files);
+  if (!files.length) return;
+  files.forEach(function(file) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var b64 = e.target.result;
+      window._archivePhotos = window._archivePhotos || [];
+      window._archivePhotos.push(b64);
+      archRenderPhotoGrid();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+};
+
+function archRenderPhotoGrid() {
+  var grid = document.getElementById('archPhotoGrid'); if(!grid) return;
+  var photos = window._archivePhotos || [];
+  grid.innerHTML = photos.map(function(src, i){
+    return '<div class="spark-photo-wrap">'+
+      '<img src="'+src+'" class="spark-photo-thumb">'+
+      '<button class="spark-photo-del" onclick="archDelPhoto('+i+')">✕</button>'+
+    '</div>';
+  }).join('') +
+  '<label class="spark-photo-add" title="Agregar foto">'+
+    '<input type="file" accept="image/*" multiple style="display:none" onchange="archHandlePhotos(this)">'+
+    '📷'+
+  '</label>';
+}
+
+window.archDelPhoto = function(i) {
+  if (window._archivePhotos) {
+    window._archivePhotos.splice(i, 1);
+    archRenderPhotoGrid();
+  }
+};
+
+window.archiveConfirmar = function() {
+  var title = (document.getElementById('sparkTitle')||{}).value || '';
+  var notes = (document.getElementById('sparkNotes')||{}).value || '';
+  var icon  = SPARK_ICONS[sparkIconIdx] || '⭐';
+  var fechaInicio = (document.getElementById('archFechaInicio')||{}).value || '';
+  var fechaFin    = (document.getElementById('archFechaFin')||{}).value || '';
+  var notaCierre  = (document.getElementById('archNotaCierre')||{}).value || '';
+
+  var entry = {
+    title: title.trim(),
+    notes: notes,
+    notaCierre: notaCierre.trim(),
+    icon: icon,
+    fechaInicio: fechaInicio,
+    fechaFin: fechaFin,
+    minutes: sparkTotalMinutes,
+    photos: window._archivePhotos ? window._archivePhotos.slice() : [],
+  };
+  sparkHistorial.push(entry);
   saveSparkHistorial();
   renderSparkHistorial();
-  // Resetear tiempo y pins del proyecto actual
-  sparkTotalMinutes = 0;
-  saveSparkTime();
-  updateSparkTimeDisplay();
-  sparkPins = [];
-  saveSparkPins();
-  renderSparkPins();
-  alert('¡Hiperfoco archivado! 🎉 Puedes comenzar uno nuevo.');
-}
+
+  // Limpiar campo activo
+  var titleEl = document.getElementById('sparkTitle');
+  var notesEl = document.getElementById('sparkNotes');
+  if (titleEl) { titleEl.value = ''; }
+  if (notesEl) { notesEl.value = ''; }
+  ideas = []; renderIdeas();
+  sparkIconIdx = 0;
+  var emojiEl = document.getElementById('sparkEmoji');
+  if (emojiEl) emojiEl.textContent = SPARK_ICONS[0];
+  sparkTotalMinutes = 0; saveSparkTime(); updateSparkTimeDisplay();
+  sparkPins = []; saveSparkPins(); renderSparkPins();
+  renderSparkDots(0);
+  saveSpark();
+
+  window._archivePhotos = [];
+  var m = document.querySelector('.spark-arch-modal');
+  if (m) m.remove();
+
+  // Pequeño feedback
+  var chip = document.getElementById('sparkEmoji');
+  if (chip && window.starBurst) starBurst(chip);
+};
 
 // Override render to also re-render checkin/spark when week changes
 const _origRender = render;
@@ -13104,6 +13452,99 @@ function configLoadExperience() {
 // ── UNA SOLA TAREA ──────────────────────────────────────
 var _utModo = 'escribir';
 var _utTareaActiva = null;
+var _utTimerTotal = 25 * 60;
+var _utTimerLeft  = 25 * 60;
+var _utTimerRunning = false;
+var _utTimerInterval = null;
+var UT_CIRCUMFERENCE = 2 * Math.PI * 88; // ≈ 552.9
+
+// CSS para botones de minutos
+(function(){
+  var s = document.createElement('style');
+  s.textContent = [
+    '.ut-min-btn{padding:.3rem .75rem;border-radius:20px;border:1.5px solid var(--border);',
+    'background:var(--surface);color:var(--muted);font-family:var(--font-body);',
+    'font-size:.72rem;font-weight:700;cursor:pointer;transition:all .15s}',
+    '.ut-min-btn.active,.ut-min-btn:hover{background:var(--rosa);border-color:var(--rosa);color:#fff}'
+  ].join('');
+  document.head.appendChild(s);
+})();
+
+window.utSetMinutes = function(min) {
+  utTimerStop();
+  _utTimerTotal = min * 60;
+  _utTimerLeft  = min * 60;
+  document.querySelectorAll('.ut-min-btn').forEach(function(b){
+    b.classList.toggle('active', b.textContent.trim() === min + ' min');
+  });
+  utTimerDraw();
+};
+
+function utTimerDraw() {
+  var arc = document.getElementById('utTimerArc');
+  var disp = document.getElementById('utTimerDisplay');
+  var status = document.getElementById('utTimerStatus');
+  if (!arc || !disp) return;
+
+  var pct = _utTimerTotal > 0 ? _utTimerLeft / _utTimerTotal : 0;
+  var offset = UT_CIRCUMFERENCE * (1 - pct);
+  arc.style.strokeDashoffset = offset;
+
+  // Color: rosa → naranja → rojo según queda poco
+  var color = pct > 0.5 ? 'var(--rosa)' : pct > 0.2 ? '#e8703a' : '#e84040';
+  arc.style.stroke = color;
+
+  var m = Math.floor(_utTimerLeft / 60);
+  var s = _utTimerLeft % 60;
+  disp.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+
+  if (status) {
+    status.textContent = _utTimerRunning ? 'concentrada 🎯' : (_utTimerLeft === _utTimerTotal ? 'listo' : 'pausado');
+  }
+
+  var btn = document.getElementById('utTimerPlayBtn');
+  if (btn) btn.textContent = _utTimerRunning ? '⏸ Pausar' : '▶ Iniciar';
+}
+
+window.utTimerToggle = function() {
+  if (_utTimerRunning) {
+    utTimerStop();
+  } else {
+    if (_utTimerLeft <= 0) { utTimerReset(); return; }
+    _utTimerRunning = true;
+    document.getElementById('utTimerSetup').style.display = 'none';
+    _utTimerInterval = setInterval(function() {
+      _utTimerLeft--;
+      utTimerDraw();
+      if (_utTimerLeft <= 0) {
+        utTimerStop();
+        utTimerFinish();
+      }
+    }, 1000);
+    utTimerDraw();
+  }
+};
+
+function utTimerStop() {
+  _utTimerRunning = false;
+  clearInterval(_utTimerInterval);
+  utTimerDraw();
+}
+
+window.utTimerReset = function() {
+  utTimerStop();
+  _utTimerLeft = _utTimerTotal;
+  document.getElementById('utTimerSetup').style.display = '';
+  utTimerDraw();
+};
+
+function utTimerFinish() {
+  if (window.starBurst) starBurst(document.getElementById('utTimerSvg'));
+  try { new Notification('🌸 Yuki — ¡Tiempo!', { body: '¡Lo lograste! Tómate un respiro 💙' }); } catch(e){}
+  document.getElementById('utTimerSetup').style.display = '';
+  utTimerDraw();
+}
+
 
 window.utSetModo = function(modo) {
   _utModo = modo;
@@ -13159,6 +13600,15 @@ function utMostrarEnfoque(texto, id) {
   document.getElementById('utModoEscribir').style.display = 'none';
   document.getElementById('utModoLista').style.display = 'none';
   document.getElementById('utPantallaEnfoque').style.display = '';
+  // Init timer
+  utTimerStop();
+  _utTimerTotal = 25 * 60;
+  _utTimerLeft  = 25 * 60;
+  document.querySelectorAll('.ut-min-btn').forEach(function(b){
+    b.classList.toggle('active', b.textContent.trim() === '25 min');
+  });
+  document.getElementById('utTimerSetup').style.display = '';
+  utTimerDraw();
 }
 
 window.utCompletar = function() {
@@ -13172,6 +13622,7 @@ window.utCompletar = function() {
 };
 
 window.utCancelar = function() {
+  utTimerStop();
   _utTareaActiva = null;
   document.getElementById('utPantallaEnfoque').style.display = 'none';
   document.getElementById('utModoEscribir').style.display = '';
@@ -13190,12 +13641,17 @@ window.eventoNuevoModal = function() {
   });
   var f = document.getElementById('evFecha'); if (f) f.value = '';
   var m = document.getElementById('eventoModal');
-  if (m) { m.style.display = 'flex'; m._editId = null; }
+  if (m) {
+    m.style.display = 'flex';
+    m._editId = null;
+    document.body.style.overflow = 'hidden';
+  }
 };
 
 window.eventoModalCerrar = function() {
   var m = document.getElementById('eventoModal');
   if (m) m.style.display = 'none';
+  document.body.style.overflow = '';
 };
 
 window.eventoGuardar = function() {
@@ -13337,6 +13793,256 @@ function recuperInit() {
   if (el) el.textContent = RECUPER_FRASES[Math.floor(Math.random() * RECUPER_FRASES.length)];
   recuperRenderPasos();
 }
+
+// ── CESTO DE PENDIENTES OLVIDADOS ────────────────────────
+var _cestoOpen = false;
+
+function cestoGetOlvidadas() {
+  var ahora = Date.now();
+  var tres_dias = 3 * 24 * 60 * 60 * 1000;
+  var resultado = [];
+
+  // Fuente 1: tareas_v2 (lista de "Me concentro")
+  try {
+    var tv2 = JSON.parse(localStorage.getItem('tareas_v2') || '[]');
+    tv2.forEach(function(t) {
+      if (t.done) return;
+      if (!t.createdAt) return;
+      var edad = ahora - new Date(t.createdAt).getTime();
+      if (edad >= tres_dias) {
+        resultado.push({ id: t.id, texto: t.text || t.titulo || '(sin nombre)', emoji: t.emoji || '📌', fuente: 'tareas_v2', edad: edad });
+      }
+    });
+  } catch(e) {}
+
+  // Fuente 2: recurring_tasks con onceDate pasada
+  try {
+    var rt = JSON.parse(localStorage.getItem('recurring_tasks') || '[]');
+    rt.forEach(function(t) {
+      if (!t.createdAt) return;
+      var edad = ahora - new Date(t.createdAt).getTime();
+      if (edad >= tres_dias && t.recurrence === 'once') {
+        resultado.push({ id: t.id, texto: t.text || '(sin nombre)', emoji: '📅', fuente: 'recurring', edad: edad });
+      }
+    });
+  } catch(e) {}
+
+  return resultado;
+}
+
+function cestoDiasTexto(ms) {
+  var dias = Math.floor(ms / (24 * 60 * 60 * 1000));
+  return dias === 1 ? 'hace 1 día' : 'hace ' + dias + ' días';
+}
+
+window.cestoToggle = function() {
+  _cestoOpen = !_cestoOpen;
+  var box = document.getElementById('cestoBox');
+  var arrow = document.getElementById('cestoArrow');
+  if (box) box.style.display = _cestoOpen ? '' : 'none';
+  if (arrow) arrow.style.transform = _cestoOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+  if (_cestoOpen) cestoRender();
+};
+
+window.cestoRescatar = function(id, fuente) {
+  if (fuente === 'tareas_v2') {
+    var data = JSON.parse(localStorage.getItem('tareas_v2') || '[]');
+    data = data.map(function(t) {
+      if (t.id !== id) return t;
+      return Object.assign({}, t, { createdAt: new Date().toISOString() });
+    });
+    localStorage.setItem('tareas_v2', JSON.stringify(data));
+  } else if (fuente === 'recurring') {
+    var rts = JSON.parse(localStorage.getItem('recurring_tasks') || '[]');
+    rts = rts.map(function(t) {
+      if (t.id !== id) return t;
+      return Object.assign({}, t, { createdAt: new Date().toISOString() });
+    });
+    localStorage.setItem('recurring_tasks', JSON.stringify(rts));
+  }
+  cestoRender();
+  cestoBadgeRender();
+};
+
+window.cestoArchivar = function(id, fuente) {
+  if (fuente === 'tareas_v2') {
+    var data = JSON.parse(localStorage.getItem('tareas_v2') || '[]');
+    data = data.filter(function(t) { return t.id !== id; });
+    localStorage.setItem('tareas_v2', JSON.stringify(data));
+  } else if (fuente === 'recurring') {
+    var rts = JSON.parse(localStorage.getItem('recurring_tasks') || '[]');
+    rts = rts.filter(function(t) { return t.id !== id; });
+    localStorage.setItem('recurring_tasks', JSON.stringify(rts));
+  }
+  cestoRender();
+  cestoBadgeRender();
+};
+
+function cestoRender() {
+  var cont = document.getElementById('cestoList');
+  if (!cont) return;
+  var items = cestoGetOlvidadas();
+  if (!items.length) {
+    cont.innerHTML = '<div style="text-align:center;padding:1.2rem;font-size:.78rem;color:var(--muted2);font-weight:600">¡El cesto está vacío! Todas tus tareas están al día 🌟</div>';
+    return;
+  }
+  cont.innerHTML = items.map(function(t) {
+    return '<div style="background:var(--card);border-radius:14px;padding:.8rem 1rem;border:1px solid var(--border);display:flex;align-items:center;gap:.7rem">' +
+      '<span style="font-size:1.1rem">' + t.emoji + '</span>' +
+      '<div style="flex:1">' +
+        '<p style="font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:.2rem">' + t.texto + '</p>' +
+        '<p style="font-size:.68rem;color:var(--muted2);font-weight:600">' + cestoDiasTexto(t.edad) + '</p>' +
+      '</div>' +
+      '<button onclick="cestoRescatar(\'' + t.id + '\',\'' + t.fuente + '\')" title="Volver a la lista" style="background:var(--rosa-soft);border:none;border-radius:8px;padding:.3rem .6rem;cursor:pointer;font-size:.72rem;font-weight:800;color:var(--rosa)">↩ Retomar</button>' +
+      '<button onclick="cestoArchivar(\'' + t.id + '\',\'' + t.fuente + '\')" title="Eliminar" style="background:none;border:none;cursor:pointer;color:var(--muted2);font-size:.8rem;padding:.2rem .4rem">✕</button>' +
+    '</div>';
+  }).join('');
+}
+
+function cestoBadgeRender() {
+  var badge = document.getElementById('cestoBadge');
+  if (!badge) return;
+  var n = cestoGetOlvidadas().length;
+  if (n === 0) { badge.style.display = 'none'; return; }
+  badge.style.display = '';
+  badge.innerHTML = '<span style="font-size:.72rem;font-weight:800;color:var(--muted);background:var(--surface);border-radius:20px;padding:.2rem .7rem;border:1px solid var(--border)">' + n + ' tarea' + (n !== 1 ? 's' : '') + ' esperando 🧺</span>';
+}
+
+// Init al cargar Tareas
+var _origShowForCesto = window.showPage;
+window.showPage = function(p) {
+  if (_origShowForCesto) _origShowForCesto(p);
+  if (p === 'page-tareas') setTimeout(cestoBadgeRender, 300);
+};
+
+// ── TRANSICIONES ─────────────────────────────────────────
+function transLoad() { try { return JSON.parse(localStorage.getItem('trans_data') || '[]'); } catch(e) { return []; } }
+function transSave(d) { localStorage.setItem('trans_data', JSON.stringify(d)); }
+
+window.transNueva = function() {
+  ['transActual','transSiguiente'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  var h = document.getElementById('transHora'); if(h) h.value='';
+  var prev = document.getElementById('transPreview'); if(prev) prev.textContent='— completa los campos para ver el aviso —';
+  var m = document.getElementById('transModal'); if(m){ m.style.display='flex'; m._editId=null; document.body.style.overflow='hidden'; }
+  // Live preview
+  ['transActual','transSiguiente','transHora'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.oninput = transUpdatePreview;
+  });
+};
+
+function transUpdatePreview() {
+  var actual = (document.getElementById('transActual').value||'').trim();
+  var sig    = (document.getElementById('transSiguiente').value||'').trim();
+  var hora   = document.getElementById('transHora').value||'';
+  var prev   = document.getElementById('transPreview');
+  if(!prev) return;
+  if(!actual || !sig || !hora) { prev.textContent='— completa los campos para ver el aviso —'; return; }
+  // Calcular hora del aviso (10 min antes)
+  var parts = hora.split(':');
+  var d = new Date(); d.setHours(parseInt(parts[0]), parseInt(parts[1])-10, 0);
+  var hh = String(d.getHours()).padStart(2,'0');
+  var mm = String(d.getMinutes()).padStart(2,'0');
+  prev.textContent = 'A las ' + hh + ':' + mm + ' — "En 10 minutos vas a terminar de ' + actual.toLowerCase() + ' y empezarás a ' + sig.toLowerCase() + '"';
+}
+
+window.transModalCerrar = function() {
+  var m = document.getElementById('transModal'); if(m) m.style.display='none';
+  document.body.style.overflow='';
+};
+
+window.transGuardar = function() {
+  var actual = (document.getElementById('transActual').value||'').trim();
+  var sig    = (document.getElementById('transSiguiente').value||'').trim();
+  var hora   = document.getElementById('transHora').value||'';
+  if(!actual || !sig || !hora) return;
+  var data = transLoad();
+  var hoy = new Date().toISOString().slice(0,10);
+  data.push({ id: Date.now().toString(), actual: actual, siguiente: sig, hora: hora, fecha: hoy, fired10: false, firedChange: false });
+  transSave(data);
+  transModalCerrar();
+  transRender();
+};
+
+window.transEliminar = function(id) {
+  transSave(transLoad().filter(function(t){ return t.id!==id; }));
+  transRender();
+};
+
+function transHoraAviso(hora) {
+  var parts = hora.split(':');
+  var d = new Date(); d.setHours(parseInt(parts[0]), parseInt(parts[1])-10, 0);
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+
+function transRender() {
+  var cont = document.getElementById('transList'); if(!cont) return;
+  var hoy = new Date().toISOString().slice(0,10);
+  var data = transLoad().filter(function(t){ return t.fecha === hoy; });
+  if(!data.length) {
+    cont.innerHTML = '<p style="font-size:.78rem;color:var(--muted2);text-align:center;padding:1rem;font-weight:600">No hay transiciones para hoy 🌸<br><span style="font-size:.72rem">Añade una arriba para que te avisemos</span></p>';
+    return;
+  }
+  var ahora = new Date();
+  var nowStr = String(ahora.getHours()).padStart(2,'0') + ':' + String(ahora.getMinutes()).padStart(2,'0');
+  cont.innerHTML = data.map(function(t) {
+    var pasada = t.hora <= nowStr;
+    var avisoHora = transHoraAviso(t.hora);
+    return '<div style="background:var(--card);border-radius:16px;padding:1rem 1.1rem;border:1.5px solid ' + (pasada ? 'var(--border)' : 'var(--rosa)') + ';opacity:' + (pasada ? '.6' : '1') + '">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">' +
+        '<div style="display:flex;align-items:center;gap:.5rem">' +
+          '<span style="font-size:.72rem;font-weight:800;background:var(--rosa-soft);color:var(--rosa);padding:.2rem .6rem;border-radius:20px">⏰ ' + t.hora + '</span>' +
+          (pasada ? '<span style="font-size:.68rem;color:var(--muted2);font-weight:700">completada</span>' : '<span style="font-size:.68rem;color:var(--rosa);font-weight:700">activa</span>') +
+        '</div>' +
+        '<button onclick="transEliminar(\'' + t.id + '\')" style="background:none;border:none;cursor:pointer;color:var(--muted2);font-size:.8rem">✕</button>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">' +
+        '<span style="font-size:.82rem;font-weight:700;color:var(--text)">' + t.actual + '</span>' +
+        '<span style="color:var(--rosa);font-size:.9rem">→</span>' +
+        '<span style="font-size:.82rem;font-weight:700;color:var(--text)">' + t.siguiente + '</span>' +
+      '</div>' +
+      '<p style="font-size:.7rem;color:var(--muted2);font-weight:600;margin-top:.4rem">🔔 Aviso a las ' + avisoHora + ' (10 min antes)</p>' +
+    '</div>';
+  }).join('');
+}
+
+// Verificar transiciones cada minuto
+setInterval(function() {
+  if(typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  var hoy = new Date().toISOString().slice(0,10);
+  var ahora = new Date();
+  var nowStr = String(ahora.getHours()).padStart(2,'0') + ':' + String(ahora.getMinutes()).padStart(2,'0');
+  var data = transLoad();
+  var changed = false;
+  data.forEach(function(t) {
+    if(t.fecha !== hoy) return;
+    // Aviso 10 min antes
+    var aviso10 = transHoraAviso(t.hora);
+    if(!t.fired10 && nowStr === aviso10) {
+      t.fired10 = true; changed = true;
+      try { new Notification('🔄 Yuki — Transición en 10 minutos', {
+        body: 'En 10 minutos vas a terminar de ' + t.actual.toLowerCase() + ' y empezarás a ' + t.siguiente.toLowerCase() + ' 🌸',
+        tag: 'trans10_' + t.id
+      }); } catch(e) {}
+    }
+    // Aviso al momento del cambio
+    if(!t.firedChange && nowStr === t.hora) {
+      t.firedChange = true; changed = true;
+      try { new Notification('🔄 Yuki — ¡Hora de cambiar!', {
+        body: 'Es momento de pasar de ' + t.actual.toLowerCase() + ' a ' + t.siguiente.toLowerCase() + ' 💙',
+        tag: 'transChange_' + t.id
+      }); } catch(e) {}
+    }
+  });
+  if(changed) { transSave(data); transRender(); }
+}, 60000);
+
+// Hook showPage
+var _origShowTrans = window.showPage;
+window.showPage = function(p) {
+  if(_origShowTrans) _origShowTrans(p);
+  if(p === 'page-transiciones') setTimeout(transRender, 200);
+};
 
 window.toggleSueno = function() {
   var col = document.getElementById('suenoCollapsible');
@@ -14152,6 +14858,7 @@ const DRAWER_STRUCTURE = {
       { icon:'', label:'Tareas',  page:'page-tareas'  },
       { icon:'', label:'Rutinas', page:'page-rutinas' },
       { icon:'', label:'Me concentro', page:'page-concentro' },
+      { icon:'', label:'Transiciones', page:'page-transiciones' },
     ]},
   ],
   bottom: [
@@ -14309,6 +15016,14 @@ function renderDrawerNav() {
   focusBtn.innerHTML = '🎯 Modo Enfoque';
   focusBtn.onclick = function() { closeDrawer(); openFocusMode(); };
   wrap.appendChild(focusBtn);
+
+  // Emergencia button
+  var emergBtn = document.createElement('button');
+  emergBtn.className = 'drawer-focus-btn';
+  emergBtn.innerHTML = '🆘 Modo Emergencia';
+  emergBtn.style.cssText = 'margin-top:.4rem;background:linear-gradient(135deg,#e8703a22,#a78bfa22);border-color:#a78bfa;color:#a78bfa';
+  emergBtn.onclick = function() { closeDrawer(); openModoEmergencia(); };
+  wrap.appendChild(emergBtn);
 
   // Bottom items (always visible)
   DRAWER_STRUCTURE.bottom.forEach(function(item) {
@@ -15951,8 +16666,8 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="spark-header">
       <div class="spark-icon-wrap" id="sparkEmoji" title="Haz clic para cambiar" style="cursor:pointer" onclick="cycleSparkIcon()">⭐</div>
       <div class="spark-titles">
-        <span class="spark-label" id="sparkRangeLabel">Mi proyecto / interés especial de estos 3 días</span>
-        <input class="spark-title-input" id="sparkTitle" placeholder="¿En qué estoy enfocada estos días?" />
+        <span class="spark-label" id="sparkRangeLabel">Mi proyecto / interés especial actual</span>
+        <input class="spark-title-input" id="sparkTitle" placeholder="¿En qué estoy enfocada ahora?" />
       </div>
     </div>
 
@@ -17110,6 +17825,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="listas-tabs">
     <button class="lista-tab active" onclick="listasSetTab('rapidas')">⚡ Listas rápidas</button>
     <button class="lista-tab" onclick="listasSetTab('watchlist')">🎬 Watchlist & Lecturas</button>
+    <button class="lista-tab" onclick="listasSetTab('wishlist')">✨ Wishlist</button>
   </div>
 
   <!-- Listas rápidas -->
@@ -17118,13 +17834,19 @@ document.addEventListener('DOMContentLoaded', function() {
     <button class="add-ql-btn" onclick="openQlModal(null)">＋ Nueva lista</button>
   </div>
 
-  <!-- Watchlist -->
-  <div id="listasTabWatchlist" style="display:none">
-    <div class="wl-cat-tabs" id="wlCatTabs"></div>
-    <div class="wl-status-filter" id="wlStatusFilter"></div>
-    <div class="wl-status-filter" id="wlClasFilter" style="margin-bottom:.5rem"></div>
-    <div class="wl-grid" id="wlGrid"></div>
-    <button class="wl-add-btn" onclick="openWlModal(null)">＋ Agregar entrada</button>
+  <!-- Wishlist -->
+  <div id="listasTabWishlist" style="display:none">
+    <!-- Filtros -->
+    <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.7rem;align-items:center">
+      <span style="font-size:.62rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2)">Estado:</span>
+      <div id="wshStatusFilter"></div>
+    </div>
+    <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:1rem;align-items:center">
+      <span style="font-size:.62rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2)">Precio:</span>
+      <div id="wshPrecioFilter"></div>
+    </div>
+    <div id="wshGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.7rem"></div>
+    <button class="wl-add-btn" style="margin-top:.8rem" onclick="openWshModal()">✨ Agregar a wishlist</button>
   </div>
 </section>
 
@@ -17161,10 +17883,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
   window.listasSetTab = function(tab) {
     listasTab = tab;
-    document.querySelectorAll('.lista-tab').forEach(function(b,i){ b.classList.toggle('active',['rapidas','watchlist'][i]===tab); });
+    document.querySelectorAll('.lista-tab').forEach(function(b,i){ b.classList.toggle('active',['rapidas','watchlist','wishlist'][i]===tab); });
     document.getElementById('listasTabRapidas').style.display = tab==='rapidas'?'':'none';
     document.getElementById('listasTabWatchlist').style.display = tab==='watchlist'?'':'none';
+    document.getElementById('listasTabWishlist').style.display   = tab==='wishlist'  ?'':'none';
     if(tab==="watchlist"){ renderWlCatTabs(); renderWlStatusFilter(); renderWlClasFilter(); renderWlGrid(); }
+    if(tab==='wishlist') { wshRenderFilters(); wshRenderGrid(); }
   };
 
   // ── Render listas rápidas
@@ -17430,8 +18154,207 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('wlTitleInput').focus();
   };
 
+  // ══ WISHLIST ══════════════════════════════════════════════
+  var WSH_STATUSES = [
+    { id:'por_comprar', label:'🛒 Por comprar',  color:'#a78bfa', bg:'rgba(167,139,250,.12)' },
+    { id:'guardado',    label:'💾 Guardado',      color:'#6b7280', bg:'rgba(107,114,128,.1)'  },
+    { id:'comprado',    label:'✅ Comprado',       color:'#22c55e', bg:'rgba(34,197,94,.12)'   },
+    { id:'descartado',  label:'🚫 Descartado',    color:'#ef4444', bg:'rgba(239,68,68,.1)'    },
+  ];
+  var wshItems = [];
+  var wshStatusFilter = 'all';
+  var wshPrecioFilter = 'all';
+
+  function wshSave(){ try{ localStorage.setItem('wishlist_items', JSON.stringify(wshItems)); }catch(e){} if(window.cloudSave) window.cloudSave('wishlist_items', wshItems); }
+  function wshLoad(){ if(window._wishlistItems){ wshItems=window._wishlistItems; } else { try{ wshItems=JSON.parse(localStorage.getItem('wishlist_items')||'[]'); }catch(e){ wshItems=[]; } } }
+
+  // Rangos de precio derivados de los items
+  function wshGetRangos() {
+    var rangos = {};
+    wshItems.forEach(function(it){ if(it.rango) rangos[it.rango]=true; });
+    return Object.keys(rangos).sort();
+  }
+
+  function wshRenderFilters() {
+    // Estado
+    var sf = document.getElementById('wshStatusFilter'); if(!sf) return;
+    sf.innerHTML = '';
+    var allBtn = document.createElement('button');
+    allBtn.className = 'wl-cat-btn' + (wshStatusFilter==='all'?' active':'');
+    allBtn.textContent = 'Todos';
+    allBtn.onclick = function(){ wshStatusFilter='all'; wshRenderFilters(); wshRenderGrid(); };
+    sf.appendChild(allBtn);
+    WSH_STATUSES.forEach(function(s){
+      var b = document.createElement('button');
+      b.className = 'wl-cat-btn' + (wshStatusFilter===s.id?' active':'');
+      b.textContent = s.label;
+      b.style.cssText = wshStatusFilter===s.id ? 'background:'+s.color+';border-color:'+s.color+';color:#fff' : '';
+      b.onclick = function(){ wshStatusFilter=s.id; wshRenderFilters(); wshRenderGrid(); };
+      sf.appendChild(b);
+    });
+
+    // Precio
+    var pf = document.getElementById('wshPrecioFilter'); if(!pf) return;
+    pf.innerHTML = '';
+    var allP = document.createElement('button');
+    allP.className = 'wl-cat-btn' + (wshPrecioFilter==='all'?' active':'');
+    allP.textContent = 'Todos';
+    allP.onclick = function(){ wshPrecioFilter='all'; wshRenderFilters(); wshRenderGrid(); };
+    pf.appendChild(allP);
+    wshGetRangos().forEach(function(r){
+      var b = document.createElement('button');
+      b.className = 'wl-cat-btn' + (wshPrecioFilter===r?' active':'');
+      b.textContent = '💰 '+r;
+      b.onclick = function(){ wshPrecioFilter=r; wshRenderFilters(); wshRenderGrid(); };
+      pf.appendChild(b);
+    });
+    // Botón para agregar rango personalizado
+    var addR = document.createElement('button');
+    addR.className = 'wl-cat-btn';
+    addR.textContent = '＋ rango';
+    addR.style.cssText = 'border-style:dashed;color:var(--muted)';
+    addR.onclick = wshAgregarRango;
+    pf.appendChild(addR);
+  }
+
+  function wshRenderGrid() {
+    var grid = document.getElementById('wshGrid'); if(!grid) return;
+    var items = wshItems.filter(function(it){
+      if(wshStatusFilter!=='all' && it.status!==wshStatusFilter) return false;
+      if(wshPrecioFilter!=='all' && it.rango!==wshPrecioFilter) return false;
+      return true;
+    });
+    if(!items.length){
+      grid.innerHTML = '<div style="color:var(--muted2);font-size:.8rem;font-weight:600;text-align:center;padding:2rem 0;grid-column:1/-1">'+
+        (wshItems.length ? 'Ningún item con ese filtro 🌸' : 'Tu wishlist está vacía ✨<br><span style="font-size:.72rem">Agrega lo que sueñas tener</span>')+'</div>';
+      return;
+    }
+    grid.innerHTML = items.map(function(it){
+      var st = WSH_STATUSES.find(function(s){ return s.id===it.status; }) || WSH_STATUSES[0];
+      return '<div style="background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:.9rem 1rem;display:flex;flex-direction:column;gap:.45rem;position:relative;transition:box-shadow .2s" onmouseover="this.style.boxShadow=\'0 4px 16px rgba(0,0,0,.08)\'" onmouseout="this.style.boxShadow=\'\'">'+
+        // Delete btn
+        '<button onclick="wshEliminar(\''+it.id+'\')" style="position:absolute;top:.5rem;right:.5rem;background:none;border:none;color:transparent;font-size:.75rem;cursor:pointer;padding:.1rem .3rem;border-radius:6px;transition:color .15s" onmouseover="this.style.color=\'var(--rosa)\'" onmouseout="this.style.color=\'transparent\'" class="wsh-del-btn">✕</button>'+
+        // Status badge
+        '<span style="font-size:.6rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:.18rem .6rem;border-radius:20px;display:inline-block;width:fit-content;background:'+st.bg+';color:'+st.color+'">'+st.label+'</span>'+
+        // Nombre
+        '<p style="font-size:.88rem;font-weight:700;color:var(--text);line-height:1.3;margin:0;padding-right:.8rem">'+it.nombre+'</p>'+
+        // Categoría + rango
+        '<div style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center">'+
+          (it.categoria ? '<span style="font-size:.65rem;font-weight:700;color:var(--muted2)">'+it.categoria+'</span>' : '')+
+          (it.rango ? '<span style="font-size:.62rem;font-weight:800;padding:.12rem .5rem;border-radius:20px;background:var(--rosa-soft);color:var(--rosa)">💰 '+it.rango+'</span>' : '')+
+        '</div>'+
+        // Precio manual
+        (it.precio ? '<p style="font-size:.75rem;font-weight:700;color:var(--muted);margin:0">'+it.precio+'</p>' : '')+
+        // Nota
+        (it.nota ? '<p style="font-size:.7rem;color:var(--muted2);font-weight:600;margin:0;line-height:1.4;font-style:italic">'+it.nota+'</p>' : '')+
+        // Cambiar estado
+        '<select onchange="wshCambiarStatus(\''+it.id+'\',this.value)" style="font-size:.68rem;font-weight:700;font-family:var(--font-body);color:var(--muted);border:1.5px solid var(--border);border-radius:8px;padding:.2rem .4rem;background:var(--surface);cursor:pointer;outline:none;margin-top:.2rem">'+
+          WSH_STATUSES.map(function(s){ return '<option value="'+s.id+'"'+(it.status===s.id?' selected':'')+'>'+s.label+'</option>'; }).join('')+
+        '</select>'+
+      '</div>';
+    }).join('');
+    // Hover reveal delete btns via CSS override
+    grid.querySelectorAll('.wsh-del-btn').forEach(function(b){
+      b.closest('div').addEventListener('mouseenter',function(){ b.style.color='var(--muted2)'; });
+      b.closest('div').addEventListener('mouseleave',function(){ b.style.color='transparent'; });
+    });
+  }
+
+  window.wshCambiarStatus = function(id, status) {
+    var it = wshItems.find(function(x){ return x.id===id; });
+    if(it){ it.status=status; wshSave(); wshRenderFilters(); wshRenderGrid(); }
+  };
+
+  window.wshEliminar = function(id) {
+    wshItems = wshItems.filter(function(x){ return x.id!==id; });
+    wshSave(); wshRenderFilters(); wshRenderGrid();
+  };
+
+  window.wshAgregarRango = function() {
+    var r = prompt('Nombre del rango de precio (ej: $0-$100, Barato, Caro…)');
+    if(r && r.trim()) { wshPrecioFilter=r.trim(); wshRenderFilters(); wshRenderGrid(); }
+  };
+
+  // Modal agregar item
+  window.openWshModal = function() {
+    var rangos = wshGetRangos();
+    var rangoOpts = rangos.map(function(r){ return '<option value="'+r+'">'+r+'</option>'; }).join('');
+    var m = document.getElementById('wshModal');
+    if(m) m.remove();
+    m = document.createElement('div');
+    m.id = 'wshModal';
+    m.style.cssText = 'position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.5);display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto';
+    m.onclick = function(e){ if(e.target===m) m.remove(); };
+    m.innerHTML = '<div style="background:var(--card);border-radius:20px;padding:1.5rem;max-width:420px;width:100%;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)" onclick="event.stopPropagation()">'+
+      '<h3 style="font-family:var(--font-title);font-size:1.05rem;color:var(--rosa);margin-bottom:1.1rem;font-style:italic">✨ Añadir a Wishlist</h3>'+
+
+      '<label style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">¿Qué quieres? *</label>'+
+      '<input id="wshNombre" placeholder="Ej: Teclado mecánico, vestido, libro…" style="width:100%;box-sizing:border-box;margin:.3rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none">'+
+
+      '<label style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Categoría (opcional)</label>'+
+      '<input id="wshCategoria" placeholder="Ej: tecnología, ropa, libros, hogar…" style="width:100%;box-sizing:border-box;margin:.3rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none">'+
+
+      '<label style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Precio aproximado (opcional)</label>'+
+      '<input id="wshPrecio" placeholder="Ej: $350, ~$500, no sé…" style="width:100%;box-sizing:border-box;margin:.3rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none">'+
+
+      '<label style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Rango de precio</label>'+
+      '<div style="display:flex;gap:.5rem;margin:.3rem 0 .9rem">'+
+        '<select id="wshRangoSel" style="flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.82rem;color:var(--text);outline:none">'+
+          '<option value="">Sin rango</option>'+rangoOpts+
+          '<option value="__nuevo__">＋ Nuevo rango…</option>'+
+        '</select>'+
+      '</div>'+
+
+      '<label style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Estado</label>'+
+      '<select id="wshStatusSel" style="width:100%;box-sizing:border-box;margin:.3rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.82rem;color:var(--text);outline:none">'+
+        WSH_STATUSES.map(function(s){ return '<option value="'+s.id+'">'+s.label+'</option>'; }).join('')+
+      '</select>'+
+
+      '<label style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Nota (opcional)</label>'+
+      '<textarea id="wshNota" placeholder="Link, color, talla, tienda…" rows="2" style="width:100%;box-sizing:border-box;margin:.3rem 0 1.1rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none;resize:vertical"></textarea>'+
+
+      '<div style="display:flex;gap:.6rem">'+
+        '<button onclick="wshGuardar()" style="flex:1;padding:.65rem;border-radius:12px;border:none;background:var(--rosa);color:#fff;font-family:var(--font-body);font-size:.84rem;font-weight:800;cursor:pointer">Guardar ✨</button>'+
+        '<button onclick="document.getElementById(\'wshModal\').remove()" style="padding:.65rem 1rem;border-radius:12px;border:1.5px solid var(--border);background:none;color:var(--muted);font-family:var(--font-body);font-size:.84rem;font-weight:700;cursor:pointer">Cancelar</button>'+
+      '</div>'+
+    '</div>';
+    document.body.appendChild(m);
+
+    // Manejar opción "nuevo rango"
+    document.getElementById('wshRangoSel').onchange = function(){
+      if(this.value==='__nuevo__'){
+        var nr = prompt('Nombre del nuevo rango (ej: $0-$200, Económico, Caro…)');
+        if(nr && nr.trim()){
+          var opt = document.createElement('option');
+          opt.value = nr.trim(); opt.textContent = nr.trim();
+          this.insertBefore(opt, this.lastElementChild);
+          this.value = nr.trim();
+        } else { this.value=''; }
+      }
+    };
+  };
+
+  window.wshGuardar = function() {
+    var nombre = (document.getElementById('wshNombre').value||'').trim();
+    if(!nombre) return;
+    var rango = document.getElementById('wshRangoSel').value;
+    if(rango==='__nuevo__') rango='';
+    wshItems.push({
+      id: Date.now().toString(),
+      nombre: nombre,
+      categoria: (document.getElementById('wshCategoria').value||'').trim(),
+      precio: (document.getElementById('wshPrecio').value||'').trim(),
+      rango: rango,
+      status: document.getElementById('wshStatusSel').value || 'por_comprar',
+      nota: (document.getElementById('wshNota').value||'').trim(),
+    });
+    wshSave();
+    var m = document.getElementById('wshModal'); if(m) m.remove();
+    wshRenderFilters(); wshRenderGrid();
+  };
+
   // Init
-  qlLoad(); wlLoad(); wlClaLoad();
+  qlLoad(); wlLoad(); wlClaLoad(); wshLoad();
   setTimeout(function(){ renderQlLists(); renderWlCatTabs(); renderWlStatusFilter(); renderWlClasFilter(); renderWlGrid(); }, 150);
 })();
 </script>
@@ -18171,7 +19094,7 @@ document.addEventListener('DOMContentLoaded', function() {
       'rutina_asignaciones','rutina_completions','gratitud_data','sueno_data','mens_data',
       'ej_templates','ej_registros','belleza_templates','belleza_registros','dios_data',
       'finanzas_data','limpieza_data','braindump_notes','mood_data','metas_data',
-      'ql_lists','wl_items','vb_items','config_display_name','config_avatar_url','config_theme'];
+      'ql_lists','wl_items','wishlist_items','vb_items','config_display_name','config_avatar_url','config_theme'];
     var data = { exportDate: new Date().toISOString(), version: '1.0' };
     keys.forEach(function(k){
       try { var v=localStorage.getItem(k); if(v) data[k]=JSON.parse(v); } catch(e){ data[k]=localStorage.getItem(k); }
@@ -18880,9 +19803,135 @@ function esc(str) {
     if (el) el.textContent = getTodaySessions() + focusSessions;
   }
 
+  // ── MODO EMERGENCIA ──────────────────────────────────────
+  window.openModoEmergencia = function() {
+    var ov = document.getElementById('emergenciaOverlay');
+    if (ov) { ov.style.display = 'flex'; return; }
+
+    ov = document.createElement('div');
+    ov.id = 'emergenciaOverlay';
+    ov.style.cssText = [
+      'position:fixed;inset:0;z-index:9000;display:flex;flex-direction:column;',
+      'align-items:center;justify-content:center;padding:2rem;',
+      'background:linear-gradient(-45deg,#f8d7e8,#e8d5f8,#d5e8f8,#d5f8e8);',
+      'background-size:400% 400%;animation:emergGrad 8s ease infinite;'
+    ].join('');
+
+    // Inject keyframes once
+    if (!document.getElementById('emergStyles')) {
+      var st = document.createElement('style');
+      st.id = 'emergStyles';
+      st.textContent = [
+        '@keyframes emergGrad{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}',
+        '@keyframes emergFadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}',
+        '.emerg-task-btn{display:flex;align-items:center;gap:.7rem;width:100%;padding:.75rem 1rem;',
+        'border-radius:14px;border:1.5px solid rgba(167,139,250,.4);background:rgba(255,255,255,.5);',
+        'color:#3d2060;font-family:var(--font-body);font-size:.88rem;font-weight:700;cursor:pointer;',
+        'text-align:left;transition:all .18s;margin-bottom:.5rem}',
+        '.emerg-task-btn:hover{background:rgba(255,255,255,.8);border-color:#a78bfa;transform:scale(1.01)}'
+      ].join('');
+      document.head.appendChild(st);
+    }
+
+    ov.innerHTML = [
+      '<div style="max-width:400px;width:100%;animation:emergFadeIn .5s ease both">',
+        // Header
+        '<div style="text-align:center;margin-bottom:1.8rem">',
+          '<p style="font-size:2.5rem;margin-bottom:.4rem">🫂</p>',
+          '<h2 style="font-family:var(--font-title);font-size:1.4rem;color:#3d2060;font-style:italic;margin-bottom:.4rem">',
+            'Modo Emergencia',
+          '</h2>',
+          '<p style="font-size:.78rem;font-weight:600;color:#6b4f8c;line-height:1.6">',
+            'Respira. No tienes que hacer todo.<br>Solo una cosa. La más pequeña. 💙',
+          '</p>',
+        '</div>',
+
+        // Selector de tarea
+        '<div id="emergTareaWrap">',
+          '<p style="font-size:.7rem;font-weight:800;color:#6b4f8c;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.6rem">',
+            '¿En qué cosa pequeña puedes enfocarte ahora?',
+          '</p>',
+          '<div id="emergTareasList"></div>',
+          '<div style="display:flex;gap:.5rem;margin-top:.5rem">',
+            '<input id="emergTareaInput" placeholder="O escríbela aquí…" style="flex:1;background:rgba(255,255,255,.6);border:1.5px solid rgba(167,139,250,.4);border-radius:12px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:#3d2060;outline:none">',
+            '<button onclick="emergConfirmarTarea()" style="padding:.6rem 1rem;border-radius:12px;border:none;background:#a78bfa;color:#fff;font-family:var(--font-body);font-weight:800;cursor:pointer;font-size:.84rem">→</button>',
+          '</div>',
+        '</div>',
+
+        // Pantalla de tarea activa (hidden initially)
+        '<div id="emergActivaWrap" style="display:none;text-align:center">',
+          '<div style="background:rgba(255,255,255,.55);border-radius:20px;padding:1.6rem 1.4rem;margin-bottom:1.2rem">',
+            '<p style="font-size:.65rem;font-weight:800;color:#a78bfa;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem">ahora mismo, solo esto</p>',
+            '<p id="emergTareaActual" style="font-size:1.2rem;font-weight:800;color:#3d2060;line-height:1.4"></p>',
+          '</div>',
+          '<p style="font-size:.75rem;color:#6b4f8c;font-weight:600;line-height:1.6;margin-bottom:1.2rem">',
+            'No hay prisa. Cuando termines, o cuando estés lista, puedes cerrar este modo. 🌸',
+          '</p>',
+          '<button onclick="emergListo()" style="width:100%;padding:.75rem;border-radius:14px;border:none;background:#a78bfa;color:#fff;font-family:var(--font-body);font-size:.9rem;font-weight:800;cursor:pointer;margin-bottom:.5rem">',
+            '✓ ¡Lo hice!',
+          '</button>',
+          '<button onclick="emergCambiar()" style="width:100%;padding:.5rem;border-radius:14px;border:none;background:none;color:#a78bfa;font-family:var(--font-body);font-size:.78rem;font-weight:700;cursor:pointer">',
+            'Elegir otra tarea',
+          '</button>',
+        '</div>',
+
+        // Cerrar
+        '<button onclick="cerrarModoEmergencia()" style="display:block;margin:1.2rem auto 0;background:none;border:none;color:#9b7cc8;font-family:var(--font-body);font-size:.75rem;font-weight:700;cursor:pointer">',
+          'Salir del Modo Emergencia',
+        '</button>',
+      '</div>'
+    ].join('');
+
+    document.body.appendChild(ov);
+    emergRenderTareas();
+  };
+
+  function emergRenderTareas() {
+    var cont = document.getElementById('emergTareasList'); if (!cont) return;
+    var tareas = [];
+    try { tareas = JSON.parse(localStorage.getItem('tareas_v2') || '[]').filter(function(t){ return !t.done; }); } catch(e){}
+    if (!tareas.length) { cont.innerHTML = ''; return; }
+    // Mostrar max 5 tareas más recientes
+    cont.innerHTML = tareas.slice(0,5).map(function(t) {
+      return '<button class="emerg-task-btn" onclick="emergSeleccionarTarea(\'' + (t.text||t.titulo||'').replace(/'/g,"\\'") + '\')">' +
+        '<span>' + (t.emoji||'📌') + '</span>' +
+        '<span>' + (t.text||t.titulo||'') + '</span>' +
+      '</button>';
+    }).join('');
+  }
+
+  window.emergSeleccionarTarea = function(texto) {
+    document.getElementById('emergTareaActual').textContent = texto;
+    document.getElementById('emergTareaWrap').style.display = 'none';
+    document.getElementById('emergActivaWrap').style.display = '';
+  };
+
+  window.emergConfirmarTarea = function() {
+    var input = document.getElementById('emergTareaInput');
+    var texto = (input ? input.value.trim() : '');
+    if (!texto) return;
+    emergSeleccionarTarea(texto);
+  };
+
+  window.emergListo = function() {
+    if (window.starBurst) starBurst(document.getElementById('emergActivaWrap'));
+    setTimeout(cerrarModoEmergencia, 800);
+  };
+
+  window.emergCambiar = function() {
+    document.getElementById('emergTareaWrap').style.display = '';
+    document.getElementById('emergActivaWrap').style.display = 'none';
+    var input = document.getElementById('emergTareaInput');
+    if (input) input.value = '';
+    emergRenderTareas();
+  };
+
+  window.cerrarModoEmergencia = function() {
+    var ov = document.getElementById('emergenciaOverlay');
+    if (ov) { ov.style.opacity='0'; ov.style.transition='opacity .3s'; setTimeout(function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); },300); }
+  };
+
   window.openFocusMode = function() {
-    if (focusOverlay) return;
-    focusSecondsLeft = focusDuration * 60;
     focusTotalSeconds = focusDuration * 60;
     focusRunning = false;
     clearInterval(focusTimer);
