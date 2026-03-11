@@ -1530,6 +1530,51 @@ window.kittyConfirm = function(msg, onYes, onNo) {
   }
   .ejercicio-select-chip:hover { border-color: var(--rosa); color: var(--rosa); background: var(--rosa-soft); }
 
+  /* Estilos para imágenes en chips de rutina */
+  .ejercicio-select-chip-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+  }
+
+  /* Estilos para preview de imagen en modal */
+  .ej-img-preview {
+    width: 100%;
+    max-height: 200px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 1.5px solid var(--border);
+    margin-bottom: .5rem;
+  }
+
+  .ej-img-upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .5rem 1rem;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    font-size: .75rem;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+    transition: all .2s;
+    font-family: 'Nunito', sans-serif;
+  }
+  .ej-img-upload-btn:hover { 
+    border-color: var(--rosa); 
+    color: var(--rosa); 
+    background: var(--rosa-soft); 
+  }
+
+  .ej-img-clear-btn:hover {
+    border-color: var(--rosa) !important;
+    color: var(--rosa) !important;
+  }
+
   /* Plantillas list */
   .ejercicio-plantillas-wrap {
     background: var(--card);
@@ -7187,7 +7232,7 @@ function dateKey(d) {
 // ============================================================
 
 var ejTemplates = [];
-// [{ id, name, emoji, pasos:[{texto, duracion}] }]
+// [{ id, name, emoji, imgBase64, pasos:[{texto, duracion}] }]
 var ejRegistros = {};
 // { 'YYYY-MM-DD': [ { templateId, completedSteps:[0,2,...] } ] }
 var ejDateOffset = 0;
@@ -7246,6 +7291,12 @@ function renderEjercicio() {
         var chip = document.createElement('div');
         chip.className = 'ejercicio-select-chip';
         chip.innerHTML = '<span>' + tpl.emoji + '</span><span>' + tpl.name + '</span>';
+        if (tpl.imgBase64) {
+          var img = document.createElement('img');
+          img.src = tpl.imgBase64;
+          img.className = 'ejercicio-select-chip-img';
+          chip.appendChild(img);
+        }
         chip.onclick = function() {
           if (!ejRegistros[dk]) ejRegistros[dk] = [];
           ejRegistros[dk].push({ templateId: tpl.id, completedSteps: [] });
@@ -7394,9 +7445,16 @@ function openEjAddModal(dk) {
   available.forEach(function(tpl) {
     var card = document.createElement('div');
     card.className = 'ejercicio-plantilla-card';
-    card.innerHTML = '<span style="font-size:1.3rem">' + tpl.emoji + '</span>' +
-      '<div class="ejercicio-plantilla-info"><div class="ejercicio-plantilla-name">' + tpl.name + '</div>' +
+    var cardHtml = '<span style="font-size:1.3rem">' + tpl.emoji + '</span>';
+    
+    if (tpl.imgBase64) {
+      cardHtml += '<img src="' + tpl.imgBase64 + '" class="ejercicio-plantilla-img" style="width:50px;height:50px;border-radius:8px;object-fit:cover;border:1px solid var(--border);margin-left:.5rem">';
+    }
+    
+    cardHtml += '<div class="ejercicio-plantilla-info"><div class="ejercicio-plantilla-name">' + tpl.name + '</div>' +
       '<div class="ejercicio-plantilla-meta">' + tpl.pasos.length + ' ejercicios</div></div>';
+    
+    card.innerHTML = cardHtml;
     card.onclick = function() {
       if (!ejRegistros[dk]) ejRegistros[dk] = [];
       ejRegistros[dk].push({ templateId: tpl.id, completedSteps: [] });
@@ -7432,10 +7490,17 @@ function renderEjPlantillas() {
     var card = document.createElement('div');
     card.className = 'ejercicio-plantilla-card';
     card.style.cursor = 'pointer';
-    card.innerHTML = '<span style="font-size:1.3rem">' + tpl.emoji + '</span>' +
-      '<div class="ejercicio-plantilla-info">' +
+    var cardHtml = '<span style="font-size:1.3rem">' + tpl.emoji + '</span>';
+    
+    if (tpl.imgBase64) {
+      cardHtml += '<img src="' + tpl.imgBase64 + '" class="ejercicio-plantilla-card-img" style="width:50px;height:50px;border-radius:8px;object-fit:cover;border:1px solid var(--border);margin-left:.5rem">';
+    }
+    
+    cardHtml += '<div class="ejercicio-plantilla-info">' +
         '<div class="ejercicio-plantilla-name">' + tpl.name + '</div>' +
       '</div>';
+    
+    card.innerHTML = cardHtml;
     card.onclick = function() { openEjViewModal(tpl.id); };
     list.appendChild(card);
   });
@@ -7469,7 +7534,13 @@ function openEjViewModal(templateId) {
   });
 
   var inner = document.createElement('div');
+  var imageHtml = '';
+  if (tpl.imgBase64) {
+    imageHtml = '<img src="' + tpl.imgBase64 + '" style="width:100%;max-height:200px;border-radius:12px;object-fit:cover;border:1.5px solid var(--border);margin-bottom:.6rem">';
+  }
+  
   inner.innerHTML = '<div class="rutina-modal-title" style="padding-right:2.5rem">' + tpl.emoji + ' <em>' + tpl.name + '</em></div>' +
+    imageHtml +
     '<div style="margin-top:.6rem">' + (pasosHtml || '<div style="color:var(--muted2);font-size:.8rem">Sin ejercicios registrados.</div>') + '</div>' +
     '<div class="modal-btns" style="margin-top:1rem"><button class="modal-btn-cancel" id="ejViewClose">Cerrar</button></div>';
 
@@ -7487,6 +7558,7 @@ function openEjModal(templateId) {
 
   var nombre = existing ? existing.name : '';
   var emoji  = existing ? existing.emoji : '💪';
+  var imgBase64 = existing ? existing.imgBase64 || '' : '';
   var pasos  = existing ? JSON.parse(JSON.stringify(existing.pasos)) : [];
 
   var back = document.createElement('div');
@@ -7507,6 +7579,12 @@ function openEjModal(templateId) {
     '<input class="modal-input" id="ejNombre" placeholder="ej: Rutina de cintura, Yoga matutino..." value="' + nombre.replace(/"/g, '&quot;') + '"></div>' +
     '<div class="modal-field"><label class="modal-label">Emoji</label>' +
     '<div class="emoji-picker-row" id="ejEmojiPicker">' + emojiPickerHtml + '</div></div>' +
+    '<div class="modal-field"><label class="modal-label">Imagen de la rutina (opcional)</label>' +
+    '<img id="ejImgPreview" class="ej-img-preview" src="' + imgBase64 + '" alt="" style="display:' + (imgBase64 ? 'block' : 'none') + '">' +
+    '<label class="ej-img-upload-btn" for="ejImgInput">📷 ' + (imgBase64 ? 'Cambiar imagen' : 'Añadir imagen') + '</label>' +
+    '<input type="file" id="ejImgInput" accept="image/*" style="display:none">' +
+    '<div class="modal-field" style="margin-top:.6rem"><label class="modal-label">O URL de imagen</label>' +
+    '<input class="modal-input" id="ejImgUrl" placeholder="https://ejemplo.com/imagen.jpg" value="" style="width:100%"></div>' +
     '<div class="modal-field"><label class="modal-label">Ejercicios</label>' +
     '<div id="ejPasosList"></div>' +
     '<button class="rutina-add-paso-btn" id="ejAddPasoBtn">+ Agregar ejercicio</button></div>' +
@@ -7531,6 +7609,55 @@ function openEjModal(templateId) {
     };
   }
 
+  // Image preview handlers
+  var imgPreview = document.getElementById('ejImgPreview');
+  var imgInput = document.getElementById('ejImgInput');
+  var imgUrlInput = document.getElementById('ejImgUrl');
+  var currentImgBase64 = imgBase64;
+  
+  // File upload handler
+  imgInput.onchange = function() {
+    var file = imgInput.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      currentImgBase64 = e.target.result;
+      imgPreview.src = currentImgBase64;
+      imgPreview.style.display = 'block';
+      box.querySelector('.ej-img-upload-btn').textContent = '📷 Cambiar imagen';
+      imgUrlInput.value = '';
+    };
+    reader.readAsDataURL(file);
+  };
+  
+  // URL input handler
+  imgUrlInput.oninput = function() {
+    var url = this.value.trim();
+    if (url) {
+      currentImgBase64 = url;
+      imgPreview.src = url;
+      imgPreview.style.display = 'block';
+      box.querySelector('.ej-img-upload-btn').textContent = '📷 Cambiar imagen';
+    }
+  };
+  
+  // Clear image button
+  var clearBtn = document.createElement('button');
+  clearBtn.className = 'ej-img-clear-btn';
+  clearBtn.textContent = '✕ Quitar imagen';
+  clearBtn.style.cssText = 'display:' + (imgBase64 ? 'inline-flex' : 'none') + ';margin-top:.4rem;align-items:center;background:none;border:1.5px solid var(--border);border-radius:20px;padding:.3rem .7rem;font-size:.7rem;font-weight:700;color:var(--muted2);cursor:pointer;font-family:Nunito,sans-serif';
+  clearBtn.onclick = function() {
+    currentImgBase64 = '';
+    imgPreview.style.display = 'none';
+    imgPreview.src = '';
+    imgUrlInput.value = '';
+    clearBtn.style.display = 'none';
+    box.querySelector('.ej-img-upload-btn').textContent = '📷 Añadir imagen';
+  };
+  
+  // Insert clear button after the URL input
+  imgUrlInput.parentNode.insertBefore(clearBtn, imgUrlInput.nextSibling);
+  
   // Emoji picker
   var selectedEmoji = emoji;
   back.querySelectorAll('.emoji-opt').forEach(function(opt) {
@@ -7577,9 +7704,10 @@ function openEjModal(templateId) {
     if (existing) {
       existing.name = n;
       existing.emoji = selectedEmoji;
+      existing.imgBase64 = currentImgBase64;
       existing.pasos = cleanPasos;
     } else {
-      ejTemplates.push({ id: 'ej_' + Date.now(), name: n, emoji: selectedEmoji, pasos: cleanPasos });
+      ejTemplates.push({ id: 'ej_' + Date.now(), name: n, emoji: selectedEmoji, imgBase64: currentImgBase64, pasos: cleanPasos });
     }
     saveEjercicio(); renderEjercicio();
     back.remove();
