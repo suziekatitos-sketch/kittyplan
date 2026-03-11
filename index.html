@@ -1481,6 +1481,89 @@ window.kittyConfirm = function(msg, onYes, onNo) {
   }
   .ejercicio-paso.ej-paso-done .ejercicio-paso-texto { text-decoration: line-through; }
 
+  /* ── RUTINAS DE IMAGEN A PANTALLA COMPLETA ── */
+  .ejercicio-img-fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 0;
+  }
+  
+  .ejercicio-img-fullscreen-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .ejercicio-img-fullscreen-img {
+    max-width: 100%;
+    max-height: 85%;
+    object-fit: contain;
+  }
+  
+  .ejercicio-img-fullscreen-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.9) 100%);
+    padding: 2rem 1rem 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .ejercicio-img-close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255,255,255,.2);
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .2s;
+    z-index: 10000;
+  }
+  
+  .ejercicio-img-close-btn:hover {
+    background: rgba(255,255,255,.3);
+  }
+  
+  .ejercicio-img-check-btn {
+    background: linear-gradient(135deg, #d4748a, #f8bbd9);
+    border: none;
+    border-radius: 24px;
+    padding: .7rem 1.5rem;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: .9rem;
+    font-family: Nunito, sans-serif;
+    transition: transform .2s;
+  }
+  
+  .ejercicio-img-check-btn:active {
+    transform: scale(.95);
+  }
+
   .ejercicio-paso-dur {
     font-size: .62rem;
     color: var(--muted);
@@ -6346,52 +6429,82 @@ function openRutinaModal(templateId, tipo) {
   backdrop.appendChild(box);
   document.body.appendChild(backdrop);
 
-  // Emoji picker (solo para texto)
+  // Emoji picker y pasos (solo para texto)
   if (rutinaTipo === 'texto') {
     let selectedEmoji = emoji;
-  backdrop.querySelectorAll('.emoji-opt').forEach(opt => {
-    opt.onclick = () => {
-      backdrop.querySelectorAll('.emoji-opt').forEach(o => o.classList.remove('selected'));
-      opt.classList.add('selected');
-      selectedEmoji = opt.dataset.emoji;
-    };
-  });
-
-  // Render steps per franja
-  function renderPasos(franjaId) {
-    const list = backdrop.querySelector(`#pasosList_${franjaId}`);
-    list.innerHTML = '';
-    (pasos[franjaId] || []).forEach((paso, idx) => {
-      const row = document.createElement('div');
-      row.className = 'rutina-paso-edit-row';
-      row.innerHTML = `
-        <input type="text" value="${pasoText(paso).replace(/"/g,'&quot;')}" placeholder="Nombre del paso...">
-        <button class="rutina-paso-del" data-franja="${franjaId}" data-idx="${idx}">✕</button>`;
-      row.querySelector('input').oninput = (e) => { pasos[franjaId][idx] = e.target.value; };
-      row.querySelector('.rutina-paso-del').onclick = () => {
-        pasos[franjaId].splice(idx, 1);
-        renderPasos(franjaId);
+    backdrop.querySelectorAll('.emoji-opt').forEach(opt => {
+      opt.onclick = () => {
+        backdrop.querySelectorAll('.emoji-opt').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        selectedEmoji = opt.dataset.emoji;
       };
-      list.appendChild(row);
     });
-  }
 
-  RUTINA_FRANJAS.forEach(f => renderPasos(f.id));
+    // Render steps per franja
+    const renderPasos = function(franjaId) {
+      const list = backdrop.querySelector(`#pasosList_${franjaId}`);
+      list.innerHTML = '';
+      (pasos[franjaId] || []).forEach((paso, idx) => {
+        const row = document.createElement('div');
+        row.className = 'rutina-paso-edit-row';
+        row.innerHTML = `
+          <input type="text" value="${pasoText(paso).replace(/"/g,'&quot;')}" placeholder="Nombre del paso...">
+          <button class="rutina-paso-del" data-franja="${franjaId}" data-idx="${idx}">✕</button>`;
+        row.querySelector('input').oninput = (e) => { pasos[franjaId][idx] = e.target.value; };
+        row.querySelector('.rutina-paso-del').onclick = () => {
+          pasos[franjaId].splice(idx, 1);
+          renderPasos(franjaId);
+        };
+        list.appendChild(row);
+      });
+    }
 
-  // Add paso buttons
-  backdrop.querySelectorAll('.rutina-add-paso-btn').forEach(btn => {
-    btn.onclick = () => {
-      const fId = btn.dataset.franja;
-      if (!pasos[fId]) pasos[fId] = [];
-      pasos[fId].push('');
-      renderPasos(fId);
-      // Focus last input
-      const inputs = backdrop.querySelectorAll(`#pasosList_${fId} input`);
-      if (inputs.length) inputs[inputs.length - 1].focus();
+    RUTINA_FRANJAS.forEach(f => renderPasos(f.id));
+
+    // Add paso buttons
+    backdrop.querySelectorAll('.rutina-add-paso-btn').forEach(btn => {
+      btn.onclick = () => {
+        const fId = btn.dataset.franja;
+        if (!pasos[fId]) pasos[fId] = [];
+        pasos[fId].push('');
+        renderPasos(fId);
+        const inputs = backdrop.querySelectorAll(`#pasosList_${fId} input`);
+        if (inputs.length) inputs[inputs.length - 1].focus();
+      };
+    });
+
+    // Save para texto
+    box.querySelector('#rutSaveBtn').onclick = () => {
+      const nombre = backdrop.querySelector('#rutNombre').value.trim();
+      if (!nombre) { backdrop.querySelector('#rutNombre').focus(); return; }
+
+      RUTINA_FRANJAS.forEach(f => {
+        pasos[f.id] = (pasos[f.id] || []).filter(p => p.trim() !== '');
+      });
+
+      if (existing) {
+        existing.name = nombre;
+        existing.emoji = selectedEmoji;
+        existing.pasos = pasos;
+        existing.tipo = 'texto';
+      } else {
+        rutinaTemplates.push({
+          id: 'rut_' + Date.now(),
+          name: nombre,
+          emoji: selectedEmoji,
+          pasos,
+          tipo: 'texto'
+        });
+      }
+
+      saveRutinas();
+      renderRutinas();
+      backdrop.remove();
     };
-  });
 
-  // Preview de URL en tiempo real
+  } // fin if texto
+
+  // Preview de URL en tiempo real (para foto)
   if (rutinaTipo === 'foto') {
     const urlInput = backdrop.querySelector('#rutFotoUrl');
     const preview  = backdrop.querySelector('#rutFotoPreview');
@@ -6407,12 +6520,12 @@ function openRutinaModal(templateId, tipo) {
     }
   }
 
-  // Save
-  box.querySelector('#rutSaveBtn').onclick = () => {
-    const nombre = backdrop.querySelector('#rutNombre').value.trim();
-    if (!nombre) { backdrop.querySelector('#rutNombre').focus(); return; }
+  // Save para foto
+  if (rutinaTipo === 'foto') {
+    box.querySelector('#rutSaveBtn').onclick = () => {
+      const nombre = backdrop.querySelector('#rutNombre').value.trim();
+      if (!nombre) { backdrop.querySelector('#rutNombre').focus(); return; }
 
-    if (rutinaTipo === 'foto') {
       const urlInput = backdrop.querySelector('#rutFotoUrl');
       const fotoUrl  = urlInput ? urlInput.value.trim() : foto;
 
@@ -6438,34 +6551,8 @@ function openRutinaModal(templateId, tipo) {
       saveRutinas();
       renderRutinas();
       backdrop.remove();
-      return;
-    }
-
-    // Guardar rutina de texto
-    // Clean empty pasos
-    RUTINA_FRANJAS.forEach(f => {
-      pasos[f.id] = (pasos[f.id] || []).filter(p => p.trim() !== '');
-    });
-
-    if (existing) {
-      existing.name = nombre;
-      existing.emoji = selectedEmoji;
-      existing.pasos = pasos;
-      existing.tipo = 'texto';
-    } else {
-      rutinaTemplates.push({
-        id: 'rut_' + Date.now(),
-        name: nombre,
-        emoji: selectedEmoji,
-        pasos,
-        tipo: 'texto'
-      });
-    }
-
-    saveRutinas();
-    renderRutinas();
-    backdrop.remove();
-  };
+    };
+  }
 
   // Wire delete button if editing
   const rutDelBtn = backdrop.querySelector('#rutDelBtn');
@@ -6716,7 +6803,6 @@ window.syncFromCloud = function() {
 
 loadRutinas();
 renderRutinas();
-}
 </script>
 
 <script>
@@ -7255,6 +7341,48 @@ function getEjDate() {
   var d = new Date();
   d.setDate(d.getDate() + ejDateOffset);
   return d;
+}
+
+function showEjImageFullscreen(tpl, reg, regIdx, dk) {
+  var overlay = document.createElement('div');
+  overlay.className = 'ejercicio-img-fullscreen';
+  
+  var content_div = document.createElement('div');
+  content_div.className = 'ejercicio-img-fullscreen-content';
+  
+  var img = document.createElement('img');
+  img.src = tpl.imgBase64;
+  img.className = 'ejercicio-img-fullscreen-img';
+  img.alt = tpl.name;
+  content_div.appendChild(img);
+  
+  var bottom = document.createElement('div');
+  bottom.className = 'ejercicio-img-fullscreen-bottom';
+  
+  var checkBtn = document.createElement('button');
+  checkBtn.className = 'ejercicio-img-check-btn';
+  checkBtn.textContent = reg.completed ? '✓ Completada' : 'Marcar como completada ✓';
+  checkBtn.onclick = function(e) {
+    e.stopPropagation();
+    reg.completed = !reg.completed;
+    ejRegistros[dk][regIdx] = reg;
+    saveEjercicio();
+    renderEjercicio();
+  };
+  if (reg.completed) checkBtn.style.opacity = '0.7';
+  bottom.appendChild(checkBtn);
+  content_div.appendChild(bottom);
+  
+  var closeBtn = document.createElement('button');
+  closeBtn.className = 'ejercicio-img-close-btn';
+  closeBtn.textContent = '✕';
+  closeBtn.onclick = function() { overlay.remove(); };
+  content_div.appendChild(closeBtn);
+  
+  overlay.appendChild(content_div);
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+  
+  document.body.appendChild(overlay);
 }
 
 function renderEjercicio() {
