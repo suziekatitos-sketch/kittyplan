@@ -8968,36 +8968,6 @@ document.addEventListener('DOMContentLoaded', function() {
   <button onclick="eventoNuevoModal()" style="width:100%;padding:.65rem;border-radius:12px;border:1.5px dashed var(--rosa);background:none;color:var(--rosa);font-family:var(--font-body);font-size:.82rem;font-weight:800;cursor:pointer;margin-bottom:.9rem">＋ Preparar un evento</button>
 
   <div id="eventosList" style="display:flex;flex-direction:column;gap:.8rem"></div>
-
-  <!-- Modal nuevo evento -->
-  <div id="eventoModal" style="display:none;position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.55);align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto" onclick="if(event.target===this)eventoModalCerrar()">
-    <div style="background:var(--card);border-radius:20px;padding:1.5rem;max-width:460px;width:100%;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)" onclick="event.stopPropagation()">
-      <h3 style="font-family:var(--font-title);font-size:1.1rem;color:var(--rosa);margin-bottom:1.1rem">📅 Nuevo evento</h3>
-
-      <label style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Nombre del evento</label>
-      <input id="evNombre" placeholder="Ej: Reunión con el grupo, cita médica…" style="width:100%;box-sizing:border-box;margin:.35rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none">
-
-      <label style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">📅 Fecha y hora</label>
-      <input id="evFecha" type="datetime-local" style="width:100%;box-sizing:border-box;margin:.35rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none">
-
-      <label style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">🗒️ ¿Qué va a pasar?</label>
-      <textarea id="evQueVaApasar" placeholder="Describe lo que va a ocurrir, paso a paso si quieres…" rows="3" style="width:100%;box-sizing:border-box;margin:.35rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none;resize:vertical"></textarea>
-
-      <label style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">🚌 ¿Cómo llego?</label>
-      <textarea id="evComoLlego" placeholder="Transporte, ruta, tiempo estimado…" rows="2" style="width:100%;box-sizing:border-box;margin:.35rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none;resize:vertical"></textarea>
-
-      <label style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">🎒 ¿Qué llevar?</label>
-      <textarea id="evQueLlevar" placeholder="Lista lo que necesitas llevar…" rows="2" style="width:100%;box-sizing:border-box;margin:.35rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none;resize:vertical"></textarea>
-
-      <label style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">😰 Posibles situaciones incómodas y cómo manejarlas</label>
-      <textarea id="evSituaciones" placeholder="Ej: Si hay mucha gente → uso audífonos. Si llego tarde → respiro y entro igual…" rows="3" style="width:100%;box-sizing:border-box;margin:.35rem 0 1.1rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none;resize:vertical"></textarea>
-
-      <div style="display:flex;gap:.6rem">
-        <button onclick="eventoGuardar()" style="flex:1;padding:.65rem;border-radius:12px;border:none;background:var(--rosa);color:#fff;font-family:var(--font-body);font-size:.84rem;font-weight:800;cursor:pointer">Guardar evento</button>
-        <button onclick="eventoModalCerrar()" style="padding:.65rem 1rem;border-radius:12px;border:1.5px solid var(--border);background:none;color:var(--muted);font-family:var(--font-body);font-size:.84rem;font-weight:700;cursor:pointer">Cancelar</button>
-      </div>
-    </div>
-  </div>
 </section>
 
 <!-- ── MODO RECUPERACIÓN ── -->
@@ -9172,32 +9142,6 @@ document.addEventListener('DOMContentLoaded', function() {
   <button onclick="transNueva()" style="width:100%;padding:.65rem;border-radius:12px;border:1.5px dashed var(--rosa);background:none;color:var(--rosa);font-family:var(--font-body);font-size:.82rem;font-weight:800;cursor:pointer;margin-bottom:1.1rem">＋ Nueva transición de hoy</button>
 
   <div id="transList" style="display:flex;flex-direction:column;gap:.7rem"></div>
-
-  <!-- Modal nueva transición -->
-  <div id="transModal" style="display:none;position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.5);align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto" onclick="if(event.target===this)transModalCerrar()">
-    <div style="background:var(--card);border-radius:20px;padding:1.5rem;max-width:420px;width:100%;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)" onclick="event.stopPropagation()">
-      <h3 style="font-family:var(--font-title);font-size:1.05rem;color:var(--rosa);margin-bottom:1.1rem;font-style:italic">🔄 Nueva transición</h3>
-
-      <label style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Actividad actual</label>
-      <input id="transActual" placeholder="Ej: Leer, estudiar, ver series…" style="width:100%;box-sizing:border-box;margin:.3rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none">
-
-      <label style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Actividad siguiente</label>
-      <input id="transSiguiente" placeholder="Ej: Cocinar, estudiar, dormir…" style="width:100%;box-sizing:border-box;margin:.3rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none">
-
-      <label style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Hora del cambio</label>
-      <input id="transHora" type="time" style="width:100%;box-sizing:border-box;margin:.3rem 0 1.1rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none">
-
-      <div style="background:var(--rosa-soft);border-radius:10px;padding:.7rem .9rem;margin-bottom:1.1rem">
-        <p style="font-size:.72rem;font-weight:700;color:var(--rosa);margin-bottom:.2rem">🔔 Recibirás un aviso:</p>
-        <p id="transPreview" style="font-size:.76rem;font-weight:600;color:var(--muted);line-height:1.5">— completa los campos para ver el aviso —</p>
-      </div>
-
-      <div style="display:flex;gap:.6rem">
-        <button onclick="transGuardar()" style="flex:1;padding:.65rem;border-radius:12px;border:none;background:var(--rosa);color:#fff;font-family:var(--font-body);font-size:.84rem;font-weight:800;cursor:pointer">Guardar</button>
-        <button onclick="transModalCerrar()" style="padding:.65rem 1rem;border-radius:12px;border:1.5px solid var(--border);background:none;color:var(--muted);font-family:var(--font-body);font-size:.84rem;font-weight:700;cursor:pointer">Cancelar</button>
-      </div>
-    </div>
-  </div>
 </section>
 </div><!-- end page-transiciones -->
 <div id="page-journal" class="page-section">
@@ -10330,6 +10274,112 @@ document.addEventListener('DOMContentLoaded', () => {
   if (loader) loader.style.display = 'flex';
 });
 
+// ── POST-PARÁLISIS ────────────────────────────────────────
+function postParalisisCheck() {
+  var hoy = new Date().toISOString().slice(0,10);
+  var lastCheck = localStorage.getItem('pp_last_check') || '';
+  if (lastCheck === hoy) return; // Ya se corrió hoy
+
+  var tareas = [];
+  try { tareas = JSON.parse(localStorage.getItem('tareas_v2') || '[]'); } catch(e) { return; }
+
+  var ayer = new Date();
+  ayer.setDate(ayer.getDate() - 1);
+  var ayerStr = ayer.toISOString().slice(0,10);
+
+  var movidas = 0;
+  var updated = tareas.map(function(t) {
+    if (t.done) return t;
+    // Tiene fecha de entrega que ya pasó (antes de hoy)
+    if (t.fecha && t.fecha < hoy) {
+      movidas++;
+      return Object.assign({}, t, { fecha: hoy, pp_moved: true });
+    }
+    // No tiene fecha pero su createdAt era de ayer o antes → moverla a hoy
+    if (!t.fecha && t.createdAt) {
+      var created = t.createdAt.slice(0,10);
+      if (created < hoy) {
+        movidas++;
+        return Object.assign({}, t, { createdAt: new Date().toISOString(), pp_moved: true });
+      }
+    }
+    return t;
+  });
+
+  localStorage.setItem('tareas_v2', JSON.stringify(updated));
+  localStorage.setItem('pp_last_check', hoy);
+
+  if (movidas > 0) {
+    postParalisisBanner(movidas);
+  }
+}
+
+function postParalisisBanner(n) {
+  // Inyectar estilos una vez
+  if (!document.getElementById('ppStyles')) {
+    var st = document.createElement('style');
+    st.id = 'ppStyles';
+    st.textContent = [
+      '@keyframes ppSlideIn{from{transform:translateY(-110%);opacity:0}to{transform:translateY(0);opacity:1}}',
+      '@keyframes ppSlideOut{from{transform:translateY(0);opacity:1}to{transform:translateY(-110%);opacity:0}}',
+      '.pp-banner{position:fixed;top:1rem;left:50%;transform:translateX(-50%);z-index:8500;',
+        'width:calc(100% - 2rem);max-width:400px;',
+        'background:linear-gradient(135deg,#f8d7e8,#e8d5f8);',
+        'border:1.5px solid #c4b5fd;border-radius:18px;',
+        'padding:1rem 1.2rem;box-shadow:0 8px 32px rgba(167,139,250,.25);',
+        'animation:ppSlideIn .4s cubic-bezier(.34,1.56,.64,1) both}',
+      '.pp-banner.hiding{animation:ppSlideOut .35s ease both}',
+    ].join('');
+    document.head.appendChild(st);
+  }
+
+  var banner = document.createElement('div');
+  banner.className = 'pp-banner';
+
+  var msgs = [
+    'No eres floja, tu cerebro procesa mucha información. Vamos a intentarlo de nuevo 🌸',
+    'Las tareas de ayer te esperan hoy, sin juicio. Un paso a la vez 💙',
+    'Tu valor no depende de lo que completaste ayer. Hoy es un día nuevo ✨',
+    'El cerebro 3e necesita más tiempo, no menos valor. Aquí están tus tareas 🧩',
+  ];
+  var msg = msgs[Math.floor(Math.random() * msgs.length)];
+
+  banner.innerHTML = [
+    '<div style="display:flex;align-items:flex-start;gap:.75rem">',
+      '<span style="font-size:1.5rem;line-height:1;flex-shrink:0">🫂</span>',
+      '<div style="flex:1">',
+        '<p style="font-size:.78rem;font-weight:800;color:#3d2060;margin-bottom:.25rem">',
+          n === 1 ? 'Hay 1 tarea que pasamos al día de hoy' : 'Hay ' + n + ' tareas que pasamos al día de hoy',
+        '</p>',
+        '<p style="font-size:.73rem;font-weight:600;color:#6b4f8c;line-height:1.5;margin-bottom:.6rem">' + msg + '</p>',
+        '<div style="display:flex;gap:.5rem">',
+          '<button onclick="postParalisisVerTareas()" style="padding:.3rem .8rem;border-radius:20px;border:none;background:#a78bfa;color:#fff;font-family:var(--font-body);font-size:.72rem;font-weight:800;cursor:pointer">Ver tareas</button>',
+          '<button onclick="postParalisisCerrar()" style="padding:.3rem .8rem;border-radius:20px;border:1.5px solid #c4b5fd;background:none;color:#6b4f8c;font-family:var(--font-body);font-size:.72rem;font-weight:700;cursor:pointer">Cerrar</button>',
+        '</div>',
+      '</div>',
+    '</div>',
+  ].join('');
+
+  document.body.appendChild(banner);
+  window._ppBanner = banner;
+
+  // Auto-cerrar después de 12s
+  window._ppTimer = setTimeout(postParalisisCerrar, 12000);
+}
+
+window.postParalisisCerrar = function() {
+  if (window._ppTimer) clearTimeout(window._ppTimer);
+  var b = window._ppBanner;
+  if (!b) return;
+  b.classList.add('hiding');
+  setTimeout(function(){ if(b.parentNode) b.parentNode.removeChild(b); }, 380);
+};
+
+window.postParalisisVerTareas = function() {
+  postParalisisCerrar();
+  if (window.showPage) window.showPage('page-tareas');
+};
+
 async function initApp() {
   // Load from cloud if available, else use localStorage immediately
   if (window.cloudLoad) {
@@ -10373,6 +10423,7 @@ async function initApp() {
   if (loader) loader.style.display = 'none';
   loadData();
   render();
+  setTimeout(postParalisisCheck, 800);
 }
 
 if (window._firebaseReady) {
@@ -10382,6 +10433,19 @@ if (window._firebaseReady) {
   // Fallback: render after 3s even if Firebase doesn't respond
   setTimeout(() => { if (!document.getElementById('cloudLoader') || document.getElementById('cloudLoader').style.display !== 'none') initApp(); }, 3000);
 }
+
+// ── OVERFLOW SAFETY GUARD ─────────────────────────────────
+// Si el body queda bloqueado sin ningún modal visible, lo libera
+setInterval(function() {
+  if (document.body.style.overflow === 'hidden') {
+    var hasModal = document.querySelector(
+      '#transModal, #eventoModal, #emergenciaOverlay, .spark-arch-modal, #wshModal, [id$="Modal"][style*="flex"]'
+    );
+    if (!hasModal) {
+      document.body.style.overflow = '';
+    }
+  }
+}, 500);
 
 // ============================================================
 //  SECCIÓN 4 · CHECK-IN SENSORIAL
@@ -13636,21 +13700,50 @@ function eventosLoad() { return JSON.parse(localStorage.getItem('eventos_prep') 
 function eventosSave(data) { localStorage.setItem('eventos_prep', JSON.stringify(data)); }
 
 window.eventoNuevoModal = function() {
-  ['evNombre','evQueVaApasar','evComoLlego','evQueLlevar','evSituaciones'].forEach(function(id) {
-    var el = document.getElementById(id); if (el) el.value = '';
-  });
-  var f = document.getElementById('evFecha'); if (f) f.value = '';
-  var m = document.getElementById('eventoModal');
-  if (m) {
-    m.style.display = 'flex';
-    m._editId = null;
-    document.body.style.overflow = 'hidden';
-  }
+  var old = document.getElementById('eventoModal');
+  if (old) old.remove();
+
+  var m = document.createElement('div');
+  m.id = 'eventoModal';
+  m.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.55);display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto';
+  m.onclick = function(e){ if(e.target===m) eventoModalCerrar(); };
+
+  m.innerHTML = [
+    '<div style="background:var(--card);border-radius:20px;padding:1.5rem;max-width:460px;width:100%;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)" onclick="event.stopPropagation()">',
+      '<h3 style="font-family:var(--font-title);font-size:1.1rem;color:var(--rosa);margin-bottom:1.1rem">📅 Nuevo evento</h3>',
+
+      '<label style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Nombre del evento</label>',
+      '<input id="evNombre" placeholder="Ej: Reunión con el grupo, cita médica…" style="width:100%;box-sizing:border-box;margin:.35rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none">',
+
+      '<label style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">📅 Fecha y hora</label>',
+      '<input id="evFecha" type="datetime-local" style="width:100%;box-sizing:border-box;margin:.35rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none">',
+
+      '<label style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">🗒️ ¿Qué va a pasar?</label>',
+      '<textarea id="evQueVaApasar" placeholder="Describe lo que va a ocurrir, paso a paso si quieres…" rows="3" style="width:100%;box-sizing:border-box;margin:.35rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none;resize:vertical"></textarea>',
+
+      '<label style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">🚌 ¿Cómo llego?</label>',
+      '<textarea id="evComoLlego" placeholder="Transporte, ruta, tiempo estimado…" rows="2" style="width:100%;box-sizing:border-box;margin:.35rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none;resize:vertical"></textarea>',
+
+      '<label style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">🎒 ¿Qué llevar?</label>',
+      '<textarea id="evQueLlevar" placeholder="Lista lo que necesitas llevar…" rows="2" style="width:100%;box-sizing:border-box;margin:.35rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none;resize:vertical"></textarea>',
+
+      '<label style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">😰 Posibles situaciones incómodas y cómo manejarlas</label>',
+      '<textarea id="evSituaciones" placeholder="Ej: Si hay mucha gente → uso audífonos. Si llego tarde → respiro y entro igual…" rows="3" style="width:100%;box-sizing:border-box;margin:.35rem 0 1.1rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none;resize:vertical"></textarea>',
+
+      '<div style="display:flex;gap:.6rem">',
+        '<button onclick="eventoGuardar()" style="flex:1;padding:.65rem;border-radius:12px;border:none;background:var(--rosa);color:#fff;font-family:var(--font-body);font-size:.84rem;font-weight:800;cursor:pointer">Guardar evento</button>',
+        '<button onclick="eventoModalCerrar()" style="padding:.65rem 1rem;border-radius:12px;border:1.5px solid var(--border);background:none;color:var(--muted);font-family:var(--font-body);font-size:.84rem;font-weight:700;cursor:pointer">Cancelar</button>',
+      '</div>',
+    '</div>',
+  ].join('');
+
+  document.body.appendChild(m);
+  document.body.style.overflow = 'hidden';
 };
 
 window.eventoModalCerrar = function() {
   var m = document.getElementById('eventoModal');
-  if (m) m.style.display = 'none';
+  if (m) m.remove();
   document.body.style.overflow = '';
 };
 
@@ -13920,15 +14013,50 @@ function transLoad() { try { return JSON.parse(localStorage.getItem('trans_data'
 function transSave(d) { localStorage.setItem('trans_data', JSON.stringify(d)); }
 
 window.transNueva = function() {
-  ['transActual','transSiguiente'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
-  var h = document.getElementById('transHora'); if(h) h.value='';
-  var prev = document.getElementById('transPreview'); if(prev) prev.textContent='— completa los campos para ver el aviso —';
-  var m = document.getElementById('transModal'); if(m){ m.style.display='flex'; m._editId=null; document.body.style.overflow='hidden'; }
+  var old = document.getElementById('transModal');
+  if (old) old.remove();
+
+  var today = new Date().toTimeString().slice(0,5);
+
+  var m = document.createElement('div');
+  m.id = 'transModal';
+  m.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.5);display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto';
+  m.onclick = function(e){ if(e.target===m) transModalCerrar(); };
+
+  m.innerHTML = [
+    '<div style="background:var(--card);border-radius:20px;padding:1.5rem;max-width:420px;width:100%;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)" onclick="event.stopPropagation()">',
+      '<h3 style="font-family:var(--font-title);font-size:1.05rem;color:var(--rosa);margin-bottom:1.1rem;font-style:italic">🔄 Nueva transición</h3>',
+
+      '<label style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Actividad actual</label>',
+      '<input id="transActual" placeholder="Ej: Leer, estudiar, ver series…" style="width:100%;box-sizing:border-box;margin:.3rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none">',
+
+      '<label style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Actividad siguiente</label>',
+      '<input id="transSiguiente" placeholder="Ej: Cocinar, estudiar, dormir…" style="width:100%;box-sizing:border-box;margin:.3rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none">',
+
+      '<label style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Hora del cambio</label>',
+      '<input id="transHora" type="time" value="'+today+'" style="width:100%;box-sizing:border-box;margin:.3rem 0 1.1rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none">',
+
+      '<div style="background:var(--rosa-soft);border-radius:10px;padding:.7rem .9rem;margin-bottom:1.1rem">',
+        '<p style="font-size:.72rem;font-weight:700;color:var(--rosa);margin-bottom:.2rem">🔔 Recibirás un aviso:</p>',
+        '<p id="transPreview" style="font-size:.76rem;font-weight:600;color:var(--muted);line-height:1.5">— completa los campos para ver el aviso —</p>',
+      '</div>',
+
+      '<div style="display:flex;gap:.6rem">',
+        '<button onclick="transGuardar()" style="flex:1;padding:.65rem;border-radius:12px;border:none;background:var(--rosa);color:#fff;font-family:var(--font-body);font-size:.84rem;font-weight:800;cursor:pointer">Guardar</button>',
+        '<button onclick="transModalCerrar()" style="padding:.65rem 1rem;border-radius:12px;border:1.5px solid var(--border);background:none;color:var(--muted);font-family:var(--font-body);font-size:.84rem;font-weight:700;cursor:pointer">Cancelar</button>',
+      '</div>',
+    '</div>',
+  ].join('');
+
+  document.body.appendChild(m);
+  document.body.style.overflow = 'hidden';
+
   // Live preview
   ['transActual','transSiguiente','transHora'].forEach(function(id){
     var el = document.getElementById(id);
     if(el) el.oninput = transUpdatePreview;
   });
+  transUpdatePreview();
 };
 
 function transUpdatePreview() {
@@ -13947,8 +14075,9 @@ function transUpdatePreview() {
 }
 
 window.transModalCerrar = function() {
-  var m = document.getElementById('transModal'); if(m) m.style.display='none';
-  document.body.style.overflow='';
+  var m = document.getElementById('transModal');
+  if (m) m.remove();
+  document.body.style.overflow = '';
 };
 
 window.transGuardar = function() {
@@ -17832,6 +17961,15 @@ document.addEventListener('DOMContentLoaded', function() {
   <div id="listasTabRapidas">
     <div id="qlListsContainer"></div>
     <button class="add-ql-btn" onclick="openQlModal(null)">＋ Nueva lista</button>
+  </div>
+
+  <!-- Watchlist -->
+  <div id="listasTabWatchlist" style="display:none">
+    <div class="wl-cat-tabs" id="wlCatTabs"></div>
+    <div class="wl-status-filter" id="wlStatusFilter"></div>
+    <div class="wl-status-filter" id="wlClasFilter" style="margin-bottom:.5rem"></div>
+    <div class="wl-grid" id="wlGrid"></div>
+    <button class="wl-add-btn" onclick="openWlModal(null)">＋ Agregar entrada</button>
   </div>
 
   <!-- Wishlist -->
