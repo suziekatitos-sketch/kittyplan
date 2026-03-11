@@ -152,7 +152,8 @@ window.kittyConfirm = function(msg, onYes, onNo) {
           'braindump_notes','vb_items','metas_data','mood_data','ql_lists','wl_items','wishlist_items','beauty_tips',
           'ci_state','nd_state','calm_tools','water_goal','water_state','food_state',
           'logros_data','fortalezas','cambio_state','cambio_custom',
-          'univ_links','univ_proyectos','spark_pins','spark_historial','spark_total_minutes'];
+          'univ_links','univ_proyectos','spark_pins','spark_historial','spark_total_minutes',
+          'trans_data','custom_notifs','eventos_prep','recuper_registros'];
         mirrorKeys.forEach(function(k) {
           if (raw[k] !== undefined) {
             try { localStorage.setItem(k, raw[k]); } catch(e) {}
@@ -3767,6 +3768,13 @@ window.kittyConfirm = function(msg, onYes, onNo) {
     align-items: center;
     gap: .3rem;
   }
+  .spark-care-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+    margin-top: .3rem;
+  }
+  }
 
   .spark-note {
     width: 100%;
@@ -5319,6 +5327,13 @@ function todayKey() { return dateKey(new Date()); }
     if (pageId === 'page-calma') setTimeout(function(){
       eventoRender();
       recuperInit();
+    }, 200);
+    if (pageId === 'page-intereses') setTimeout(function(){
+      renderSparkCare();
+      if (typeof loadSpark === 'function') loadSpark();
+      if (typeof renderSparkHistorial === 'function') renderSparkHistorial();
+      if (typeof loadSparkPins === 'function') { loadSparkPins(); renderSparkPins(); }
+      if (typeof loadSparkTime === 'function') { loadSparkTime(); updateSparkTimeDisplay(); }
     }, 200);
     if (pageId === 'page-concentro') setTimeout(function(){
       utSetModo('escribir');
@@ -9783,8 +9798,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </div><!-- end page-selfcare -->
 <div id="page-salud" class="page-section">
 <div id="sec-salud" style="scroll-margin-top:60px"></div>
-
-<div id="sec-salud" style="scroll-margin-top:60px"></div>
 <section class="tracker-section" id="sec-tracker">
   <span class="section-sub">💧 cuidado personal</span>
   <h2 class="section-title"><em>Agua</em> & <em>Comidas</em></h2>
@@ -13697,7 +13710,7 @@ window.utCancelar = function() {
 
 // ── PREPARACIÓN PARA EVENTOS ─────────────────────────────
 function eventosLoad() { return JSON.parse(localStorage.getItem('eventos_prep') || '[]'); }
-function eventosSave(data) { localStorage.setItem('eventos_prep', JSON.stringify(data)); }
+function eventosSave(data) { localStorage.setItem('eventos_prep', JSON.stringify(data)); if(window.cloudSave) window.cloudSave('eventos_prep', data); }
 
 window.eventoNuevoModal = function() {
   var old = document.getElementById('eventoModal');
@@ -13875,6 +13888,7 @@ window.recuperGuardarRegistro = function() {
   if (!data[key]) data[key] = [];
   data[key].push({ ts: Date.now(), que: que, ayudo: ayudo });
   localStorage.setItem('recuper_registros', JSON.stringify(data));
+  if(window.cloudSave) window.cloudSave('recuper_registros', data);
   document.getElementById('recuperQue').value = '';
   document.getElementById('recuperAyudo').value = '';
   var msg = document.getElementById('recuperGuardadoMsg');
@@ -13883,7 +13897,13 @@ window.recuperGuardarRegistro = function() {
 
 function recuperInit() {
   var el = document.getElementById('recuperFrase');
-  if (el) el.textContent = RECUPER_FRASES[Math.floor(Math.random() * RECUPER_FRASES.length)];
+  var cont = document.getElementById('recuperPasos');
+  if (!el || !cont) {
+    // Elementos no en DOM aún, reintentar
+    setTimeout(recuperInit, 300);
+    return;
+  }
+  el.textContent = RECUPER_FRASES[Math.floor(Math.random() * RECUPER_FRASES.length)];
   recuperRenderPasos();
 }
 
@@ -14010,7 +14030,7 @@ window.showPage = function(p) {
 
 // ── TRANSICIONES ─────────────────────────────────────────
 function transLoad() { try { return JSON.parse(localStorage.getItem('trans_data') || '[]'); } catch(e) { return []; } }
-function transSave(d) { localStorage.setItem('trans_data', JSON.stringify(d)); }
+function transSave(d) { localStorage.setItem('trans_data', JSON.stringify(d)); if(window.cloudSave) window.cloudSave('trans_data', d); }
 
 window.transNueva = function() {
   var old = document.getElementById('transModal');
@@ -16784,7 +16804,6 @@ document.addEventListener('DOMContentLoaded', function() {
   </div><!-- end page-univ -->
 <div id="page-intereses" class="page-section">
 <div id="sec-intereses-nav" style="scroll-margin-top:60px"></div>
-<div id="sec-intereses-nav" style="scroll-margin-top:60px"></div>
 <!-- ══════════════════════════════════════════
      SECCIÓN 5 · ZONA DE HIPERENFOQUE
 ══════════════════════════════════════════ -->
@@ -17186,6 +17205,12 @@ document.addEventListener('DOMContentLoaded', function() {
       var keys = Object.keys(rutinaAsignaciones);
       if (keys.some(function(k){ return k.split('|')[0] === dk; })) return true;
     }
+    // Transiciones
+    try { var td = JSON.parse(localStorage.getItem('trans_data')||'[]'); if(td.some(function(t){return t.fecha===dk;})) return true; } catch(e){}
+    // Recuperación
+    try { var rr = JSON.parse(localStorage.getItem('recuper_registros')||'{}'); if(rr[dk] && rr[dk].length>0) return true; } catch(e){}
+    // Hábitos
+    try { var hd = JSON.parse(localStorage.getItem('habitos_data')||'[]'); if(hd.some(function(h){return h.log&&h.log.indexOf(dk)>-1;})) return true; } catch(e){}
     return false;
   }
 
@@ -17477,6 +17502,76 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
+    // ── Transiciones del día
+    try {
+      var transData = JSON.parse(localStorage.getItem('trans_data') || '[]');
+      var transDk = transData.filter(function(t){ return t.fecha === dk; });
+      if (transDk.length > 0) {
+        hasAnything = true;
+        var sec = document.createElement('div'); sec.className = 'hist-rec-section';
+        sec.innerHTML = '<div class="hist-rec-title">🔄 Transiciones</div>';
+        transDk.forEach(function(t) {
+          var it = document.createElement('div'); it.className = 'hist-rec-item';
+          it.textContent = t.actual + ' → ' + t.siguiente + ' (' + t.hora + ')';
+          sec.appendChild(it);
+        });
+        panel.appendChild(sec);
+      }
+    } catch(e) {}
+
+    // ── Eventos preparados ese día
+    try {
+      var eventosData = JSON.parse(localStorage.getItem('eventos_prep') || '[]');
+      var eventosDk = eventosData.filter(function(e){ return e.fecha && e.fecha.slice(0,10) === dk; });
+      if (eventosDk.length > 0) {
+        hasAnything = true;
+        var sec = document.createElement('div'); sec.className = 'hist-rec-section';
+        sec.innerHTML = '<div class="hist-rec-title">📅 Eventos</div>';
+        eventosDk.forEach(function(e) {
+          var it = document.createElement('div'); it.className = 'hist-rec-item';
+          it.textContent = '📅 ' + e.nombre; sec.appendChild(it);
+        });
+        panel.appendChild(sec);
+      }
+    } catch(e) {}
+
+    // ── Modo Recuperación — registros del día
+    try {
+      var recuperRegs = JSON.parse(localStorage.getItem('recuper_registros') || '{}');
+      var regsHoy = recuperRegs[dk];
+      if (regsHoy && regsHoy.length > 0) {
+        hasAnything = true;
+        var sec = document.createElement('div'); sec.className = 'hist-rec-section';
+        sec.innerHTML = '<div class="hist-rec-title">🌿 Modo Recuperación</div>';
+        regsHoy.forEach(function(r) {
+          var it = document.createElement('div'); it.className = 'hist-rec-item';
+          var txt = '';
+          if (r.que) txt += r.que;
+          if (r.ayudo) txt += (txt ? ' · Ayudó: ' : 'Ayudó: ') + r.ayudo;
+          it.textContent = txt; sec.appendChild(it);
+        });
+        panel.appendChild(sec);
+      }
+    } catch(e) {}
+
+    // ── Hábitos completados ese día
+    try {
+      var habitosData = JSON.parse(localStorage.getItem('habitos_data') || '[]');
+      var habDone = habitosData.filter(function(h){
+        return h.log && h.log.indexOf(dk) > -1;
+      });
+      if (habDone.length > 0) {
+        hasAnything = true;
+        var sec = document.createElement('div'); sec.className = 'hist-rec-section';
+        sec.innerHTML = '<div class="hist-rec-title">🌱 Hábitos</div>';
+        habDone.forEach(function(h) {
+          var it = document.createElement('div'); it.className = 'hist-rec-item done';
+          it.textContent = '✓ ' + (h.emoji||'') + ' ' + h.nombre; sec.appendChild(it);
+        });
+        panel.appendChild(sec);
+      }
+    } catch(e) {}
+
     if (!hasAnything) {
       var empty = document.createElement('div');
       empty.className = 'hist-no-data';
@@ -17484,8 +17579,6 @@ document.addEventListener('DOMContentLoaded', function() {
       panel.appendChild(empty);
     }
   }
-
-  // Init on page load
   window._initHistorial = function() {
     window.histMonthOffset = 0;
     window.histWeekOffset = 0;
@@ -18540,16 +18633,18 @@ document.addEventListener('DOMContentLoaded', function() {
   var buscarSeccion = 'all';
 
   var SECCIONES = [
-    { id:'tareas',    label:'📝 Tareas',    page:'page-tareas' },
-    { id:'journal',   label:'📓 Journal',   page:'page-journal' },
-    { id:'rutinas',   label:'🌸 Rutinas',   page:'page-rutinas' },
-    { id:'recetario', label:'🍽️ Recetario', page:'page-recetario' },
-    { id:'watchlist', label:'🎬 Watchlist', page:'page-listas' },
-    { id:'listas',    label:'⚡ Listas',    page:'page-listas' },
-    { id:'finanzas',  label:'💸 Finanzas',  page:'page-finanzas' },
-    { id:'braindump', label:'🧠 Braindump', page:'page-braindump' },
-    { id:'intereses', label:'🦄 Intereses', page:'page-intereses' },
-    { id:'univ',      label:'💙 Universidad', page:'page-univ' },
+    { id:'tareas',       label:'📝 Tareas',       page:'page-tareas' },
+    { id:'journal',      label:'📓 Journal',      page:'page-journal' },
+    { id:'rutinas',      label:'🌸 Rutinas',      page:'page-rutinas' },
+    { id:'recetario',    label:'🍽️ Recetario',    page:'page-recetario' },
+    { id:'watchlist',    label:'🎬 Watchlist',    page:'page-listas' },
+    { id:'listas',       label:'⚡ Listas',       page:'page-listas' },
+    { id:'finanzas',     label:'💸 Finanzas',     page:'page-finanzas' },
+    { id:'braindump',    label:'🧠 Braindump',    page:'page-braindump' },
+    { id:'intereses',    label:'🦄 Intereses',    page:'page-intereses' },
+    { id:'calma',        label:'🌿 Calma',        page:'page-calma' },
+    { id:'organización', label:'🔄 Organización', page:'page-transiciones' },
+    { id:'univ',         label:'💙 Universidad',  page:'page-univ' },
   ];
 
   function renderFilters(){
@@ -18728,7 +18823,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     } catch(e){}
 
-    // ── INTERESES
+    // ── INTERESES (hiperfoco archivado)
     try {
       var ints = JSON.parse(localStorage.getItem('intereses')||'[]');
       ints.forEach(function(i){
@@ -18737,6 +18832,73 @@ document.addEventListener('DOMContentLoaded', function() {
         if(name.toLowerCase().indexOf(ql)>=0||desc.toLowerCase().indexOf(ql)>=0){
           results.push({ seccion:'intereses', icon:'🦄', title:name, snippet:desc?snippet(desc,q,80):'', page:'page-intereses' });
         }
+      });
+    } catch(e){}
+
+    // ── HIPERFOCOS ARCHIVADOS
+    try {
+      var sparkHist = JSON.parse(localStorage.getItem('spark_historial')||'[]');
+      sparkHist.forEach(function(h){
+        var title = h.title||'';
+        var notes = h.notes||'';
+        var notaCierre = h.notaCierre||'';
+        if(title.toLowerCase().indexOf(ql)>=0||notes.toLowerCase().indexOf(ql)>=0||notaCierre.toLowerCase().indexOf(ql)>=0){
+          results.push({ seccion:'intereses', icon:'✦', title: (h.icon||'⭐')+' '+title,
+            snippet: h.fechaInicio ? h.fechaInicio+(h.fechaFin&&h.fechaFin!==h.fechaInicio?' → '+h.fechaFin:'') : (h.date||''),
+            page:'page-intereses' });
+        }
+      });
+    } catch(e){}
+
+    // ── WISHLIST
+    try {
+      var wshItems = JSON.parse(localStorage.getItem('wishlist_items')||'[]');
+      wshItems.forEach(function(it){
+        var nombre = it.nombre||'';
+        var nota = it.nota||'';
+        var cat = it.categoria||'';
+        if(nombre.toLowerCase().indexOf(ql)>=0||nota.toLowerCase().indexOf(ql)>=0||cat.toLowerCase().indexOf(ql)>=0){
+          results.push({ seccion:'listas', icon:'✨', title:nombre,
+            snippet:(it.rango?'💰 '+it.rango+' · ':'')+( it.status||''), page:'page-listas', tabHint:'wishlist' });
+        }
+      });
+    } catch(e){}
+
+    // ── TRANSICIONES
+    try {
+      var transItems = JSON.parse(localStorage.getItem('trans_data')||'[]');
+      transItems.forEach(function(t){
+        var txt = (t.actual||'')+' → '+(t.siguiente||'');
+        if(txt.toLowerCase().indexOf(ql)>=0){
+          results.push({ seccion:'organización', icon:'🔄', title:txt, snippet:'Transición · '+t.hora, page:'page-transiciones' });
+        }
+      });
+    } catch(e){}
+
+    // ── EVENTOS PREPARADOS
+    try {
+      var eventosItems = JSON.parse(localStorage.getItem('eventos_prep')||'[]');
+      eventosItems.forEach(function(e){
+        var nombre = e.nombre||'';
+        var queVaApasar = e.queVaApasar||'';
+        if(nombre.toLowerCase().indexOf(ql)>=0||queVaApasar.toLowerCase().indexOf(ql)>=0){
+          results.push({ seccion:'calma', icon:'📅', title:nombre,
+            snippet:queVaApasar?snippet(queVaApasar,q,80):'', page:'page-calma' });
+        }
+      });
+    } catch(e){}
+
+    // ── MODO RECUPERACIÓN (registros)
+    try {
+      var recuperRegs = JSON.parse(localStorage.getItem('recuper_registros')||'{}');
+      Object.keys(recuperRegs).forEach(function(fecha){
+        (recuperRegs[fecha]||[]).forEach(function(r){
+          var txt = (r.que||'')+' '+(r.ayudo||'');
+          if(txt.toLowerCase().indexOf(ql)>=0){
+            results.push({ seccion:'calma', icon:'🌿', title:'Recuperación · '+fecha,
+              snippet:r.que?snippet(r.que,q,80):'', page:'page-calma' });
+          }
+        });
       });
     } catch(e){}
 
@@ -18798,6 +18960,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(window.showPage) window.showPage(r.page);
         if(r.tabHint==='watchlist' && window.listasSetTab) setTimeout(function(){ window.listasSetTab('watchlist'); },200);
         if(r.tabHint==='rapidas' && window.listasSetTab) setTimeout(function(){ window.listasSetTab('rapidas'); },200);
+        if(r.tabHint==='wishlist' && window.listasSetTab) setTimeout(function(){ window.listasSetTab('wishlist'); },200);
       };
       var meta = document.createElement('div'); meta.className='buscar-result-meta';
       var sec = document.createElement('span'); sec.className='buscar-result-section';
@@ -19332,6 +19495,7 @@ function customNotifLoad() {
 }
 function customNotifSave(data) {
   localStorage.setItem('custom_notifs', JSON.stringify(data));
+  if(window.cloudSave) window.cloudSave('custom_notifs', data);
 }
 
 window.customNotifAdd = function() {
