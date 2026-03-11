@@ -12514,7 +12514,7 @@ const NAV_PAGES = [
   { icon:'🏠', label:'Inicio',     page:'page-inicio'    },
   { icon:'🐱', label:'Mi Semana',  page:'page-semana'    },
   { icon:'🙏', label:'Fe',         page:'page-fe'        },
-  { icon:'💙', label:'Medicina',   page:'page-univ'      },
+  { icon:'💙', label:'Universidad',   page:'page-univ'      },
   { icon:'🌿', label:'Calma',      page:'page-calma'     },
   { icon:'📝', label:'Tareas',     page:'page-tareas'    },
   { icon:'🌸', label:'Rutinas',    page:'page-rutinas'   },
@@ -12529,6 +12529,7 @@ const NAV_PAGES = [
   { icon:'💸', label:'Finanzas',   page:'page-finanzas'  },
   { icon:'📅', label:'Historial',  page:'page-historial' },
   { icon:'⚙️', label:'Config',     page:'page-config'    },
+  { icon:'🔍', label:'Buscar',     page:'page-buscar'    },
 ];
 
 let activePage = 'page-inicio';
@@ -15287,6 +15288,8 @@ document.addEventListener('DOMContentLoaded', function() {
   .wl-empty { text-align:center;color:var(--muted2);font-size:.8rem;font-weight:600;padding:2rem 0;grid-column:1/-1; }
 
   @media(max-width:600px){ .wl-grid{grid-template-columns:1fr 1fr;} }
+  .wl-card-clas { font-size:.6rem;font-weight:800;padding:.14rem .5rem;border-radius:20px;background:var(--pink-light);color:var(--rosa);display:inline-block;width:fit-content;margin-top:.1rem; }
+  .wl-clas-label { font-size:.62rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);margin-right:.2rem; }
 </style>
 
 <section class="listas-section">
@@ -15307,6 +15310,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div id="listasTabWatchlist" style="display:none">
     <div class="wl-cat-tabs" id="wlCatTabs"></div>
     <div class="wl-status-filter" id="wlStatusFilter"></div>
+    <div class="wl-status-filter" id="wlClasFilter" style="margin-bottom:.5rem"></div>
     <div class="wl-grid" id="wlGrid"></div>
     <button class="wl-add-btn" onclick="openWlModal(null)">＋ Agregar entrada</button>
   </div>
@@ -15331,6 +15335,8 @@ document.addEventListener('DOMContentLoaded', function() {
   ];
   var wlItems = [];
   var wlCatFilter = 'all';
+  var wlClasFilter = 'all';
+  var wlClasificaciones = [];
   var wlStatusFilter = 'all';
   var listasTab = 'rapidas';
 
@@ -15338,13 +15344,15 @@ document.addEventListener('DOMContentLoaded', function() {
   function qlLoad(){ if(window._qlLists){qlLists=window._qlLists;} else { try{qlLists=JSON.parse(localStorage.getItem('ql_lists')||'[]');}catch(e){qlLists=[];} } }
   function wlSave(){ try{localStorage.setItem('wl_items',JSON.stringify(wlItems));}catch(e){} if(window.cloudSave) window.cloudSave('wl_items',wlItems); }
   function wlLoad(){ if(window._wlItems){wlItems=window._wlItems;} else { try{wlItems=JSON.parse(localStorage.getItem('wl_items')||'[]');}catch(e){wlItems=[];} } }
+  function wlClaSave(){ try{localStorage.setItem("wl_clas",JSON.stringify(wlClasificaciones));}catch(e){} if(window.cloudSave) window.cloudSave("wl_clas",wlClasificaciones); }
+  function wlClaLoad(){ if(window._wlClas){wlClasificaciones=window._wlClas;} else { try{wlClasificaciones=JSON.parse(localStorage.getItem("wl_clas")||"[]");}catch(e){wlClasificaciones=[];} } }
 
   window.listasSetTab = function(tab) {
     listasTab = tab;
     document.querySelectorAll('.lista-tab').forEach(function(b,i){ b.classList.toggle('active',['rapidas','watchlist'][i]===tab); });
     document.getElementById('listasTabRapidas').style.display = tab==='rapidas'?'':'none';
     document.getElementById('listasTabWatchlist').style.display = tab==='watchlist'?'':'none';
-    if(tab==='watchlist'){ renderWlCatTabs(); renderWlStatusFilter(); renderWlGrid(); }
+    if(tab==="watchlist"){ renderWlCatTabs(); renderWlStatusFilter(); renderWlClasFilter(); renderWlGrid(); }
   };
 
   // ── Render listas rápidas
@@ -15461,11 +15469,38 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  function renderWlClasFilter(){
+    var row=document.getElementById('wlClasFilter'); if(!row) return;
+    row.innerHTML='<span class="wl-clas-label">Clasificación:</span>';
+    var all=document.createElement('button'); all.className='wl-status-btn'+(wlClasFilter==='all'?' active':'');
+    all.textContent='Todas'; all.onclick=function(){wlClasFilter='all';renderWlClasFilter();renderWlGrid();};
+    row.appendChild(all);
+    wlClasificaciones.forEach(function(cl){
+      var btn=document.createElement('button'); btn.className='wl-status-btn'+(wlClasFilter===cl?' active':'');
+      btn.textContent='🏷 '+cl;
+      btn.onclick=function(){wlClasFilter=cl;renderWlClasFilter();renderWlGrid();};
+      row.appendChild(btn);
+    });
+    // Botón para agregar nueva clasificación
+    var addBtn=document.createElement('button'); addBtn.className='wl-status-btn';
+    addBtn.textContent='＋ Nueva'; addBtn.style.borderStyle='dashed';
+    addBtn.onclick=function(){
+      var nombre=prompt('Nombre de la clasificación:');
+      if(!nombre||!nombre.trim()) return;
+      nombre=nombre.trim();
+      if(!wlClasificaciones.includes(nombre)){ wlClasificaciones.push(nombre); wlClaSave(); }
+      renderWlClasFilter(); renderWlGrid();
+    };
+    row.appendChild(addBtn);
+  }
+
   function renderWlGrid(){
     var grid=document.getElementById('wlGrid'); if(!grid) return;
     grid.innerHTML='';
     var filtered=wlItems.filter(function(it){
-      return (wlCatFilter==='all'||it.cat===wlCatFilter) && (wlStatusFilter==='all'||it.status===wlStatusFilter);
+      return (wlCatFilter==='all'||it.cat===wlCatFilter)
+          && (wlStatusFilter==='all'||it.status===wlStatusFilter)
+          && (wlClasFilter==='all'||it.clasificacion===wlClasFilter);
     });
     if(filtered.length===0){
       var emp=document.createElement('div'); emp.className='wl-empty';
@@ -15487,6 +15522,12 @@ document.addEventListener('DOMContentLoaded', function() {
       // Title
       var titleEl=document.createElement('div'); titleEl.className='wl-card-title'; titleEl.textContent=item.title;
       card.appendChild(titleEl);
+
+      // Clasificación badge
+      if(item.clasificacion){
+        var clasEl=document.createElement('div'); clasEl.className='wl-card-clas'; clasEl.textContent='🏷 '+item.clasificacion;
+        card.appendChild(clasEl);
+      }
 
       // Status select
       var sel=document.createElement('select');
@@ -15535,34 +15576,389 @@ document.addEventListener('DOMContentLoaded', function() {
     var box=document.createElement('div'); box.className='meta-modal-box';
     var catOpts=WL_CATS.map(function(c){return '<option value="'+c.id+'"'+(existing&&existing.cat===c.id?' selected':'')+'>'+c.label+'</option>';}).join('');
     var stOpts=WL_STATUSES.map(function(s){return '<option value="'+s.id+'"'+(existing&&existing.status===s.id?' selected':'')+'>'+s.label+'</option>';}).join('');
-    box.innerHTML='<div class="mood-modal-title">Nueva entrada 🎬</div>'
+    var clasOpts='<option value="">— Sin clasificación —</option>'+wlClasificaciones.map(function(cl){return '<option value="'+cl+'"'+(existing&&existing.clasificacion===cl?' selected':'')+'>'+cl+'</option>';}).join('');
+    box.innerHTML='<div class="mood-modal-title">'+(existing?'Editar entrada':'Nueva entrada 🎬')+'</div>'
       +'<div class="modal-field"><label class="modal-label">Título</label>'
       +'<input class="modal-input" id="wlTitleInput" placeholder="Ej: Attack on Titan…" value="'+(existing?existing.title.replace(/"/g,'&quot;'):'')+'" ></div>'
       +'<div class="modal-field"><label class="modal-label">Categoría</label>'
       +'<select class="modal-input" id="wlCatInput" style="cursor:pointer">'+catOpts+'</select></div>'
       +'<div class="modal-field"><label class="modal-label">Estado</label>'
       +'<select class="modal-input" id="wlStatusInput" style="cursor:pointer">'+stOpts+'</select></div>'
+      +'<div class="modal-field"><label class="modal-label">Clasificación 🏷</label>'
+      +'<select class="modal-input" id="wlClasInput" style="cursor:pointer">'+clasOpts+'</select>'
+      +'<div style="display:flex;gap:.4rem;margin-top:.4rem">'
+      +'<input class="modal-input" id="wlNewClasInput" placeholder="O escribe una nueva clasificación…" style="flex:1;font-size:.75rem">'
+      +'<button type="button" class="modal-btn-save" id="wlAddClasBtn" style="padding:.35rem .7rem;font-size:.75rem">＋</button>'
+      +'</div></div>'
       +'<div class="modal-btns" style="margin-top:.8rem">'
       +'<button class="modal-btn-cancel" onclick="document.getElementById(&quot;wlModal&quot;).remove()">Cancelar</button>'
       +'<button class="modal-btn-save" id="wlSaveBtn">Guardar</button></div>';
     backdrop.appendChild(box); document.body.appendChild(backdrop);
+    // Agregar nueva clasificación desde el modal
+    document.getElementById('wlAddClasBtn').onclick=function(){
+      var nombre=document.getElementById('wlNewClasInput').value.trim(); if(!nombre) return;
+      if(!wlClasificaciones.includes(nombre)){ wlClasificaciones.push(nombre); wlClaSave(); }
+      var sel=document.getElementById('wlClasInput');
+      if(!sel.querySelector('option[value="'+nombre+'"]')){
+        var opt=document.createElement('option'); opt.value=nombre; opt.textContent=nombre; sel.appendChild(opt);
+      }
+      sel.value=nombre;
+      document.getElementById('wlNewClasInput').value='';
+    };
+    document.getElementById('wlNewClasInput').onkeydown=function(e){ if(e.key==='Enter'){e.preventDefault();document.getElementById('wlAddClasBtn').click();} };
     document.getElementById('wlSaveBtn').onclick=function(){
       var t=document.getElementById('wlTitleInput').value.trim(); if(!t){document.getElementById('wlTitleInput').focus();return;}
       var c=document.getElementById('wlCatInput').value;
       var s=document.getElementById('wlStatusInput').value;
-      if(existing){existing.title=t;existing.cat=c;existing.status=s;}
-      else{wlItems.push({id:'wl_'+Date.now(),title:t,cat:c,status:s,rating:0});}
-      wlSave(); renderWlGrid(); backdrop.remove();
+      var cl=document.getElementById('wlClasInput').value;
+      if(existing){existing.title=t;existing.cat=c;existing.status=s;existing.clasificacion=cl;}
+      else{wlItems.push({id:'wl_'+Date.now(),title:t,cat:c,status:s,clasificacion:cl,rating:0});}
+      wlSave(); renderWlGrid(); renderWlClasFilter(); backdrop.remove();
     };
     document.getElementById('wlTitleInput').focus();
   };
 
   // Init
-  qlLoad(); wlLoad();
-  setTimeout(function(){ renderQlLists(); renderWlCatTabs(); renderWlStatusFilter(); renderWlGrid(); }, 150);
+  qlLoad(); wlLoad(); wlClaLoad();
+  setTimeout(function(){ renderQlLists(); renderWlCatTabs(); renderWlStatusFilter(); renderWlClasFilter(); renderWlGrid(); }, 150);
 })();
 </script>
 </div><!-- end page-listas -->
+<div id="page-buscar" class="page-section">
+<style>
+  .buscar-section { max-width:860px;margin:2rem auto 0;padding:0 1rem 4rem;animation:fadeUp .5s .1s ease both;opacity:0;animation-fill-mode:both; }
+  .buscar-input-wrap { position:relative;margin-bottom:1.2rem; }
+  .buscar-input { width:100%;padding:.8rem 1rem .8rem 2.8rem;border:2px solid var(--border);border-radius:50px;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:600;color:var(--text);background:var(--card);outline:none;transition:border-color .2s;box-sizing:border-box; }
+  .buscar-input:focus { border-color:var(--rosa); }
+  .buscar-input-icon { position:absolute;left:.9rem;top:50%;transform:translateY(-50%);font-size:1rem;pointer-events:none; }
+  .buscar-clear { position:absolute;right:.9rem;top:50%;transform:translateY(-50%);background:none;border:none;font-size:.85rem;color:var(--muted2);cursor:pointer;padding:.2rem;display:none; }
+  .buscar-clear.visible { display:block; }
+  .buscar-filters { display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:1.2rem; }
+  .buscar-filter-btn { padding:.22rem .7rem;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-family:'Nunito',sans-serif;font-size:.7rem;font-weight:700;color:var(--muted);cursor:pointer;transition:all .18s; }
+  .buscar-filter-btn.active { background:var(--rosa);border-color:var(--rosa);color:#fff; }
+  .buscar-results { display:flex;flex-direction:column;gap:.6rem; }
+  .buscar-result-card { background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:.85rem 1.1rem;cursor:pointer;transition:box-shadow .2s,border-color .2s; }
+  .buscar-result-card:hover { box-shadow:0 4px 16px rgba(0,0,0,.08);border-color:var(--rosa); }
+  .buscar-result-meta { display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem; }
+  .buscar-result-section { font-size:.6rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:.12rem .55rem;border-radius:20px;background:var(--pink-light);color:var(--rosa); }
+  .buscar-result-title { font-size:.85rem;font-weight:700;color:var(--text);line-height:1.4; }
+  .buscar-result-snippet { font-size:.75rem;color:var(--muted2);font-weight:600;margin-top:.2rem;line-height:1.5; }
+  .buscar-result-title mark, .buscar-result-snippet mark { background:rgba(var(--rosa-rgb,220,130,158),.18);color:var(--rosa);border-radius:3px;padding:0 .1rem; }
+  .buscar-empty { text-align:center;color:var(--muted2);font-size:.85rem;font-weight:600;padding:3rem 0; }
+  .buscar-count { font-size:.72rem;font-weight:700;color:var(--muted2);margin-bottom:.8rem; }
+</style>
+<section class="buscar-section">
+  <span class="section-sub">🔍 búsqueda</span>
+  <h2 class="section-title" style="margin-bottom:1rem"><em>Buscar</em> en la app</h2>
+  <div class="buscar-input-wrap">
+    <span class="buscar-input-icon">🔍</span>
+    <input class="buscar-input" id="buscarInput" placeholder="Busca tareas, recetas, notas, listas…" autocomplete="off">
+    <button class="buscar-clear" id="buscarClear" onclick="buscarClear()">✕</button>
+  </div>
+  <div class="buscar-filters" id="buscarFilters"></div>
+  <div class="buscar-count" id="buscarCount" style="display:none"></div>
+  <div class="buscar-results" id="buscarResults">
+    <div class="buscar-empty">Escribe algo para empezar a buscar 🌸</div>
+  </div>
+</section>
+<script>
+(function(){
+  var buscarQuery = '';
+  var buscarSeccion = 'all';
+
+  var SECCIONES = [
+    { id:'tareas',    label:'📝 Tareas',    page:'page-tareas' },
+    { id:'journal',   label:'📓 Journal',   page:'page-journal' },
+    { id:'rutinas',   label:'🌸 Rutinas',   page:'page-rutinas' },
+    { id:'recetario', label:'🍽️ Recetario', page:'page-recetario' },
+    { id:'watchlist', label:'🎬 Watchlist', page:'page-listas' },
+    { id:'listas',    label:'⚡ Listas',    page:'page-listas' },
+    { id:'finanzas',  label:'💸 Finanzas',  page:'page-finanzas' },
+    { id:'braindump', label:'🧠 Braindump', page:'page-braindump' },
+    { id:'intereses', label:'🦄 Intereses', page:'page-intereses' },
+    { id:'univ',      label:'💙 Universidad', page:'page-univ' },
+  ];
+
+  function renderFilters(){
+    var wrap = document.getElementById('buscarFilters'); if(!wrap) return;
+    wrap.innerHTML = '';
+    var all = document.createElement('button');
+    all.className = 'buscar-filter-btn' + (buscarSeccion==='all'?' active':'');
+    all.textContent = '✨ Todas';
+    all.onclick = function(){ buscarSeccion='all'; renderFilters(); doSearch(); };
+    wrap.appendChild(all);
+    SECCIONES.forEach(function(s){
+      var btn = document.createElement('button');
+      btn.className = 'buscar-filter-btn' + (buscarSeccion===s.id?' active':'');
+      btn.textContent = s.label;
+      btn.onclick = function(){ buscarSeccion=s.id; renderFilters(); doSearch(); };
+      wrap.appendChild(btn);
+    });
+  }
+
+  function highlight(text, q){
+    if(!q) return escHtml(text);
+    var escaped = q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    return escHtml(text).replace(new RegExp('('+escaped+')','gi'), '<mark>$1</mark>');
+  }
+  function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function snippet(text, q, len){
+    len = len || 100;
+    if(!q) return text.slice(0,len)+(text.length>len?'…':'');
+    var idx = text.toLowerCase().indexOf(q.toLowerCase());
+    var start = Math.max(0, idx-40);
+    var end = Math.min(text.length, start+len);
+    var s = (start>0?'…':'')+text.slice(start,end)+(end<text.length?'…':'');
+    return s;
+  }
+
+  function getResults(q){
+    var results = [];
+    var ql = q.toLowerCase();
+
+    // ── TAREAS
+    try {
+      var tareas = JSON.parse(localStorage.getItem('tareas_v2')||'[]');
+      tareas.forEach(function(t){
+        var text = (t.text||t.title||'');
+        if(text.toLowerCase().indexOf(ql)>=0){
+          results.push({ seccion:'tareas', icon:'📝', title:text, snippet:'', page:'page-tareas' });
+        }
+      });
+    } catch(e){}
+
+    // ── JOURNAL (entradas)
+    try {
+      var jKeys = Object.keys(localStorage).filter(function(k){ return k.startsWith('journal_'); });
+      jKeys.forEach(function(k){
+        var entry = JSON.parse(localStorage.getItem(k)||'null');
+        if(!entry) return;
+        var titulo = entry.titulo||entry.title||k.replace('journal_','');
+        var contenido = entry.contenido||entry.text||entry.content||'';
+        var hayTitulo = titulo.toLowerCase().indexOf(ql)>=0;
+        var hayContenido = contenido.toLowerCase().indexOf(ql)>=0;
+        if(hayTitulo||hayContenido){
+          results.push({ seccion:'journal', icon:'📓', title:titulo||'Entrada de journal', snippet: hayContenido?snippet(contenido,q):'', page:'page-journal' });
+        }
+      });
+      // También formato array
+      var journalArr = JSON.parse(localStorage.getItem('journal_entries')||'[]');
+      journalArr.forEach(function(e){
+        var titulo = e.titulo||e.title||e.date||'';
+        var contenido = e.contenido||e.text||e.content||'';
+        var hayTitulo = titulo.toLowerCase().indexOf(ql)>=0;
+        var hayContenido = contenido.toLowerCase().indexOf(ql)>=0;
+        if(hayTitulo||hayContenido){
+          results.push({ seccion:'journal', icon:'📓', title:titulo||'Entrada de journal', snippet:hayContenido?snippet(contenido,q):'', page:'page-journal' });
+        }
+      });
+    } catch(e){}
+
+    // ── RUTINAS
+    try {
+      var rutinas = JSON.parse(localStorage.getItem('rutinas')||'[]');
+      rutinas.forEach(function(r){
+        var name = r.name||r.nombre||'';
+        if(name.toLowerCase().indexOf(ql)>=0){
+          results.push({ seccion:'rutinas', icon:'🌸', title:name, snippet:'', page:'page-rutinas' });
+        }
+        // pasos de rutina
+        (r.pasos||r.steps||[]).forEach(function(p){
+          var pt = p.text||p.nombre||p.title||'';
+          if(pt.toLowerCase().indexOf(ql)>=0){
+            results.push({ seccion:'rutinas', icon:'🌸', title:pt, snippet:'En rutina: '+name, page:'page-rutinas' });
+          }
+        });
+      });
+    } catch(e){}
+
+    // ── RECETARIO
+    try {
+      var recetas = JSON.parse(localStorage.getItem('recetario')||'[]');
+      recetas.forEach(function(r){
+        var name = r.nombre||r.name||r.title||'';
+        var ing = (r.ingredientes||[]).join(' ');
+        var hayNombre = name.toLowerCase().indexOf(ql)>=0;
+        var hayIng = ing.toLowerCase().indexOf(ql)>=0;
+        if(hayNombre||hayIng){
+          results.push({ seccion:'recetario', icon:'🍽️', title:name, snippet:hayIng?'Ingrediente: '+snippet(ing,q,60):'', page:'page-recetario' });
+        }
+      });
+    } catch(e){}
+
+    // ── WATCHLIST
+    try {
+      var wlItems = JSON.parse(localStorage.getItem('wl_items')||'[]');
+      wlItems.forEach(function(it){
+        var title = it.title||'';
+        var clas = it.clasificacion||'';
+        if(title.toLowerCase().indexOf(ql)>=0 || clas.toLowerCase().indexOf(ql)>=0){
+          results.push({ seccion:'watchlist', icon:'🎬', title:title, snippet:clas?'Clasificación: '+clas:'', page:'page-listas', tabHint:'watchlist' });
+        }
+      });
+    } catch(e){}
+
+    // ── LISTAS RÁPIDAS
+    try {
+      var qlLists = JSON.parse(localStorage.getItem('ql_lists')||'[]');
+      qlLists.forEach(function(lst){
+        var lname = lst.name||'';
+        (lst.items||[]).forEach(function(it){
+          var t = it.text||'';
+          if(t.toLowerCase().indexOf(ql)>=0 || lname.toLowerCase().indexOf(ql)>=0){
+            results.push({ seccion:'listas', icon:'⚡', title:t||lname, snippet:'Lista: '+lname, page:'page-listas', tabHint:'rapidas' });
+          }
+        });
+        if(lname.toLowerCase().indexOf(ql)>=0 && !(lst.items||[]).length){
+          results.push({ seccion:'listas', icon:'⚡', title:lname, snippet:'Lista vacía', page:'page-listas', tabHint:'rapidas' });
+        }
+      });
+    } catch(e){}
+
+    // ── FINANZAS (movimientos)
+    try {
+      var movs = JSON.parse(localStorage.getItem('finanzas_movimientos')||'[]');
+      movs.forEach(function(m){
+        var desc = m.desc||m.descripcion||m.note||'';
+        if(desc.toLowerCase().indexOf(ql)>=0){
+          results.push({ seccion:'finanzas', icon:'💸', title:desc, snippet:(m.tipo||'')+(m.monto?' — $'+m.monto:''), page:'page-finanzas' });
+        }
+      });
+    } catch(e){}
+
+    // ── BRAINDUMP
+    try {
+      var bd = localStorage.getItem('braindump_text')||localStorage.getItem('braindump')||'';
+      if(bd.toLowerCase().indexOf(ql)>=0){
+        results.push({ seccion:'braindump', icon:'🧠', title:'Braindump', snippet:snippet(bd,q,100), page:'page-braindump' });
+      }
+      // Ideas spark
+      var ideas = JSON.parse(localStorage.getItem('spark_ideas')||'[]');
+      ideas.forEach(function(idea){
+        var t = idea.text||idea.titulo||idea.title||'';
+        if(t.toLowerCase().indexOf(ql)>=0){
+          results.push({ seccion:'braindump', icon:'💡', title:t, snippet:'Idea guardada', page:'page-braindump' });
+        }
+      });
+    } catch(e){}
+
+    // ── INTERESES
+    try {
+      var ints = JSON.parse(localStorage.getItem('intereses')||'[]');
+      ints.forEach(function(i){
+        var name = i.name||i.nombre||i.title||'';
+        var desc = i.desc||i.descripcion||'';
+        if(name.toLowerCase().indexOf(ql)>=0||desc.toLowerCase().indexOf(ql)>=0){
+          results.push({ seccion:'intereses', icon:'🦄', title:name, snippet:desc?snippet(desc,q,80):'', page:'page-intereses' });
+        }
+      });
+    } catch(e){}
+
+    // ── UNIVERSIDAD (motivación + materias)
+    try {
+      var univ = JSON.parse(localStorage.getItem('univ_data')||'{}');
+      var mot = univ.motivacion||'';
+      if(mot.toLowerCase().indexOf(ql)>=0){
+        results.push({ seccion:'univ', icon:'💙', title:'Motivación personal', snippet:snippet(mot,q,100), page:'page-univ' });
+      }
+      (univ.materias||[]).forEach(function(m){
+        var mn = m.nombre||m.name||'';
+        if(mn.toLowerCase().indexOf(ql)>=0){
+          results.push({ seccion:'univ', icon:'💙', title:mn, snippet:'Materia', page:'page-univ' });
+        }
+      });
+    } catch(e){}
+
+    // filtrar por sección activa
+    if(buscarSeccion!=='all'){
+      results = results.filter(function(r){ return r.seccion===buscarSeccion; });
+    }
+
+    // deduplicar títulos iguales por sección
+    var seen = {};
+    results = results.filter(function(r){
+      var key = r.seccion+'::'+r.title;
+      if(seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
+
+    return results;
+  }
+
+  function doSearch(){
+    var q = buscarQuery.trim();
+    var resultsEl = document.getElementById('buscarResults');
+    var countEl = document.getElementById('buscarCount');
+    if(!resultsEl) return;
+    if(!q){
+      countEl.style.display='none';
+      resultsEl.innerHTML='<div class="buscar-empty">Escribe algo para empezar a buscar 🌸</div>';
+      return;
+    }
+    var results = getResults(q);
+    countEl.style.display='block';
+    countEl.textContent = results.length===0 ? '' : results.length+' resultado'+(results.length!==1?'s':'')+' encontrado'+(results.length!==1?'s':'');
+    if(results.length===0){
+      resultsEl.innerHTML='<div class="buscar-empty">Sin resultados para "'+escHtml(q)+'" 🐱</div>';
+      return;
+    }
+    resultsEl.innerHTML='';
+    var secLabel = {};
+    SECCIONES.forEach(function(s){ secLabel[s.id]=s.label; });
+    results.forEach(function(r){
+      var card = document.createElement('div'); card.className='buscar-result-card';
+      card.onclick = function(){
+        if(window.showPage) window.showPage(r.page);
+        if(r.tabHint==='watchlist' && window.listasSetTab) setTimeout(function(){ window.listasSetTab('watchlist'); },200);
+        if(r.tabHint==='rapidas' && window.listasSetTab) setTimeout(function(){ window.listasSetTab('rapidas'); },200);
+      };
+      var meta = document.createElement('div'); meta.className='buscar-result-meta';
+      var sec = document.createElement('span'); sec.className='buscar-result-section';
+      sec.textContent = (secLabel[r.seccion]||r.seccion);
+      meta.appendChild(sec);
+      card.appendChild(meta);
+      var title = document.createElement('div'); title.className='buscar-result-title';
+      title.innerHTML = highlight(r.title, q);
+      card.appendChild(title);
+      if(r.snippet){
+        var snip = document.createElement('div'); snip.className='buscar-result-snippet';
+        snip.innerHTML = highlight(r.snippet, q);
+        card.appendChild(snip);
+      }
+      resultsEl.appendChild(card);
+    });
+  }
+
+  window.buscarClear = function(){
+    var inp = document.getElementById('buscarInput'); if(inp) inp.value='';
+    document.getElementById('buscarClear').classList.remove('visible');
+    buscarQuery=''; doSearch();
+    if(inp) inp.focus();
+  };
+
+  document.addEventListener('DOMContentLoaded', function(){
+    var inp = document.getElementById('buscarInput');
+    var clearBtn = document.getElementById('buscarClear');
+    if(!inp) return;
+    inp.addEventListener('input', function(){
+      buscarQuery = inp.value;
+      clearBtn.classList.toggle('visible', !!inp.value);
+      doSearch();
+    });
+    renderFilters();
+  });
+
+  // También init cuando se muestre la página
+  window._buscarInit = function(){
+    renderFilters();
+    var inp = document.getElementById('buscarInput');
+    if(inp){ inp.focus(); }
+  };
+})();
+</script>
+</div><!-- end page-buscar -->
+
 <div id="page-config" class="page-section">
 <style>
   .config-section {
@@ -15836,6 +16232,7 @@ document.addEventListener('DOMContentLoaded', function() {
   window.showPage = function(pageId) {
     if (_origShowPage) _origShowPage(pageId);
     if (pageId === 'page-config') { setTimeout(function(){ configLoadProfile(); renderThemeGrid(); }, 50); }
+    if (pageId === 'page-buscar') { setTimeout(function(){ if(window._buscarInit) window._buscarInit(); }, 50); }
   };
 
   // Guardar referencia al usuario actual
