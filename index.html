@@ -5315,6 +5315,10 @@ function todayKey() { return dateKey(new Date()); }
   window.showPage = function(pageId) {
     if (_origShow) _origShow(pageId);
     if (pageId === 'page-inicio') setTimeout(window.renderWidgets, 350);
+    if (pageId === 'page-calma') setTimeout(function(){
+      eventoRender();
+      recuperInit();
+    }, 200);
   };
 
 })();
@@ -8863,6 +8867,117 @@ document.addEventListener('DOMContentLoaded', function() {
 </section>
 
 
+
+
+<!-- ── UNA SOLA TAREA ── -->
+<section class="rutinas-section" id="sec-una-tarea" style="margin-top:1.5rem">
+  <span class="section-sub">🎯 enfoque</span>
+  <h2 class="section-title"><em>Una Sola</em> Tarea</h2>
+  <p style="font-size:.75rem;color:var(--muted);font-weight:600;line-height:1.6;margin-bottom:1rem">A veces la mejor estrategia es hacerle zoom a una sola cosa 🌸</p>
+
+  <div id="unaTareaBox" style="background:var(--card);border-radius:18px;padding:1.4rem;border:1px solid var(--border)">
+
+    <!-- Selector modo -->
+    <div style="display:flex;gap:.5rem;margin-bottom:1.1rem">
+      <button id="utModoEscribir" onclick="utSetModo('escribir')" style="flex:1;padding:.45rem;border-radius:10px;border:1.5px solid var(--rosa);background:var(--rosa);color:#fff;font-family:var(--font-body);font-size:.75rem;font-weight:800;cursor:pointer">✏️ Escribir tarea</button>
+      <button id="utModoLista" onclick="utSetModo('lista')" style="flex:1;padding:.45rem;border-radius:10px;border:1.5px solid var(--border);background:none;color:var(--muted);font-family:var(--font-body);font-size:.75rem;font-weight:800;cursor:pointer">📋 De mi lista</button>
+    </div>
+
+    <!-- Modo escribir -->
+    <div id="utPanelEscribir">
+      <input id="utInputEscribir" placeholder="¿Qué vas a hacer ahora?" style="width:100%;box-sizing:border-box;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:.7rem .9rem;font-family:var(--font-body);font-size:.88rem;font-weight:600;color:var(--text);outline:none;margin-bottom:.7rem">
+      <button onclick="utIniciar()" style="width:100%;padding:.65rem;border-radius:12px;border:none;background:var(--rosa);color:#fff;font-family:var(--font-body);font-size:.85rem;font-weight:800;cursor:pointer">Enfocarme en esto →</button>
+    </div>
+
+    <!-- Modo lista -->
+    <div id="utPanelLista" style="display:none">
+      <div id="utListaTareas" style="display:flex;flex-direction:column;gap:.4rem;max-height:200px;overflow-y:auto;margin-bottom:.7rem"></div>
+    </div>
+
+    <!-- Pantalla enfoque -->
+    <div id="utPantallaEnfoque" style="display:none;text-align:center;padding:.5rem 0">
+      <div style="font-size:3rem;margin-bottom:.6rem">🎯</div>
+      <p style="font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem">ahora mismo</p>
+      <p id="utTareaActual" style="font-size:1.15rem;font-weight:800;color:var(--text);line-height:1.4;margin-bottom:1.2rem;padding:0 .5rem"></p>
+      <div style="display:flex;gap:.6rem;justify-content:center">
+        <button onclick="utCompletar()" style="padding:.6rem 1.2rem;border-radius:12px;border:none;background:var(--rosa);color:#fff;font-family:var(--font-body);font-size:.82rem;font-weight:800;cursor:pointer">✓ ¡Lista!</button>
+        <button onclick="utCancelar()" style="padding:.6rem 1rem;border-radius:12px;border:1.5px solid var(--border);background:none;color:var(--muted);font-family:var(--font-body);font-size:.82rem;font-weight:700;cursor:pointer">Cambiar</button>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── PREPARACIÓN PARA EVENTOS ── -->
+<section class="rutinas-section" id="sec-prep-eventos" style="margin-top:1.5rem">
+  <span class="section-sub">📅 anticipación</span>
+  <h2 class="section-title"><em>Preparación</em> para Eventos</h2>
+  <p style="font-size:.75rem;color:var(--muted);font-weight:600;line-height:1.6;margin-bottom:1rem">Saber lo que va a pasar ayuda a que tu mente esté tranquila 🧩</p>
+
+  <button onclick="eventoNuevoModal()" style="width:100%;padding:.65rem;border-radius:12px;border:1.5px dashed var(--rosa);background:none;color:var(--rosa);font-family:var(--font-body);font-size:.82rem;font-weight:800;cursor:pointer;margin-bottom:.9rem">＋ Preparar un evento</button>
+
+  <div id="eventosList" style="display:flex;flex-direction:column;gap:.8rem"></div>
+
+  <!-- Modal nuevo evento -->
+  <div id="eventoModal" style="display:none;position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:1rem">
+    <div style="background:var(--card);border-radius:20px;padding:1.5rem;max-width:460px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+      <h3 style="font-family:var(--font-title);font-size:1.1rem;color:var(--rosa);margin-bottom:1.1rem">📅 Nuevo evento</h3>
+
+      <label style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Nombre del evento</label>
+      <input id="evNombre" placeholder="Ej: Reunión con el grupo, cita médica…" style="width:100%;box-sizing:border-box;margin:.35rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none">
+
+      <label style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">📅 Fecha y hora</label>
+      <input id="evFecha" type="datetime-local" style="width:100%;box-sizing:border-box;margin:.35rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none">
+
+      <label style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">🗒️ ¿Qué va a pasar?</label>
+      <textarea id="evQueVaApasar" placeholder="Describe lo que va a ocurrir, paso a paso si quieres…" rows="3" style="width:100%;box-sizing:border-box;margin:.35rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none;resize:vertical"></textarea>
+
+      <label style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">🚌 ¿Cómo llego?</label>
+      <textarea id="evComoLlego" placeholder="Transporte, ruta, tiempo estimado…" rows="2" style="width:100%;box-sizing:border-box;margin:.35rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none;resize:vertical"></textarea>
+
+      <label style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">🎒 ¿Qué llevar?</label>
+      <textarea id="evQueLlevar" placeholder="Lista lo que necesitas llevar…" rows="2" style="width:100%;box-sizing:border-box;margin:.35rem 0 .9rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none;resize:vertical"></textarea>
+
+      <label style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">😰 Posibles situaciones incómodas y cómo manejarlas</label>
+      <textarea id="evSituaciones" placeholder="Ej: Si hay mucha gente → uso audífonos. Si llego tarde → respiro y entro igual…" rows="3" style="width:100%;box-sizing:border-box;margin:.35rem 0 1.1rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.84rem;color:var(--text);outline:none;resize:vertical"></textarea>
+
+      <div style="display:flex;gap:.6rem">
+        <button onclick="eventoGuardar()" style="flex:1;padding:.65rem;border-radius:12px;border:none;background:var(--rosa);color:#fff;font-family:var(--font-body);font-size:.84rem;font-weight:800;cursor:pointer">Guardar evento</button>
+        <button onclick="eventoModalCerrar()" style="padding:.65rem 1rem;border-radius:12px;border:1.5px solid var(--border);background:none;color:var(--muted);font-family:var(--font-body);font-size:.84rem;font-weight:700;cursor:pointer">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── MODO RECUPERACIÓN ── -->
+<section class="rutinas-section" id="sec-recuperacion" style="margin-top:1.5rem;margin-bottom:2rem">
+  <span class="section-sub">🌿 autorregulación</span>
+  <h2 class="section-title"><em>Modo</em> Recuperación</h2>
+  <p style="font-size:.75rem;color:var(--muted);font-weight:600;line-height:1.6;margin-bottom:1rem">Después de un momento difícil, aquí no hay prisa. Solo pasos pequeños 💙</p>
+
+  <!-- Frases suaves -->
+  <div style="background:var(--rosa-soft);border-radius:16px;padding:1rem 1.1rem;margin-bottom:1rem;text-align:center">
+    <p id="recuperFrase" style="font-size:.88rem;font-weight:700;color:var(--text);line-height:1.6;font-style:italic;margin-bottom:.6rem"></p>
+    <button onclick="recuperNuevaFrase()" style="background:none;border:none;color:var(--rosa);font-size:.72rem;font-weight:800;cursor:pointer;font-family:var(--font-body)">otra frase 🌸</button>
+  </div>
+
+  <!-- Pasos pequeños -->
+  <div style="background:var(--card);border-radius:16px;padding:1rem 1.1rem;border:1px solid var(--border);margin-bottom:1rem">
+    <p style="font-size:.72rem;font-weight:800;color:var(--rosa);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.8rem">🐾 Pasos pequeños para volver</p>
+    <div id="recuperPasos" style="display:flex;flex-direction:column;gap:.5rem"></div>
+  </div>
+
+  <!-- Registro de cómo me sentí -->
+  <div style="background:var(--card);border-radius:16px;padding:1rem 1.1rem;border:1px solid var(--border)">
+    <p style="font-size:.72rem;font-weight:800;color:var(--rosa);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.7rem">📓 ¿Cómo fue este momento?</p>
+    <p style="font-size:.72rem;color:var(--muted);font-weight:600;margin-bottom:.5rem">¿Qué lo desencadenó?</p>
+    <textarea id="recuperQue" placeholder="No tienes que saberlo, pero si quieres escribirlo…" rows="2" style="width:100%;box-sizing:border-box;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.82rem;color:var(--text);outline:none;resize:vertical;margin-bottom:.7rem"></textarea>
+    <p style="font-size:.72rem;color:var(--muted);font-weight:600;margin-bottom:.5rem">¿Qué te ayudó a recuperarte?</p>
+    <textarea id="recuperAyudo" placeholder="Ej: música, silencio, llorar, dormir…" rows="2" style="width:100%;box-sizing:border-box;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.6rem .8rem;font-family:var(--font-body);font-size:.82rem;color:var(--text);outline:none;resize:vertical;margin-bottom:.8rem"></textarea>
+    <button onclick="recuperGuardarRegistro()" style="width:100%;padding:.6rem;border-radius:12px;border:none;background:var(--surface);color:var(--rosa);font-family:var(--font-body);font-size:.82rem;font-weight:800;cursor:pointer;border:1.5px solid var(--rosa)">Guardar este registro 💙</button>
+    <div id="recuperGuardadoMsg" style="display:none;text-align:center;font-size:.72rem;color:var(--rosa);font-weight:800;margin-top:.5rem">✓ Guardado con amor 🌸</div>
+  </div>
+</section>
 
 </div><!-- end page-calma -->
 <div id="page-tareas" class="page-section">
@@ -12985,6 +13100,243 @@ function configLoadExperience() {
   document.querySelectorAll('#configNeuroRow .config-option-btn').forEach(function(b) {
     b.classList.toggle('active', b.dataset.val === neuro);
   });
+}
+
+// ── UNA SOLA TAREA ──────────────────────────────────────
+var _utModo = 'escribir';
+var _utTareaActiva = null;
+
+window.utSetModo = function(modo) {
+  _utModo = modo;
+  var btnE = document.getElementById('utModoEscribir');
+  var btnL = document.getElementById('utModoLista');
+  var panE = document.getElementById('utPanelEscribir');
+  var panL = document.getElementById('utPanelLista');
+  if (!btnE) return;
+  if (modo === 'escribir') {
+    btnE.style.background = 'var(--rosa)'; btnE.style.color = '#fff'; btnE.style.borderColor = 'var(--rosa)';
+    btnL.style.background = 'none'; btnL.style.color = 'var(--muted)'; btnL.style.borderColor = 'var(--border)';
+    panE.style.display = ''; panL.style.display = 'none';
+  } else {
+    btnL.style.background = 'var(--rosa)'; btnL.style.color = '#fff'; btnL.style.borderColor = 'var(--rosa)';
+    btnE.style.background = 'none'; btnE.style.color = 'var(--muted)'; btnE.style.borderColor = 'var(--border)';
+    panL.style.display = ''; panE.style.display = 'none';
+    utRenderLista();
+  }
+};
+
+function utRenderLista() {
+  var cont = document.getElementById('utListaTareas');
+  if (!cont) return;
+  var tareas = JSON.parse(localStorage.getItem('tareas_v2') || '[]');
+  var pendientes = tareas.filter(function(t) { return !t.done; });
+  if (pendientes.length === 0) {
+    cont.innerHTML = '<p style="font-size:.78rem;color:var(--muted);text-align:center;padding:.8rem">No tienes tareas pendientes 🌸</p>';
+    return;
+  }
+  cont.innerHTML = pendientes.map(function(t) {
+    return '<button onclick="utIniciarDeLista(\'' + t.id + '\')" style="text-align:left;width:100%;padding:.55rem .8rem;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-family:var(--font-body);font-size:.82rem;font-weight:600;cursor:pointer">' + (t.emoji || '📌') + ' ' + (t.text || t.titulo || '') + '</button>';
+  }).join('');
+}
+
+window.utIniciar = function() {
+  var input = document.getElementById('utInputEscribir');
+  if (!input || !input.value.trim()) return;
+  utMostrarEnfoque(input.value.trim());
+};
+
+window.utIniciarDeLista = function(id) {
+  var tareas = JSON.parse(localStorage.getItem('tareas_v2') || '[]');
+  var t = tareas.find(function(x) { return x.id === id; });
+  if (!t) return;
+  utMostrarEnfoque(t.text || t.titulo || '', id);
+};
+
+function utMostrarEnfoque(texto, id) {
+  _utTareaActiva = { texto: texto, id: id || null };
+  document.getElementById('utTareaActual').textContent = texto;
+  document.getElementById('utPanelEscribir').style.display = 'none';
+  document.getElementById('utPanelLista').style.display = 'none';
+  document.getElementById('utModoEscribir').style.display = 'none';
+  document.getElementById('utModoLista').style.display = 'none';
+  document.getElementById('utPantallaEnfoque').style.display = '';
+}
+
+window.utCompletar = function() {
+  if (_utTareaActiva && _utTareaActiva.id) {
+    var tareas = JSON.parse(localStorage.getItem('tareas_v2') || '[]');
+    tareas = tareas.map(function(t) { return t.id === _utTareaActiva.id ? Object.assign({}, t, {done: true}) : t; });
+    localStorage.setItem('tareas_v2', JSON.stringify(tareas));
+  }
+  if (window.starBurst) starBurst(document.getElementById('utPantallaEnfoque'));
+  utCancelar();
+};
+
+window.utCancelar = function() {
+  _utTareaActiva = null;
+  document.getElementById('utPantallaEnfoque').style.display = 'none';
+  document.getElementById('utModoEscribir').style.display = '';
+  document.getElementById('utModoLista').style.display = '';
+  document.getElementById('utInputEscribir').value = '';
+  utSetModo('escribir');
+};
+
+// ── PREPARACIÓN PARA EVENTOS ─────────────────────────────
+function eventosLoad() { return JSON.parse(localStorage.getItem('eventos_prep') || '[]'); }
+function eventosSave(data) { localStorage.setItem('eventos_prep', JSON.stringify(data)); }
+
+window.eventoNuevoModal = function() {
+  ['evNombre','evQueVaApasar','evComoLlego','evQueLlevar','evSituaciones'].forEach(function(id) {
+    var el = document.getElementById(id); if (el) el.value = '';
+  });
+  var f = document.getElementById('evFecha'); if (f) f.value = '';
+  var m = document.getElementById('eventoModal');
+  if (m) { m.style.display = 'flex'; m._editId = null; }
+};
+
+window.eventoModalCerrar = function() {
+  var m = document.getElementById('eventoModal');
+  if (m) m.style.display = 'none';
+};
+
+window.eventoGuardar = function() {
+  var nombre = (document.getElementById('evNombre').value || '').trim();
+  if (!nombre) return;
+  var evento = {
+    id: Date.now().toString(),
+    nombre: nombre,
+    fecha: document.getElementById('evFecha').value || '',
+    queVaApasar: document.getElementById('evQueVaApasar').value || '',
+    comoLlego: document.getElementById('evComoLlego').value || '',
+    queLlevar: document.getElementById('evQueLlevar').value || '',
+    situaciones: document.getElementById('evSituaciones').value || ''
+  };
+  var m = document.getElementById('eventoModal');
+  var data = eventosLoad();
+  if (m && m._editId) {
+    data = data.map(function(e) { return e.id === m._editId ? Object.assign({}, evento, {id: m._editId}) : e; });
+  } else {
+    data.push(evento);
+  }
+  eventosSave(data);
+  eventoModalCerrar();
+  eventoRender();
+};
+
+window.eventoEliminar = function(id) {
+  eventosSave(eventosLoad().filter(function(e) { return e.id !== id; }));
+  eventoRender();
+};
+
+window.eventoExpandir = function(id) {
+  var det = document.getElementById('evDetalle_' + id);
+  if (det) det.style.display = det.style.display === 'none' ? '' : 'none';
+};
+
+function eventoRender() {
+  var cont = document.getElementById('eventosList');
+  if (!cont) return;
+  var data = eventosLoad();
+  if (data.length === 0) {
+    cont.innerHTML = '<p style="font-size:.78rem;color:var(--muted2);text-align:center;padding:.8rem">Aún no tienes eventos preparados 🌸</p>';
+    return;
+  }
+  data.sort(function(a,b) { return (a.fecha||'').localeCompare(b.fecha||''); });
+  cont.innerHTML = data.map(function(e) {
+    var fechaStr = '';
+    if (e.fecha) { var d = new Date(e.fecha); fechaStr = d.toLocaleDateString('es-MX',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}); }
+    return '<div style="background:var(--card);border-radius:16px;border:1px solid var(--border);overflow:hidden">' +
+      '<div onclick="eventoExpandir(\'' + e.id + '\')" style="padding:.85rem 1rem;cursor:pointer;display:flex;align-items:center;justify-content:space-between">' +
+        '<div>' +
+          '<p style="font-size:.88rem;font-weight:800;color:var(--text);margin-bottom:.2rem">📅 ' + e.nombre + '</p>' +
+          (fechaStr ? '<p style="font-size:.7rem;color:var(--muted);font-weight:600">' + fechaStr + '</p>' : '') +
+        '</div>' +
+        '<span style="color:var(--rosa);font-size:.8rem">▼</span>' +
+      '</div>' +
+      '<div id="evDetalle_' + e.id + '" style="display:none;padding:.3rem 1rem 1rem;border-top:1px solid var(--border)">' +
+        (e.queVaApasar ? '<p style="font-size:.72rem;font-weight:800;color:var(--rosa);margin:.6rem 0 .2rem">🗒️ ¿Qué va a pasar?</p><p style="font-size:.78rem;color:var(--muted);font-weight:600;line-height:1.6;white-space:pre-wrap">' + e.queVaApasar + '</p>' : '') +
+        (e.comoLlego ? '<p style="font-size:.72rem;font-weight:800;color:var(--rosa);margin:.6rem 0 .2rem">🚌 ¿Cómo llego?</p><p style="font-size:.78rem;color:var(--muted);font-weight:600;line-height:1.6;white-space:pre-wrap">' + e.comoLlego + '</p>' : '') +
+        (e.queLlevar ? '<p style="font-size:.72rem;font-weight:800;color:var(--rosa);margin:.6rem 0 .2rem">🎒 ¿Qué llevar?</p><p style="font-size:.78rem;color:var(--muted);font-weight:600;line-height:1.6;white-space:pre-wrap">' + e.queLlevar + '</p>' : '') +
+        (e.situaciones ? '<p style="font-size:.72rem;font-weight:800;color:var(--rosa);margin:.6rem 0 .2rem">😰 Situaciones incómodas</p><p style="font-size:.78rem;color:var(--muted);font-weight:600;line-height:1.6;white-space:pre-wrap">' + e.situaciones + '</p>' : '') +
+        '<button onclick="eventoEliminar(\'' + e.id + '\')" style="margin-top:.8rem;padding:.4rem .8rem;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted2);font-family:var(--font-body);font-size:.7rem;font-weight:700;cursor:pointer">🗑️ Eliminar</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ── MODO RECUPERACIÓN ────────────────────────────────────
+var RECUPER_FRASES = [
+  'No tienes que estar bien todavía. Estás a salvo aquí. 💙',
+  'Tu sistema nervioso hizo lo que pudo. Eso es suficiente.',
+  'Recuperarse no es lineal. Este momento también cuenta.',
+  'Mereces descanso sin tener que ganártelo primero.',
+  'No hay prisa. El mundo puede esperar un momento.',
+  'Eres más fuerte de lo que crees, incluso cuando no lo sientes.',
+  'Este momento difícil va a pasar. Ya pasaron otros.',
+  'Tu cuerpo y tu mente trabajaron mucho. Dales tiempo.',
+  'No tienes que explicarle a nadie lo que sientes. Solo sentirlo.',
+  'Pequeños pasos. No tienes que hacer todo hoy. 🌸'
+];
+
+var RECUPER_PASOS = [
+  { emoji: '💧', texto: 'Tomar un vaso de agua' },
+  { emoji: '🫁', texto: 'Tres respiraciones lentas' },
+  { emoji: '🛋️', texto: 'Cambiar de posición o lugar' },
+  { emoji: '🧦', texto: 'Ponerte algo cómodo' },
+  { emoji: '🔕', texto: 'Silenciar notificaciones' },
+  { emoji: '🌡️', texto: 'Chequear si tienes frío, calor o hambre' },
+  { emoji: '📱', texto: 'Una cosa pequeña solo para ti' }
+];
+
+var _recuperFraseIdx = 0;
+
+window.recuperNuevaFrase = function() {
+  _recuperFraseIdx = (_recuperFraseIdx + 1) % RECUPER_FRASES.length;
+  var el = document.getElementById('recuperFrase');
+  if (el) el.textContent = RECUPER_FRASES[_recuperFraseIdx];
+};
+
+function recuperRenderPasos() {
+  var cont = document.getElementById('recuperPasos');
+  if (!cont) return;
+  var hecho = JSON.parse(sessionStorage.getItem('recuper_pasos') || '[]');
+  cont.innerHTML = RECUPER_PASOS.map(function(p, i) {
+    var done = hecho.indexOf(i) > -1;
+    return '<div onclick="recuperTogglePaso(' + i + ')" style="display:flex;align-items:center;gap:.7rem;padding:.5rem .7rem;border-radius:10px;background:' + (done ? 'var(--rosa-soft)' : 'var(--surface)') + ';cursor:pointer;transition:background .2s">' +
+      '<span style="font-size:1.1rem">' + p.emoji + '</span>' +
+      '<span style="font-size:.8rem;font-weight:600;color:' + (done ? 'var(--rosa)' : 'var(--text)') + ';text-decoration:' + (done ? 'line-through' : 'none') + '">' + p.texto + '</span>' +
+      (done ? '<span style="margin-left:auto;color:var(--rosa);font-size:.8rem">✓</span>' : '') +
+    '</div>';
+  }).join('');
+}
+
+window.recuperTogglePaso = function(i) {
+  var hecho = JSON.parse(sessionStorage.getItem('recuper_pasos') || '[]');
+  var idx = hecho.indexOf(i);
+  if (idx > -1) hecho.splice(idx, 1); else hecho.push(i);
+  sessionStorage.setItem('recuper_pasos', JSON.stringify(hecho));
+  recuperRenderPasos();
+};
+
+window.recuperGuardarRegistro = function() {
+  var que = (document.getElementById('recuperQue').value || '').trim();
+  var ayudo = (document.getElementById('recuperAyudo').value || '').trim();
+  if (!que && !ayudo) return;
+  var key = new Date().toISOString().slice(0,10);
+  var data = JSON.parse(localStorage.getItem('recuper_registros') || '{}');
+  if (!data[key]) data[key] = [];
+  data[key].push({ ts: Date.now(), que: que, ayudo: ayudo });
+  localStorage.setItem('recuper_registros', JSON.stringify(data));
+  document.getElementById('recuperQue').value = '';
+  document.getElementById('recuperAyudo').value = '';
+  var msg = document.getElementById('recuperGuardadoMsg');
+  if (msg) { msg.style.display = ''; setTimeout(function(){ msg.style.display = 'none'; }, 2500); }
+};
+
+function recuperInit() {
+  var el = document.getElementById('recuperFrase');
+  if (el) el.textContent = RECUPER_FRASES[Math.floor(Math.random() * RECUPER_FRASES.length)];
+  recuperRenderPasos();
 }
 
 window.toggleSueno = function() {
