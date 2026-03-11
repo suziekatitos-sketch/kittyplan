@@ -4655,6 +4655,17 @@ window.kittyConfirm = function(msg, onYes, onNo) {
   .drawer-item-icon { font-size: 1.2rem; line-height: 1; }
   .drawer-item-label { letter-spacing: .02em; }
 
+  #drawerNav {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 1rem;
+  }
+  #drawerNav::-webkit-scrollbar { width: 3px; }
+  #drawerNav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+  #drawerNav::-webkit-scrollbar-track { background: transparent; }
+
   /* ── PAGE SWITCHING ── */
   .page-section { display: none; }
   .page-section.active { display: block; }
@@ -6112,7 +6123,7 @@ function openRutinaSessionModal(templateId, dk) {
   const titleEl = document.createElement('div');
   titleEl.className = 'rutina-modal-title';
   titleEl.style.paddingRight = '2.5rem';
-  titleEl.innerHTML = tpl.emoji + ' <em>' + tpl.name + '</em>';
+  titleEl.innerHTML = (tpl.emoji || '📸') + ' <em>' + tpl.name + '</em>';
 
   // Build franjas with checkboxes
   const bodyEl = document.createElement('div');
@@ -6313,13 +6324,43 @@ function openRutinaViewModal(templateId) {
   editBtn.onclick = () => { backdrop.remove(); openRutinaModal(templateId); };
 
   const inner = document.createElement('div');
-  inner.innerHTML = '<div class="rutina-modal-title" style="padding-right:2.5rem">' + tpl.emoji + ' <em>' + tpl.name + '</em></div>'
-    + '<div style="margin-top:.6rem">' + (pasosHtml || '<div style="color:var(--muted2);font-size:.8rem">Sin pasos registrados aún.</div>') + '</div>'
+  // Para rutinas de foto: mostrar imagen + casilla en vez de pasos
+  var viewBodyHtml;
+  if (tpl.tipo === 'foto' && tpl.foto) {
+    var fotoCKeyV = tpl.id + '|' + dk + '|foto';
+    var fotoDoneV = !!rutinaCompletions[fotoCKeyV];
+    viewBodyHtml = '<div style="text-align:center;margin-bottom:.8rem">'
+      + '<img src="' + tpl.foto + '" style="max-width:100%;max-height:240px;border-radius:12px;border:1.5px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.08);" onerror="this.style.display=&quot;none&quot;">'
+      + '</div>'
+      + '<div id="rutViewCheckRow" style="display:flex;align-items:center;gap:.7rem;padding:.8rem 1rem;border-radius:12px;background:var(--bg);border:2px solid ' + (fotoDoneV ? 'var(--verde)' : 'var(--border)') + ';cursor:pointer;transition:all .2s;font-size:.95rem;font-weight:700;">'
+      + '<span id="rutViewChk" style="width:26px;height:26px;min-width:26px;border-radius:50%;border:2px solid ' + (fotoDoneV ? 'var(--verde)' : 'var(--muted2)') + ';display:flex;align-items:center;justify-content:center;font-size:.8rem;background:' + (fotoDoneV ? 'var(--verde)' : 'transparent') + ';color:white;flex-shrink:0;transition:all .2s;">' + (fotoDoneV ? '✓' : '') + '</span>'
+      + '<span id="rutViewLbl" style="color:var(--text);' + (fotoDoneV ? 'text-decoration:line-through;opacity:.6;' : '') + '">' + (fotoDoneV ? '¡Rutina completada hoy! 🎉' : '✅ Marcar como hecha hoy') + '</span>'
+      + '</div>';
+  } else {
+    viewBodyHtml = pasosHtml || '<div style="color:var(--muted2);font-size:.8rem">Sin pasos registrados aún.</div>';
+  }
+
+  inner.innerHTML = '<div class="rutina-modal-title" style="padding-right:2.5rem">' + (tpl.emoji || '📸') + ' <em>' + tpl.name + '</em></div>'
+    + '<div style="margin-top:.6rem">' + viewBodyHtml + '</div>'
     + '<div class="modal-btns" style="margin-top:1rem"><button class="modal-btn-cancel" id="rutViewCloseBtn">Cerrar</button></div>';
 
   box.appendChild(editBtn);
   box.appendChild(inner);
   inner.querySelector('#rutViewCloseBtn').onclick = () => backdrop.remove();
+
+  // Si es rutina de foto, conectar el click de la casilla
+  if (tpl.tipo === 'foto' && tpl.foto) {
+    var checkRowEl = inner.querySelector('#rutViewCheckRow');
+    if (checkRowEl) {
+      checkRowEl.onclick = function() {
+        var fotoCKeyV2 = tpl.id + '|' + dk + '|foto';
+        rutinaCompletions[fotoCKeyV2] = !rutinaCompletions[fotoCKeyV2];
+        saveRutinas();
+        renderRutinas();
+        backdrop.remove();
+      };
+    }
+  }
 
   backdrop.appendChild(box);
   document.body.appendChild(backdrop);
@@ -6509,10 +6550,12 @@ function openRutinaModal(templateId, tipo) {
         existing.name = nombre;
         existing.foto = fotoUrl;
         existing.tipo = 'foto';
+        existing.emoji = '📸';
       } else {
         rutinaTemplates.push({
           id:   'rut_' + Date.now(),
           name: nombre,
+          emoji: '📸',
           foto: fotoUrl,
           tipo: 'foto',
           pasos: { m:[], t:[], n:[] }
@@ -9185,11 +9228,13 @@ window.syncFromCloud = function() {
   if (typeof renderCuida      === 'function') { loadCuida();      renderCuida();      }
   if (typeof renderTimeline   === 'function') { renderTimeline();                     }
   if (typeof loadGratitud === 'function') {
-    loadGratitud();
-    // Only re-render if user is not typing in a gratitud input
+    // Solo recargar si no está escribiendo en un input de gratitud
     var activeEl = document.activeElement;
     var isTypingGratitud = activeEl && activeEl.classList.contains('gratitud-input');
-    if (!isTypingGratitud) renderGratitud();
+    if (!isTypingGratitud) {
+      loadGratitud();
+      renderGratitud();
+    }
   }
   if (typeof loadSueno        === 'function') { loadSueno();      renderSueno();      }
   if (typeof loadMens         === 'function') { loadMens();       renderMens();       }
@@ -11624,6 +11669,7 @@ document.addEventListener('DOMContentLoaded', function() {
     padding: .1rem 0;
     transition: border-color .2s;
     resize: none;
+    overflow: hidden;
     line-height: 1.3;
   }
   .gratitud-input:focus { border-color: var(--rosa); }
@@ -12091,11 +12137,43 @@ function renderMens() {
 // Patch cloud sync
 const _origSyncS = window.syncFromCloud;
 window.syncFromCloud = function() {
-  if (window._gratitudData) gratitudData = window._gratitudData;
-  if (window._suenoData)    suenoData    = window._suenoData;
-  if (window._mensData)     mensData     = window._mensData;
+  // Merge incoming cloud data con cambios locales no guardados aún
+  if (window._gratitudData) {
+    // Solo actualizar días que NO tengan un input activo en este momento
+    var activeEl = document.activeElement;
+    var isTypingGratitud = activeEl && activeEl.classList.contains('gratitud-input');
+    if (!isTypingGratitud) {
+      // Safe to overwrite — no está escribiendo
+      gratitudData = window._gratitudData;
+    } else {
+      // Está escribiendo: merge por fecha, preservando el día activo
+      var incoming = window._gratitudData;
+      Object.keys(incoming).forEach(function(dk) {
+        // Solo actualizar fechas que no sean hoy si está activa
+        var todayDk = dateKey(new Date());
+        if (dk !== todayDk) {
+          gratitudData[dk] = incoming[dk];
+        }
+        // Para hoy: solo actualizar si el valor local está vacío
+        else {
+          incoming[dk].forEach(function(val, i) {
+            if (!gratitudData[dk] || !gratitudData[dk][i]) {
+              if (!gratitudData[dk]) gratitudData[dk] = ['','',''];
+              gratitudData[dk][i] = val;
+            }
+          });
+        }
+      });
+    }
+  }
+  if (window._suenoData) suenoData = window._suenoData;
+  if (window._mensData)  mensData  = window._mensData;
   if (_origSyncS) _origSyncS();
-  renderGratitud(); renderSueno(); renderMens();
+  // Solo re-renderizar gratitud si no está escribiendo
+  var activeEl2 = document.activeElement;
+  var isTyping2 = activeEl2 && activeEl2.classList.contains('gratitud-input');
+  if (!isTyping2) renderGratitud();
+  renderSueno(); renderMens();
 };
 
 loadGratitud(); renderGratitud();
@@ -15751,6 +15829,19 @@ document.addEventListener('DOMContentLoaded', function() {
         if(hayTitulo||hayContenido){
           results.push({ seccion:'journal', icon:'📓', title:titulo||'Entrada de journal', snippet:hayContenido?snippet(contenido,q):'', page:'page-journal' });
         }
+      });
+    } catch(e){}
+
+    // ── AGRADECIMIENTOS (gratitud_data)
+    try {
+      var gratData = JSON.parse(localStorage.getItem('gratitud_data')||'{}');
+      Object.keys(gratData).forEach(function(dk){
+        var arr = gratData[dk]||[];
+        arr.forEach(function(texto, i){
+          if(texto && texto.toLowerCase().indexOf(ql)>=0){
+            results.push({ seccion:'journal', icon:'🙏', title:'Agradecimiento '+dk, snippet:snippet(texto,q,100), page:'page-journal' });
+          }
+        });
       });
     } catch(e){}
 
