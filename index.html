@@ -6408,7 +6408,7 @@ function openRutinaModal(templateId, tipo) {
   }
 
   // Save
-  backdrop.querySelector('#rutSaveBtn').onclick = () => {
+  box.querySelector('#rutSaveBtn').onclick = () => {
     const nombre = backdrop.querySelector('#rutNombre').value.trim();
     if (!nombre) { backdrop.querySelector('#rutNombre').focus(); return; }
 
